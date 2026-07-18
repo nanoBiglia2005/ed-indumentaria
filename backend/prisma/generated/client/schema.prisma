@@ -68,6 +68,8 @@ model CLIENTES {
   nombre               String                 @db.VarChar(80)
   id_cliente           Int                    @id(map: "_clientes__pk") @default(autoincrement())
   id_grupo             Int?
+  email                String?                @db.VarChar(30)
+  telefono             String?                @db.VarChar(14)
   ARTICULOS_X_CLIENTES ARTICULOS_X_CLIENTES[]
   GRUPOS_DE_CLIENTES   GRUPOS_DE_CLIENTES?    @relation(fields: [id_grupo], references: [id_grupo_cliente], map: "clientes_grupos_de_clientes_fk")
   REMITOS              REMITOS[]

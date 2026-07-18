@@ -84,16 +84,10 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
       setIsLoading(true);
       setError(null);
 
-      if (!barcodeAuto && !barcode.trim()) {
-        setError('El código de barra es obligatorio en modo manual');
-        setIsLoading(false);
-        return;
-      }
-
       const payload = {
         cant: cantidad || 0,
         precio: precio || 0,
-        barcode: barcodeAuto ? null : (barcode ? parseInt(barcode, 10) : null),
+        barcode: barcodeAuto ? -1 : (!barcode.trim() ? null : parseInt(barcode,10)),
         id_talle: idTalle,
         stock_minimo: 0,
 
@@ -287,7 +281,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                         type='text'
                         value={barcode}
                         onChange={handleBarcodeChange}
-                        placeholder={barcodeAuto ? 'Se generará automáticamente' : 'Ingrese el código'}
+                        placeholder={barcodeAuto ? 'Se generará automáticamente' : 'Sin Código de Barra'}
                         disabled={barcodeAuto}
                         className={`w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
                           barcodeAuto ? 'bg-gray-200 cursor-not-allowed text-gray-500' : ''
@@ -439,7 +433,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       <div className='flex justify-between'>
                         <span className='text-sm font-medium text-gray-700'>Código de Barra:</span>
                         <span className='text-sm text-gray-900 font-semibold'>
-                          77900000{articuloCreado.barcode}
+                          {articuloCreado.barcode ? '77900000'+articuloCreado.barcode : 'No Asignado'}
                         </span>
                       </div>
                       <div className='flex justify-between'>

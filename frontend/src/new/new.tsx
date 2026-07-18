@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { ArticuloConRelaciones } from '../../backend/types';
+import type { ArticuloConRelaciones } from '../../../backend/types';
 import type {
   GRUPOS_DE_ARTICULOS,
   CLIENTES,
   ARTICULOS_X_GRUPO,
   ARTICULOS_X_CLIENTES,
-} from '../../backend/generated/prisma/client';
-import CreateArticleModal from './CreateArticleModal';
-import SelectListModal from './SelectListModal';
-import Sidebar from './Sidebar';
+} from '../../../backend/generated/prisma/client';
+import CreateArticleModal from '../CreateArticleModal';
+import SelectListModal from '../SelectListModal';
+import Sidebar from '../Sidebar';
 
 type Opcion = { id: number; nombre: string };
 
@@ -68,7 +68,7 @@ function FilterDropdown({
   );
 }
 
-function App() {
+function New() {
   const [datosBackend, setDatosBackend] = useState<ArticuloConRelaciones[]>([]);
 
   const [grupos, setGrupos] = useState<GRUPOS_DE_ARTICULOS[]>([]);
@@ -235,21 +235,29 @@ function App() {
             />
           </div>
         </div>
-        <div className='w-[800px] max-h-[510px] overflow-y-auto border rounded-xl border-black/30 divide-y-1 divide-black/30'>
-          <div className='grid grid-cols-14 sticky top-0 z-10 bg-stone-100 gap-x-3 ps-3 text-[15px] font-medium text-black divide-x-1 divide-black/30'>
+        <div className='w-[1200px] max-h-[510px] overflow-y-auto border rounded-xl border-black/30 divide-y-1 divide-black/30'>
+          <div className='grid grid-cols-26 sticky top-0 z-10 bg-stone-100 gap-x-3 ps-3 text-[15px] font-medium text-black divide-x-1 divide-black/30'>
+            <span className='py-2 col-span-2'>Vigente</span>
             <span className='py-2 col-span-3'>Código de Barra</span>
-            <span className='py-2 col-span-3'>Cantidad</span>
+            <span className='py-2 col-span-2'>Cantidad</span>
+            <span className='py-2 col-span-4'>Cantidad Reservada</span>
+            <span className='py-2 col-span-4'>Cantidad Minima</span>
             <span className='py-2 col-span-3'>Precio</span>
             <span className='py-2 col-span-3'>Talle</span>
+            <span className='py-2 col-span-3'>Color</span>
             <span className='py-2 col-span-2'>Fecha</span>
           </div>
           <ul className='w-full flex flex-col justify-center divide-y-1 divide-black/30'>
             {articulosFiltrados.map((item) => (
-              <li key={item.id_articulo} className='grid grid-cols-14 gap-x-3 divide-x-1 divide-black/30 ps-3 text-black text-sm hover:bg-blue-100 transition-color duration-100 ease-in'>
+              <li key={item.id_articulo} className='grid grid-cols-26 gap-x-3 divide-x-1 divide-black/30 ps-3 text-black text-sm hover:bg-blue-100 transition-color duration-100 ease-in'>
+                <p className={`py-3 col-span-2 ${item.vigente ? 'text-green-500' : 'text-red-500'}`}>{item.vigente ? 'Vigente' : 'No Vigente'}</p>
                 <p className='py-3 col-span-3'>{item.barcode ? '77900000'+item.barcode : 'No Asignado'}</p>
-                <p className='py-3 col-span-3'>{item.cant}</p>
-                <p className='py-3 col-span-3'>{item.precio}</p>
+                <p className='py-3 col-span-2'>{item.cant}</p>
+                <p className='py-3 col-span-4'>{item.cant_reservada}</p>
+                <p className='py-3 col-span-4'>{item.stock_minimo}</p>
+                <p className='py-3 col-span-3'>{item.precio}$</p>
                 <p className='py-3 col-span-3'>{item.TALLES?.nombre_talle}</p>
+                <p className='py-3 col-span-3'>{item.COLORES?.nombre_color}</p>
                 <p className='py-3 col-span-2'>{getFecha(item.fecha_creacion)}</p>
               </li>
             ))}
@@ -271,4 +279,4 @@ function App() {
   );
 }
 
-export default App;
+export default New;

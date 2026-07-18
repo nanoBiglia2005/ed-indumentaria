@@ -6722,18 +6722,24 @@ export namespace Prisma {
     nombre: string | null
     id_cliente: number | null
     id_grupo: number | null
+    email: string | null
+    telefono: string | null
   }
 
   export type CLIENTESMaxAggregateOutputType = {
     nombre: string | null
     id_cliente: number | null
     id_grupo: number | null
+    email: string | null
+    telefono: string | null
   }
 
   export type CLIENTESCountAggregateOutputType = {
     nombre: number
     id_cliente: number
     id_grupo: number
+    email: number
+    telefono: number
     _all: number
   }
 
@@ -6752,18 +6758,24 @@ export namespace Prisma {
     nombre?: true
     id_cliente?: true
     id_grupo?: true
+    email?: true
+    telefono?: true
   }
 
   export type CLIENTESMaxAggregateInputType = {
     nombre?: true
     id_cliente?: true
     id_grupo?: true
+    email?: true
+    telefono?: true
   }
 
   export type CLIENTESCountAggregateInputType = {
     nombre?: true
     id_cliente?: true
     id_grupo?: true
+    email?: true
+    telefono?: true
     _all?: true
   }
 
@@ -6857,6 +6869,8 @@ export namespace Prisma {
     nombre: string
     id_cliente: number
     id_grupo: number | null
+    email: string | null
+    telefono: string | null
     _count: CLIENTESCountAggregateOutputType | null
     _avg: CLIENTESAvgAggregateOutputType | null
     _sum: CLIENTESSumAggregateOutputType | null
@@ -6882,6 +6896,8 @@ export namespace Prisma {
     nombre?: boolean
     id_cliente?: boolean
     id_grupo?: boolean
+    email?: boolean
+    telefono?: boolean
     ARTICULOS_X_CLIENTES?: boolean | CLIENTES$ARTICULOS_X_CLIENTESArgs<ExtArgs>
     GRUPOS_DE_CLIENTES?: boolean | CLIENTES$GRUPOS_DE_CLIENTESArgs<ExtArgs>
     REMITOS?: boolean | CLIENTES$REMITOSArgs<ExtArgs>
@@ -6892,6 +6908,8 @@ export namespace Prisma {
     nombre?: boolean
     id_cliente?: boolean
     id_grupo?: boolean
+    email?: boolean
+    telefono?: boolean
     GRUPOS_DE_CLIENTES?: boolean | CLIENTES$GRUPOS_DE_CLIENTESArgs<ExtArgs>
   }, ExtArgs["result"]["cLIENTES"]>
 
@@ -6899,6 +6917,8 @@ export namespace Prisma {
     nombre?: boolean
     id_cliente?: boolean
     id_grupo?: boolean
+    email?: boolean
+    telefono?: boolean
     GRUPOS_DE_CLIENTES?: boolean | CLIENTES$GRUPOS_DE_CLIENTESArgs<ExtArgs>
   }, ExtArgs["result"]["cLIENTES"]>
 
@@ -6906,9 +6926,11 @@ export namespace Prisma {
     nombre?: boolean
     id_cliente?: boolean
     id_grupo?: boolean
+    email?: boolean
+    telefono?: boolean
   }
 
-  export type CLIENTESOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"nombre" | "id_cliente" | "id_grupo", ExtArgs["result"]["cLIENTES"]>
+  export type CLIENTESOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"nombre" | "id_cliente" | "id_grupo" | "email" | "telefono", ExtArgs["result"]["cLIENTES"]>
   export type CLIENTESInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     ARTICULOS_X_CLIENTES?: boolean | CLIENTES$ARTICULOS_X_CLIENTESArgs<ExtArgs>
     GRUPOS_DE_CLIENTES?: boolean | CLIENTES$GRUPOS_DE_CLIENTESArgs<ExtArgs>
@@ -6933,6 +6955,8 @@ export namespace Prisma {
       nombre: string
       id_cliente: number
       id_grupo: number | null
+      email: string | null
+      telefono: string | null
     }, ExtArgs["result"]["cLIENTES"]>
     composites: {}
   }
@@ -7362,6 +7386,8 @@ export namespace Prisma {
     readonly nombre: FieldRef<"CLIENTES", 'String'>
     readonly id_cliente: FieldRef<"CLIENTES", 'Int'>
     readonly id_grupo: FieldRef<"CLIENTES", 'Int'>
+    readonly email: FieldRef<"CLIENTES", 'String'>
+    readonly telefono: FieldRef<"CLIENTES", 'String'>
   }
     
 
@@ -26028,7 +26054,9 @@ export namespace Prisma {
   export const CLIENTESScalarFieldEnum: {
     nombre: 'nombre',
     id_cliente: 'id_cliente',
-    id_grupo: 'id_grupo'
+    id_grupo: 'id_grupo',
+    email: 'email',
+    telefono: 'telefono'
   };
 
   export type CLIENTESScalarFieldEnum = (typeof CLIENTESScalarFieldEnum)[keyof typeof CLIENTESScalarFieldEnum]
@@ -26553,6 +26581,8 @@ export namespace Prisma {
     nombre?: StringFilter<"CLIENTES"> | string
     id_cliente?: IntFilter<"CLIENTES"> | number
     id_grupo?: IntNullableFilter<"CLIENTES"> | number | null
+    email?: StringNullableFilter<"CLIENTES"> | string | null
+    telefono?: StringNullableFilter<"CLIENTES"> | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESListRelationFilter
     GRUPOS_DE_CLIENTES?: XOR<GRUPOS_DE_CLIENTESNullableScalarRelationFilter, GRUPOS_DE_CLIENTESWhereInput> | null
     REMITOS?: REMITOSListRelationFilter
@@ -26562,6 +26592,8 @@ export namespace Prisma {
     nombre?: SortOrder
     id_cliente?: SortOrder
     id_grupo?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    telefono?: SortOrderInput | SortOrder
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESOrderByRelationAggregateInput
     GRUPOS_DE_CLIENTES?: GRUPOS_DE_CLIENTESOrderByWithRelationInput
     REMITOS?: REMITOSOrderByRelationAggregateInput
@@ -26574,6 +26606,8 @@ export namespace Prisma {
     NOT?: CLIENTESWhereInput | CLIENTESWhereInput[]
     nombre?: StringFilter<"CLIENTES"> | string
     id_grupo?: IntNullableFilter<"CLIENTES"> | number | null
+    email?: StringNullableFilter<"CLIENTES"> | string | null
+    telefono?: StringNullableFilter<"CLIENTES"> | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESListRelationFilter
     GRUPOS_DE_CLIENTES?: XOR<GRUPOS_DE_CLIENTESNullableScalarRelationFilter, GRUPOS_DE_CLIENTESWhereInput> | null
     REMITOS?: REMITOSListRelationFilter
@@ -26583,6 +26617,8 @@ export namespace Prisma {
     nombre?: SortOrder
     id_cliente?: SortOrder
     id_grupo?: SortOrderInput | SortOrder
+    email?: SortOrderInput | SortOrder
+    telefono?: SortOrderInput | SortOrder
     _count?: CLIENTESCountOrderByAggregateInput
     _avg?: CLIENTESAvgOrderByAggregateInput
     _max?: CLIENTESMaxOrderByAggregateInput
@@ -26597,6 +26633,8 @@ export namespace Prisma {
     nombre?: StringWithAggregatesFilter<"CLIENTES"> | string
     id_cliente?: IntWithAggregatesFilter<"CLIENTES"> | number
     id_grupo?: IntNullableWithAggregatesFilter<"CLIENTES"> | number | null
+    email?: StringNullableWithAggregatesFilter<"CLIENTES"> | string | null
+    telefono?: StringNullableWithAggregatesFilter<"CLIENTES"> | string | null
   }
 
   export type COLORESWhereInput = {
@@ -27756,6 +27794,8 @@ export namespace Prisma {
 
   export type CLIENTESCreateInput = {
     nombre: string
+    email?: string | null
+    telefono?: string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESCreateNestedManyWithoutCLIENTESInput
     GRUPOS_DE_CLIENTES?: GRUPOS_DE_CLIENTESCreateNestedOneWithoutCLIENTESInput
     REMITOS?: REMITOSCreateNestedManyWithoutCLIENTESInput
@@ -27765,12 +27805,16 @@ export namespace Prisma {
     nombre: string
     id_cliente?: number
     id_grupo?: number | null
+    email?: string | null
+    telefono?: string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutCLIENTESInput
     REMITOS?: REMITOSUncheckedCreateNestedManyWithoutCLIENTESInput
   }
 
   export type CLIENTESUpdateInput = {
     nombre?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutCLIENTESNestedInput
     GRUPOS_DE_CLIENTES?: GRUPOS_DE_CLIENTESUpdateOneWithoutCLIENTESNestedInput
     REMITOS?: REMITOSUpdateManyWithoutCLIENTESNestedInput
@@ -27780,6 +27824,8 @@ export namespace Prisma {
     nombre?: StringFieldUpdateOperationsInput | string
     id_cliente?: IntFieldUpdateOperationsInput | number
     id_grupo?: NullableIntFieldUpdateOperationsInput | number | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutCLIENTESNestedInput
     REMITOS?: REMITOSUncheckedUpdateManyWithoutCLIENTESNestedInput
   }
@@ -27788,16 +27834,22 @@ export namespace Prisma {
     nombre: string
     id_cliente?: number
     id_grupo?: number | null
+    email?: string | null
+    telefono?: string | null
   }
 
   export type CLIENTESUpdateManyMutationInput = {
     nombre?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type CLIENTESUncheckedUpdateManyInput = {
     nombre?: StringFieldUpdateOperationsInput | string
     id_cliente?: IntFieldUpdateOperationsInput | number
     id_grupo?: NullableIntFieldUpdateOperationsInput | number | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type COLORESCreateInput = {
@@ -29120,6 +29172,8 @@ export namespace Prisma {
     nombre?: SortOrder
     id_cliente?: SortOrder
     id_grupo?: SortOrder
+    email?: SortOrder
+    telefono?: SortOrder
   }
 
   export type CLIENTESAvgOrderByAggregateInput = {
@@ -29131,12 +29185,16 @@ export namespace Prisma {
     nombre?: SortOrder
     id_cliente?: SortOrder
     id_grupo?: SortOrder
+    email?: SortOrder
+    telefono?: SortOrder
   }
 
   export type CLIENTESMinOrderByAggregateInput = {
     nombre?: SortOrder
     id_cliente?: SortOrder
     id_grupo?: SortOrder
+    email?: SortOrder
+    telefono?: SortOrder
   }
 
   export type CLIENTESSumOrderByAggregateInput = {
@@ -31797,6 +31855,8 @@ export namespace Prisma {
 
   export type CLIENTESCreateWithoutARTICULOS_X_CLIENTESInput = {
     nombre: string
+    email?: string | null
+    telefono?: string | null
     GRUPOS_DE_CLIENTES?: GRUPOS_DE_CLIENTESCreateNestedOneWithoutCLIENTESInput
     REMITOS?: REMITOSCreateNestedManyWithoutCLIENTESInput
   }
@@ -31805,6 +31865,8 @@ export namespace Prisma {
     nombre: string
     id_cliente?: number
     id_grupo?: number | null
+    email?: string | null
+    telefono?: string | null
     REMITOS?: REMITOSUncheckedCreateNestedManyWithoutCLIENTESInput
   }
 
@@ -31866,6 +31928,8 @@ export namespace Prisma {
 
   export type CLIENTESUpdateWithoutARTICULOS_X_CLIENTESInput = {
     nombre?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     GRUPOS_DE_CLIENTES?: GRUPOS_DE_CLIENTESUpdateOneWithoutCLIENTESNestedInput
     REMITOS?: REMITOSUpdateManyWithoutCLIENTESNestedInput
   }
@@ -31874,6 +31938,8 @@ export namespace Prisma {
     nombre?: StringFieldUpdateOperationsInput | string
     id_cliente?: IntFieldUpdateOperationsInput | number
     id_grupo?: NullableIntFieldUpdateOperationsInput | number | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     REMITOS?: REMITOSUncheckedUpdateManyWithoutCLIENTESNestedInput
   }
 
@@ -32476,6 +32542,8 @@ export namespace Prisma {
 
   export type CLIENTESCreateWithoutGRUPOS_DE_CLIENTESInput = {
     nombre: string
+    email?: string | null
+    telefono?: string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESCreateNestedManyWithoutCLIENTESInput
     REMITOS?: REMITOSCreateNestedManyWithoutCLIENTESInput
   }
@@ -32483,6 +32551,8 @@ export namespace Prisma {
   export type CLIENTESUncheckedCreateWithoutGRUPOS_DE_CLIENTESInput = {
     nombre: string
     id_cliente?: number
+    email?: string | null
+    telefono?: string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutCLIENTESInput
     REMITOS?: REMITOSUncheckedCreateNestedManyWithoutCLIENTESInput
   }
@@ -32520,6 +32590,8 @@ export namespace Prisma {
     nombre?: StringFilter<"CLIENTES"> | string
     id_cliente?: IntFilter<"CLIENTES"> | number
     id_grupo?: IntNullableFilter<"CLIENTES"> | number | null
+    email?: StringNullableFilter<"CLIENTES"> | string | null
+    telefono?: StringNullableFilter<"CLIENTES"> | string | null
   }
 
   export type REMITOSCreateWithoutMONEDAInput = {
@@ -32873,6 +32945,8 @@ export namespace Prisma {
 
   export type CLIENTESCreateWithoutREMITOSInput = {
     nombre: string
+    email?: string | null
+    telefono?: string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESCreateNestedManyWithoutCLIENTESInput
     GRUPOS_DE_CLIENTES?: GRUPOS_DE_CLIENTESCreateNestedOneWithoutCLIENTESInput
   }
@@ -32881,6 +32955,8 @@ export namespace Prisma {
     nombre: string
     id_cliente?: number
     id_grupo?: number | null
+    email?: string | null
+    telefono?: string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutCLIENTESInput
   }
 
@@ -32988,6 +33064,8 @@ export namespace Prisma {
 
   export type CLIENTESUpdateWithoutREMITOSInput = {
     nombre?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutCLIENTESNestedInput
     GRUPOS_DE_CLIENTES?: GRUPOS_DE_CLIENTESUpdateOneWithoutCLIENTESNestedInput
   }
@@ -32996,6 +33074,8 @@ export namespace Prisma {
     nombre?: StringFieldUpdateOperationsInput | string
     id_cliente?: IntFieldUpdateOperationsInput | number
     id_grupo?: NullableIntFieldUpdateOperationsInput | number | null
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutCLIENTESNestedInput
   }
 
@@ -33800,10 +33880,14 @@ export namespace Prisma {
   export type CLIENTESCreateManyGRUPOS_DE_CLIENTESInput = {
     nombre: string
     id_cliente?: number
+    email?: string | null
+    telefono?: string | null
   }
 
   export type CLIENTESUpdateWithoutGRUPOS_DE_CLIENTESInput = {
     nombre?: StringFieldUpdateOperationsInput | string
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutCLIENTESNestedInput
     REMITOS?: REMITOSUpdateManyWithoutCLIENTESNestedInput
   }
@@ -33811,6 +33895,8 @@ export namespace Prisma {
   export type CLIENTESUncheckedUpdateWithoutGRUPOS_DE_CLIENTESInput = {
     nombre?: StringFieldUpdateOperationsInput | string
     id_cliente?: IntFieldUpdateOperationsInput | number
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutCLIENTESNestedInput
     REMITOS?: REMITOSUncheckedUpdateManyWithoutCLIENTESNestedInput
   }
@@ -33818,6 +33904,8 @@ export namespace Prisma {
   export type CLIENTESUncheckedUpdateManyWithoutGRUPOS_DE_CLIENTESInput = {
     nombre?: StringFieldUpdateOperationsInput | string
     id_cliente?: IntFieldUpdateOperationsInput | number
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    telefono?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type REMITOSCreateManyMONEDAInput = {

@@ -152,7 +152,9 @@ exports.Prisma.ARTICULOS_X_CLIENTESScalarFieldEnum = {
 exports.Prisma.CLIENTESScalarFieldEnum = {
   nombre: 'nombre',
   id_cliente: 'id_cliente',
-  id_grupo: 'id_grupo'
+  id_grupo: 'id_grupo',
+  email: 'email',
+  telefono: 'telefono'
 };
 
 exports.Prisma.COLORESScalarFieldEnum = {
