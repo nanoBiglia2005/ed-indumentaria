@@ -127,11 +127,12 @@ exports.Prisma.ARTICULOSScalarFieldEnum = {
   barcode: 'barcode',
   stock_minimo: 'stock_minimo',
   vigente: 'vigente',
-  id__medida: 'id__medida',
+  id_medida: 'id_medida',
   id_color: 'id_color',
   id_talle: 'id_talle',
   id_proveedor: 'id_proveedor',
-  cant_reservada: 'cant_reservada'
+  cant_reservada: 'cant_reservada',
+  fecha_creacion: 'fecha_creacion'
 };
 
 exports.Prisma.ARTICULOS_X_GRUPOScalarFieldEnum = {

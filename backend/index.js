@@ -122,10 +122,9 @@ app.post('/api/articulos', async (req, res) => {
       barcode,
       stock_minimo,
       vigente,
-      id__medida,
+      id_medida,
       id_color,
       id_talle,
-      id_proveedor,
       cant_reservada,
     } = req.body;
 
@@ -136,12 +135,12 @@ app.post('/api/articulos', async (req, res) => {
         barcode,
         stock_minimo,
         vigente,
-        id__medida,
+        id_medida,
         id_color,
         id_talle,
-        id_proveedor,
         cant_reservada,
       },
+      include: articulosInclude,
     });
     res.status(201).json(nuevoArticulo);
   } catch (error) {
@@ -239,6 +238,21 @@ app.post('/api/grupos', async (req, res) => {
   } catch (error) {
     console.error('Error al crear el grupo de articulos:', error);
     res.status(500).json({ message: 'Error al crear el grupo de articulos.', details: error.message });
+  }
+});
+
+// ============================================================
+//  TALLES
+// ============================================================
+
+// Obtener TODOS los talles (para poblar el dropdown)
+app.get('/api/talles', async (req, res) => {
+  try {
+    const talles = await prisma.TALLES.findMany();
+    res.status(200).json(talles);
+  } catch (error) {
+    console.error('Error al obtener los talles:', error);
+    res.status(500).json({ message: 'Error al obtener los talles.', details: error.message });
   }
 });
 

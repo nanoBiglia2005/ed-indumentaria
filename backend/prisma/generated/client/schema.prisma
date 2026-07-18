@@ -9,20 +9,21 @@ datasource db {
 
 model ARTICULOS {
   id_articulo              Int                        @id(map: "articulos_pk") @default(autoincrement())
-  cant                     Int?
-  precio                   Float?
-  barcode                  Int?
-  stock_minimo             Int?                       @db.SmallInt
+  cant                     Int                        @default(0)
+  precio                   Float                      @default(0)
+  barcode                  Int?                       @unique(map: "unique_codigo_barras")
+  stock_minimo             Int                        @default(0) @db.SmallInt
   vigente                  Boolean?                   @default(true)
-  id__medida               Int?                       @map("id\u001f_medida")
-  id_color                 Int?
-  id_talle                 Int?
+  id_medida                Int                        @default(1)
+  id_color                 Int                        @default(1)
+  id_talle                 Int                        @default(0)
   id_proveedor             Int?
   cant_reservada           Int?
-  COLORES                  COLORES?                   @relation(fields: [id_color], references: [id_color], map: "articulos_colores_fk")
+  fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
+  COLORES                  COLORES                    @relation(fields: [id_color], references: [id_color], onDelete: SetNull, map: "articulos_colores_fk")
   PROVEEDORES              PROVEEDORES?               @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
-  TALLES                   TALLES?                    @relation(fields: [id_talle], references: [id_talle], map: "articulos_talles_fk")
-  TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA?           @relation(fields: [id__medida], references: [id_medida], map: "articulos_tipos_de_medida_fk")
+  TALLES                   TALLES                     @relation(fields: [id_talle], references: [id_talle], onDelete: SetNull, map: "articulos_talles_fk")
+  TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA            @relation(fields: [id_medida], references: [id_medida], onDelete: SetNull, map: "articulos_tipos_de_medida_fk")
   ARTICULOS_X_GRUPO        ARTICULOS_X_GRUPO[]
   ARTICULOS_X_CLIENTES     ARTICULOS_X_CLIENTES[]
   BONIFICACIONES_ARTICULOS BONIFICACIONES_ARTICULOS[] @ignore

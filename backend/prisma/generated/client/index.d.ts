@@ -3100,7 +3100,7 @@ export namespace Prisma {
     precio: number | null
     barcode: number | null
     stock_minimo: number | null
-    id__medida: number | null
+    id_medida: number | null
     id_color: number | null
     id_talle: number | null
     id_proveedor: number | null
@@ -3113,7 +3113,7 @@ export namespace Prisma {
     precio: number | null
     barcode: number | null
     stock_minimo: number | null
-    id__medida: number | null
+    id_medida: number | null
     id_color: number | null
     id_talle: number | null
     id_proveedor: number | null
@@ -3127,11 +3127,12 @@ export namespace Prisma {
     barcode: number | null
     stock_minimo: number | null
     vigente: boolean | null
-    id__medida: number | null
+    id_medida: number | null
     id_color: number | null
     id_talle: number | null
     id_proveedor: number | null
     cant_reservada: number | null
+    fecha_creacion: Date | null
   }
 
   export type ARTICULOSMaxAggregateOutputType = {
@@ -3141,11 +3142,12 @@ export namespace Prisma {
     barcode: number | null
     stock_minimo: number | null
     vigente: boolean | null
-    id__medida: number | null
+    id_medida: number | null
     id_color: number | null
     id_talle: number | null
     id_proveedor: number | null
     cant_reservada: number | null
+    fecha_creacion: Date | null
   }
 
   export type ARTICULOSCountAggregateOutputType = {
@@ -3155,11 +3157,12 @@ export namespace Prisma {
     barcode: number
     stock_minimo: number
     vigente: number
-    id__medida: number
+    id_medida: number
     id_color: number
     id_talle: number
     id_proveedor: number
     cant_reservada: number
+    fecha_creacion: number
     _all: number
   }
 
@@ -3170,7 +3173,7 @@ export namespace Prisma {
     precio?: true
     barcode?: true
     stock_minimo?: true
-    id__medida?: true
+    id_medida?: true
     id_color?: true
     id_talle?: true
     id_proveedor?: true
@@ -3183,7 +3186,7 @@ export namespace Prisma {
     precio?: true
     barcode?: true
     stock_minimo?: true
-    id__medida?: true
+    id_medida?: true
     id_color?: true
     id_talle?: true
     id_proveedor?: true
@@ -3197,11 +3200,12 @@ export namespace Prisma {
     barcode?: true
     stock_minimo?: true
     vigente?: true
-    id__medida?: true
+    id_medida?: true
     id_color?: true
     id_talle?: true
     id_proveedor?: true
     cant_reservada?: true
+    fecha_creacion?: true
   }
 
   export type ARTICULOSMaxAggregateInputType = {
@@ -3211,11 +3215,12 @@ export namespace Prisma {
     barcode?: true
     stock_minimo?: true
     vigente?: true
-    id__medida?: true
+    id_medida?: true
     id_color?: true
     id_talle?: true
     id_proveedor?: true
     cant_reservada?: true
+    fecha_creacion?: true
   }
 
   export type ARTICULOSCountAggregateInputType = {
@@ -3225,11 +3230,12 @@ export namespace Prisma {
     barcode?: true
     stock_minimo?: true
     vigente?: true
-    id__medida?: true
+    id_medida?: true
     id_color?: true
     id_talle?: true
     id_proveedor?: true
     cant_reservada?: true
+    fecha_creacion?: true
     _all?: true
   }
 
@@ -3321,16 +3327,17 @@ export namespace Prisma {
 
   export type ARTICULOSGroupByOutputType = {
     id_articulo: number
-    cant: number | null
-    precio: number | null
+    cant: number
+    precio: number
     barcode: number | null
-    stock_minimo: number | null
+    stock_minimo: number
     vigente: boolean | null
-    id__medida: number | null
-    id_color: number | null
-    id_talle: number | null
+    id_medida: number
+    id_color: number
+    id_talle: number
     id_proveedor: number | null
     cant_reservada: number | null
+    fecha_creacion: Date
     _count: ARTICULOSCountAggregateOutputType | null
     _avg: ARTICULOSAvgAggregateOutputType | null
     _sum: ARTICULOSSumAggregateOutputType | null
@@ -3359,15 +3366,16 @@ export namespace Prisma {
     barcode?: boolean
     stock_minimo?: boolean
     vigente?: boolean
-    id__medida?: boolean
+    id_medida?: boolean
     id_color?: boolean
     id_talle?: boolean
     id_proveedor?: boolean
     cant_reservada?: boolean
-    COLORES?: boolean | ARTICULOS$COLORESArgs<ExtArgs>
+    fecha_creacion?: boolean
+    COLORES?: boolean | COLORESDefaultArgs<ExtArgs>
     PROVEEDORES?: boolean | ARTICULOS$PROVEEDORESArgs<ExtArgs>
-    TALLES?: boolean | ARTICULOS$TALLESArgs<ExtArgs>
-    TIPOS_DE_MEDIDA?: boolean | ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs>
+    TALLES?: boolean | TALLESDefaultArgs<ExtArgs>
+    TIPOS_DE_MEDIDA?: boolean | TIPOS_DE_MEDIDADefaultArgs<ExtArgs>
     ARTICULOS_X_GRUPO?: boolean | ARTICULOS$ARTICULOS_X_GRUPOArgs<ExtArgs>
     ARTICULOS_X_CLIENTES?: boolean | ARTICULOS$ARTICULOS_X_CLIENTESArgs<ExtArgs>
     DETALLES_REMITO?: boolean | ARTICULOS$DETALLES_REMITOArgs<ExtArgs>
@@ -3382,15 +3390,16 @@ export namespace Prisma {
     barcode?: boolean
     stock_minimo?: boolean
     vigente?: boolean
-    id__medida?: boolean
+    id_medida?: boolean
     id_color?: boolean
     id_talle?: boolean
     id_proveedor?: boolean
     cant_reservada?: boolean
-    COLORES?: boolean | ARTICULOS$COLORESArgs<ExtArgs>
+    fecha_creacion?: boolean
+    COLORES?: boolean | COLORESDefaultArgs<ExtArgs>
     PROVEEDORES?: boolean | ARTICULOS$PROVEEDORESArgs<ExtArgs>
-    TALLES?: boolean | ARTICULOS$TALLESArgs<ExtArgs>
-    TIPOS_DE_MEDIDA?: boolean | ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs>
+    TALLES?: boolean | TALLESDefaultArgs<ExtArgs>
+    TIPOS_DE_MEDIDA?: boolean | TIPOS_DE_MEDIDADefaultArgs<ExtArgs>
   }, ExtArgs["result"]["aRTICULOS"]>
 
   export type ARTICULOSSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3400,15 +3409,16 @@ export namespace Prisma {
     barcode?: boolean
     stock_minimo?: boolean
     vigente?: boolean
-    id__medida?: boolean
+    id_medida?: boolean
     id_color?: boolean
     id_talle?: boolean
     id_proveedor?: boolean
     cant_reservada?: boolean
-    COLORES?: boolean | ARTICULOS$COLORESArgs<ExtArgs>
+    fecha_creacion?: boolean
+    COLORES?: boolean | COLORESDefaultArgs<ExtArgs>
     PROVEEDORES?: boolean | ARTICULOS$PROVEEDORESArgs<ExtArgs>
-    TALLES?: boolean | ARTICULOS$TALLESArgs<ExtArgs>
-    TIPOS_DE_MEDIDA?: boolean | ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs>
+    TALLES?: boolean | TALLESDefaultArgs<ExtArgs>
+    TIPOS_DE_MEDIDA?: boolean | TIPOS_DE_MEDIDADefaultArgs<ExtArgs>
   }, ExtArgs["result"]["aRTICULOS"]>
 
   export type ARTICULOSSelectScalar = {
@@ -3418,19 +3428,20 @@ export namespace Prisma {
     barcode?: boolean
     stock_minimo?: boolean
     vigente?: boolean
-    id__medida?: boolean
+    id_medida?: boolean
     id_color?: boolean
     id_talle?: boolean
     id_proveedor?: boolean
     cant_reservada?: boolean
+    fecha_creacion?: boolean
   }
 
-  export type ARTICULOSOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_articulo" | "cant" | "precio" | "barcode" | "stock_minimo" | "vigente" | "id__medida" | "id_color" | "id_talle" | "id_proveedor" | "cant_reservada", ExtArgs["result"]["aRTICULOS"]>
+  export type ARTICULOSOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_articulo" | "cant" | "precio" | "barcode" | "stock_minimo" | "vigente" | "id_medida" | "id_color" | "id_talle" | "id_proveedor" | "cant_reservada" | "fecha_creacion", ExtArgs["result"]["aRTICULOS"]>
   export type ARTICULOSInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    COLORES?: boolean | ARTICULOS$COLORESArgs<ExtArgs>
+    COLORES?: boolean | COLORESDefaultArgs<ExtArgs>
     PROVEEDORES?: boolean | ARTICULOS$PROVEEDORESArgs<ExtArgs>
-    TALLES?: boolean | ARTICULOS$TALLESArgs<ExtArgs>
-    TIPOS_DE_MEDIDA?: boolean | ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs>
+    TALLES?: boolean | TALLESDefaultArgs<ExtArgs>
+    TIPOS_DE_MEDIDA?: boolean | TIPOS_DE_MEDIDADefaultArgs<ExtArgs>
     ARTICULOS_X_GRUPO?: boolean | ARTICULOS$ARTICULOS_X_GRUPOArgs<ExtArgs>
     ARTICULOS_X_CLIENTES?: boolean | ARTICULOS$ARTICULOS_X_CLIENTESArgs<ExtArgs>
     DETALLES_REMITO?: boolean | ARTICULOS$DETALLES_REMITOArgs<ExtArgs>
@@ -3438,25 +3449,25 @@ export namespace Prisma {
     _count?: boolean | ARTICULOSCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ARTICULOSIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    COLORES?: boolean | ARTICULOS$COLORESArgs<ExtArgs>
+    COLORES?: boolean | COLORESDefaultArgs<ExtArgs>
     PROVEEDORES?: boolean | ARTICULOS$PROVEEDORESArgs<ExtArgs>
-    TALLES?: boolean | ARTICULOS$TALLESArgs<ExtArgs>
-    TIPOS_DE_MEDIDA?: boolean | ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs>
+    TALLES?: boolean | TALLESDefaultArgs<ExtArgs>
+    TIPOS_DE_MEDIDA?: boolean | TIPOS_DE_MEDIDADefaultArgs<ExtArgs>
   }
   export type ARTICULOSIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    COLORES?: boolean | ARTICULOS$COLORESArgs<ExtArgs>
+    COLORES?: boolean | COLORESDefaultArgs<ExtArgs>
     PROVEEDORES?: boolean | ARTICULOS$PROVEEDORESArgs<ExtArgs>
-    TALLES?: boolean | ARTICULOS$TALLESArgs<ExtArgs>
-    TIPOS_DE_MEDIDA?: boolean | ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs>
+    TALLES?: boolean | TALLESDefaultArgs<ExtArgs>
+    TIPOS_DE_MEDIDA?: boolean | TIPOS_DE_MEDIDADefaultArgs<ExtArgs>
   }
 
   export type $ARTICULOSPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ARTICULOS"
     objects: {
-      COLORES: Prisma.$COLORESPayload<ExtArgs> | null
+      COLORES: Prisma.$COLORESPayload<ExtArgs>
       PROVEEDORES: Prisma.$PROVEEDORESPayload<ExtArgs> | null
-      TALLES: Prisma.$TALLESPayload<ExtArgs> | null
-      TIPOS_DE_MEDIDA: Prisma.$TIPOS_DE_MEDIDAPayload<ExtArgs> | null
+      TALLES: Prisma.$TALLESPayload<ExtArgs>
+      TIPOS_DE_MEDIDA: Prisma.$TIPOS_DE_MEDIDAPayload<ExtArgs>
       ARTICULOS_X_GRUPO: Prisma.$ARTICULOS_X_GRUPOPayload<ExtArgs>[]
       ARTICULOS_X_CLIENTES: Prisma.$ARTICULOS_X_CLIENTESPayload<ExtArgs>[]
       DETALLES_REMITO: Prisma.$DETALLES_REMITOPayload<ExtArgs>[]
@@ -3464,16 +3475,17 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id_articulo: number
-      cant: number | null
-      precio: number | null
+      cant: number
+      precio: number
       barcode: number | null
-      stock_minimo: number | null
+      stock_minimo: number
       vigente: boolean | null
-      id__medida: number | null
-      id_color: number | null
-      id_talle: number | null
+      id_medida: number
+      id_color: number
+      id_talle: number
       id_proveedor: number | null
       cant_reservada: number | null
+      fecha_creacion: Date
     }, ExtArgs["result"]["aRTICULOS"]>
     composites: {}
   }
@@ -3868,10 +3880,10 @@ export namespace Prisma {
    */
   export interface Prisma__ARTICULOSClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    COLORES<T extends ARTICULOS$COLORESArgs<ExtArgs> = {}>(args?: Subset<T, ARTICULOS$COLORESArgs<ExtArgs>>): Prisma__COLORESClient<$Result.GetResult<Prisma.$COLORESPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    COLORES<T extends COLORESDefaultArgs<ExtArgs> = {}>(args?: Subset<T, COLORESDefaultArgs<ExtArgs>>): Prisma__COLORESClient<$Result.GetResult<Prisma.$COLORESPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     PROVEEDORES<T extends ARTICULOS$PROVEEDORESArgs<ExtArgs> = {}>(args?: Subset<T, ARTICULOS$PROVEEDORESArgs<ExtArgs>>): Prisma__PROVEEDORESClient<$Result.GetResult<Prisma.$PROVEEDORESPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-    TALLES<T extends ARTICULOS$TALLESArgs<ExtArgs> = {}>(args?: Subset<T, ARTICULOS$TALLESArgs<ExtArgs>>): Prisma__TALLESClient<$Result.GetResult<Prisma.$TALLESPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-    TIPOS_DE_MEDIDA<T extends ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs> = {}>(args?: Subset<T, ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs>>): Prisma__TIPOS_DE_MEDIDAClient<$Result.GetResult<Prisma.$TIPOS_DE_MEDIDAPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    TALLES<T extends TALLESDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TALLESDefaultArgs<ExtArgs>>): Prisma__TALLESClient<$Result.GetResult<Prisma.$TALLESPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    TIPOS_DE_MEDIDA<T extends TIPOS_DE_MEDIDADefaultArgs<ExtArgs> = {}>(args?: Subset<T, TIPOS_DE_MEDIDADefaultArgs<ExtArgs>>): Prisma__TIPOS_DE_MEDIDAClient<$Result.GetResult<Prisma.$TIPOS_DE_MEDIDAPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     ARTICULOS_X_GRUPO<T extends ARTICULOS$ARTICULOS_X_GRUPOArgs<ExtArgs> = {}>(args?: Subset<T, ARTICULOS$ARTICULOS_X_GRUPOArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ARTICULOS_X_GRUPOPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     ARTICULOS_X_CLIENTES<T extends ARTICULOS$ARTICULOS_X_CLIENTESArgs<ExtArgs> = {}>(args?: Subset<T, ARTICULOS$ARTICULOS_X_CLIENTESArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ARTICULOS_X_CLIENTESPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     DETALLES_REMITO<T extends ARTICULOS$DETALLES_REMITOArgs<ExtArgs> = {}>(args?: Subset<T, ARTICULOS$DETALLES_REMITOArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DETALLES_REMITOPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3911,11 +3923,12 @@ export namespace Prisma {
     readonly barcode: FieldRef<"ARTICULOS", 'Int'>
     readonly stock_minimo: FieldRef<"ARTICULOS", 'Int'>
     readonly vigente: FieldRef<"ARTICULOS", 'Boolean'>
-    readonly id__medida: FieldRef<"ARTICULOS", 'Int'>
+    readonly id_medida: FieldRef<"ARTICULOS", 'Int'>
     readonly id_color: FieldRef<"ARTICULOS", 'Int'>
     readonly id_talle: FieldRef<"ARTICULOS", 'Int'>
     readonly id_proveedor: FieldRef<"ARTICULOS", 'Int'>
     readonly cant_reservada: FieldRef<"ARTICULOS", 'Int'>
+    readonly fecha_creacion: FieldRef<"ARTICULOS", 'DateTime'>
   }
     
 
@@ -4139,7 +4152,7 @@ export namespace Prisma {
     /**
      * The data needed to create a ARTICULOS.
      */
-    data?: XOR<ARTICULOSCreateInput, ARTICULOSUncheckedCreateInput>
+    data: XOR<ARTICULOSCreateInput, ARTICULOSUncheckedCreateInput>
   }
 
   /**
@@ -4317,25 +4330,6 @@ export namespace Prisma {
   }
 
   /**
-   * ARTICULOS.COLORES
-   */
-  export type ARTICULOS$COLORESArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the COLORES
-     */
-    select?: COLORESSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the COLORES
-     */
-    omit?: COLORESOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: COLORESInclude<ExtArgs> | null
-    where?: COLORESWhereInput
-  }
-
-  /**
    * ARTICULOS.PROVEEDORES
    */
   export type ARTICULOS$PROVEEDORESArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4352,44 +4346,6 @@ export namespace Prisma {
      */
     include?: PROVEEDORESInclude<ExtArgs> | null
     where?: PROVEEDORESWhereInput
-  }
-
-  /**
-   * ARTICULOS.TALLES
-   */
-  export type ARTICULOS$TALLESArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TALLES
-     */
-    select?: TALLESSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TALLES
-     */
-    omit?: TALLESOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TALLESInclude<ExtArgs> | null
-    where?: TALLESWhereInput
-  }
-
-  /**
-   * ARTICULOS.TIPOS_DE_MEDIDA
-   */
-  export type ARTICULOS$TIPOS_DE_MEDIDAArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TIPOS_DE_MEDIDA
-     */
-    select?: TIPOS_DE_MEDIDASelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TIPOS_DE_MEDIDA
-     */
-    omit?: TIPOS_DE_MEDIDAOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TIPOS_DE_MEDIDAInclude<ExtArgs> | null
-    where?: TIPOS_DE_MEDIDAWhereInput
   }
 
   /**
@@ -26038,11 +25994,12 @@ export namespace Prisma {
     barcode: 'barcode',
     stock_minimo: 'stock_minimo',
     vigente: 'vigente',
-    id__medida: 'id__medida',
+    id_medida: 'id_medida',
     id_color: 'id_color',
     id_talle: 'id_talle',
     id_proveedor: 'id_proveedor',
-    cant_reservada: 'cant_reservada'
+    cant_reservada: 'cant_reservada',
+    fecha_creacion: 'fecha_creacion'
   };
 
   export type ARTICULOSScalarFieldEnum = (typeof ARTICULOSScalarFieldEnum)[keyof typeof ARTICULOSScalarFieldEnum]
@@ -26322,6 +26279,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'DateTime'
+   */
+  export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+  /**
+   * Reference to a field of type 'DateTime[]'
+   */
+  export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+  /**
    * Reference to a field of type 'String'
    */
   export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
@@ -26347,20 +26318,6 @@ export namespace Prisma {
    */
   export type ListEnumtipo_operacionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'tipo_operacion[]'>
     
-
-
-  /**
-   * Reference to a field of type 'DateTime'
-   */
-  export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
-
-
-  /**
-   * Reference to a field of type 'DateTime[]'
-   */
-  export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
   /**
    * Deep Input Types
    */
@@ -26371,20 +26328,21 @@ export namespace Prisma {
     OR?: ARTICULOSWhereInput[]
     NOT?: ARTICULOSWhereInput | ARTICULOSWhereInput[]
     id_articulo?: IntFilter<"ARTICULOS"> | number
-    cant?: IntNullableFilter<"ARTICULOS"> | number | null
-    precio?: FloatNullableFilter<"ARTICULOS"> | number | null
+    cant?: IntFilter<"ARTICULOS"> | number
+    precio?: FloatFilter<"ARTICULOS"> | number
     barcode?: IntNullableFilter<"ARTICULOS"> | number | null
-    stock_minimo?: IntNullableFilter<"ARTICULOS"> | number | null
+    stock_minimo?: IntFilter<"ARTICULOS"> | number
     vigente?: BoolNullableFilter<"ARTICULOS"> | boolean | null
-    id__medida?: IntNullableFilter<"ARTICULOS"> | number | null
-    id_color?: IntNullableFilter<"ARTICULOS"> | number | null
-    id_talle?: IntNullableFilter<"ARTICULOS"> | number | null
+    id_medida?: IntFilter<"ARTICULOS"> | number
+    id_color?: IntFilter<"ARTICULOS"> | number
+    id_talle?: IntFilter<"ARTICULOS"> | number
     id_proveedor?: IntNullableFilter<"ARTICULOS"> | number | null
     cant_reservada?: IntNullableFilter<"ARTICULOS"> | number | null
-    COLORES?: XOR<COLORESNullableScalarRelationFilter, COLORESWhereInput> | null
+    fecha_creacion?: DateTimeFilter<"ARTICULOS"> | Date | string
+    COLORES?: XOR<COLORESScalarRelationFilter, COLORESWhereInput>
     PROVEEDORES?: XOR<PROVEEDORESNullableScalarRelationFilter, PROVEEDORESWhereInput> | null
-    TALLES?: XOR<TALLESNullableScalarRelationFilter, TALLESWhereInput> | null
-    TIPOS_DE_MEDIDA?: XOR<TIPOS_DE_MEDIDANullableScalarRelationFilter, TIPOS_DE_MEDIDAWhereInput> | null
+    TALLES?: XOR<TALLESScalarRelationFilter, TALLESWhereInput>
+    TIPOS_DE_MEDIDA?: XOR<TIPOS_DE_MEDIDAScalarRelationFilter, TIPOS_DE_MEDIDAWhereInput>
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOListRelationFilter
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESListRelationFilter
     DETALLES_REMITO?: DETALLES_REMITOListRelationFilter
@@ -26393,16 +26351,17 @@ export namespace Prisma {
 
   export type ARTICULOSOrderByWithRelationInput = {
     id_articulo?: SortOrder
-    cant?: SortOrderInput | SortOrder
-    precio?: SortOrderInput | SortOrder
+    cant?: SortOrder
+    precio?: SortOrder
     barcode?: SortOrderInput | SortOrder
-    stock_minimo?: SortOrderInput | SortOrder
+    stock_minimo?: SortOrder
     vigente?: SortOrderInput | SortOrder
-    id__medida?: SortOrderInput | SortOrder
-    id_color?: SortOrderInput | SortOrder
-    id_talle?: SortOrderInput | SortOrder
+    id_medida?: SortOrder
+    id_color?: SortOrder
+    id_talle?: SortOrder
     id_proveedor?: SortOrderInput | SortOrder
     cant_reservada?: SortOrderInput | SortOrder
+    fecha_creacion?: SortOrder
     COLORES?: COLORESOrderByWithRelationInput
     PROVEEDORES?: PROVEEDORESOrderByWithRelationInput
     TALLES?: TALLESOrderByWithRelationInput
@@ -26415,41 +26374,43 @@ export namespace Prisma {
 
   export type ARTICULOSWhereUniqueInput = Prisma.AtLeast<{
     id_articulo?: number
+    barcode?: number
     AND?: ARTICULOSWhereInput | ARTICULOSWhereInput[]
     OR?: ARTICULOSWhereInput[]
     NOT?: ARTICULOSWhereInput | ARTICULOSWhereInput[]
-    cant?: IntNullableFilter<"ARTICULOS"> | number | null
-    precio?: FloatNullableFilter<"ARTICULOS"> | number | null
-    barcode?: IntNullableFilter<"ARTICULOS"> | number | null
-    stock_minimo?: IntNullableFilter<"ARTICULOS"> | number | null
+    cant?: IntFilter<"ARTICULOS"> | number
+    precio?: FloatFilter<"ARTICULOS"> | number
+    stock_minimo?: IntFilter<"ARTICULOS"> | number
     vigente?: BoolNullableFilter<"ARTICULOS"> | boolean | null
-    id__medida?: IntNullableFilter<"ARTICULOS"> | number | null
-    id_color?: IntNullableFilter<"ARTICULOS"> | number | null
-    id_talle?: IntNullableFilter<"ARTICULOS"> | number | null
+    id_medida?: IntFilter<"ARTICULOS"> | number
+    id_color?: IntFilter<"ARTICULOS"> | number
+    id_talle?: IntFilter<"ARTICULOS"> | number
     id_proveedor?: IntNullableFilter<"ARTICULOS"> | number | null
     cant_reservada?: IntNullableFilter<"ARTICULOS"> | number | null
-    COLORES?: XOR<COLORESNullableScalarRelationFilter, COLORESWhereInput> | null
+    fecha_creacion?: DateTimeFilter<"ARTICULOS"> | Date | string
+    COLORES?: XOR<COLORESScalarRelationFilter, COLORESWhereInput>
     PROVEEDORES?: XOR<PROVEEDORESNullableScalarRelationFilter, PROVEEDORESWhereInput> | null
-    TALLES?: XOR<TALLESNullableScalarRelationFilter, TALLESWhereInput> | null
-    TIPOS_DE_MEDIDA?: XOR<TIPOS_DE_MEDIDANullableScalarRelationFilter, TIPOS_DE_MEDIDAWhereInput> | null
+    TALLES?: XOR<TALLESScalarRelationFilter, TALLESWhereInput>
+    TIPOS_DE_MEDIDA?: XOR<TIPOS_DE_MEDIDAScalarRelationFilter, TIPOS_DE_MEDIDAWhereInput>
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOListRelationFilter
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESListRelationFilter
     DETALLES_REMITO?: DETALLES_REMITOListRelationFilter
     REGISTRO_ARTICULOS?: XOR<REGISTRO_ARTICULOSNullableScalarRelationFilter, REGISTRO_ARTICULOSWhereInput> | null
-  }, "id_articulo">
+  }, "id_articulo" | "barcode">
 
   export type ARTICULOSOrderByWithAggregationInput = {
     id_articulo?: SortOrder
-    cant?: SortOrderInput | SortOrder
-    precio?: SortOrderInput | SortOrder
+    cant?: SortOrder
+    precio?: SortOrder
     barcode?: SortOrderInput | SortOrder
-    stock_minimo?: SortOrderInput | SortOrder
+    stock_minimo?: SortOrder
     vigente?: SortOrderInput | SortOrder
-    id__medida?: SortOrderInput | SortOrder
-    id_color?: SortOrderInput | SortOrder
-    id_talle?: SortOrderInput | SortOrder
+    id_medida?: SortOrder
+    id_color?: SortOrder
+    id_talle?: SortOrder
     id_proveedor?: SortOrderInput | SortOrder
     cant_reservada?: SortOrderInput | SortOrder
+    fecha_creacion?: SortOrder
     _count?: ARTICULOSCountOrderByAggregateInput
     _avg?: ARTICULOSAvgOrderByAggregateInput
     _max?: ARTICULOSMaxOrderByAggregateInput
@@ -26462,16 +26423,17 @@ export namespace Prisma {
     OR?: ARTICULOSScalarWhereWithAggregatesInput[]
     NOT?: ARTICULOSScalarWhereWithAggregatesInput | ARTICULOSScalarWhereWithAggregatesInput[]
     id_articulo?: IntWithAggregatesFilter<"ARTICULOS"> | number
-    cant?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
-    precio?: FloatNullableWithAggregatesFilter<"ARTICULOS"> | number | null
+    cant?: IntWithAggregatesFilter<"ARTICULOS"> | number
+    precio?: FloatWithAggregatesFilter<"ARTICULOS"> | number
     barcode?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
-    stock_minimo?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
+    stock_minimo?: IntWithAggregatesFilter<"ARTICULOS"> | number
     vigente?: BoolNullableWithAggregatesFilter<"ARTICULOS"> | boolean | null
-    id__medida?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
-    id_color?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
-    id_talle?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
+    id_medida?: IntWithAggregatesFilter<"ARTICULOS"> | number
+    id_color?: IntWithAggregatesFilter<"ARTICULOS"> | number
+    id_talle?: IntWithAggregatesFilter<"ARTICULOS"> | number
     id_proveedor?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
     cant_reservada?: IntNullableWithAggregatesFilter<"ARTICULOS"> | number | null
+    fecha_creacion?: DateTimeWithAggregatesFilter<"ARTICULOS"> | Date | string
   }
 
   export type ARTICULOS_X_GRUPOWhereInput = {
@@ -27591,12 +27553,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
@@ -27609,16 +27572,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
@@ -27626,16 +27590,17 @@ export namespace Prisma {
   }
 
   export type ARTICULOSUpdateInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
@@ -27644,16 +27609,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
@@ -27662,39 +27628,42 @@ export namespace Prisma {
 
   export type ARTICULOSCreateManyInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
   }
 
   export type ARTICULOSUpdateManyMutationInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ARTICULOSUncheckedUpdateManyInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ARTICULOS_X_GRUPOCreateInput = {
@@ -28764,6 +28733,17 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
   export type IntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -28775,25 +28755,25 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
-  export type FloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
-  }
-
   export type BoolNullableFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
     not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
   }
 
-  export type COLORESNullableScalarRelationFilter = {
-    is?: COLORESWhereInput | null
-    isNot?: COLORESWhereInput | null
+  export type DateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
+  export type COLORESScalarRelationFilter = {
+    is?: COLORESWhereInput
+    isNot?: COLORESWhereInput
   }
 
   export type PROVEEDORESNullableScalarRelationFilter = {
@@ -28801,14 +28781,14 @@ export namespace Prisma {
     isNot?: PROVEEDORESWhereInput | null
   }
 
-  export type TALLESNullableScalarRelationFilter = {
-    is?: TALLESWhereInput | null
-    isNot?: TALLESWhereInput | null
+  export type TALLESScalarRelationFilter = {
+    is?: TALLESWhereInput
+    isNot?: TALLESWhereInput
   }
 
-  export type TIPOS_DE_MEDIDANullableScalarRelationFilter = {
-    is?: TIPOS_DE_MEDIDAWhereInput | null
-    isNot?: TIPOS_DE_MEDIDAWhereInput | null
+  export type TIPOS_DE_MEDIDAScalarRelationFilter = {
+    is?: TIPOS_DE_MEDIDAWhereInput
+    isNot?: TIPOS_DE_MEDIDAWhereInput
   }
 
   export type ARTICULOS_X_GRUPOListRelationFilter = {
@@ -28858,11 +28838,12 @@ export namespace Prisma {
     barcode?: SortOrder
     stock_minimo?: SortOrder
     vigente?: SortOrder
-    id__medida?: SortOrder
+    id_medida?: SortOrder
     id_color?: SortOrder
     id_talle?: SortOrder
     id_proveedor?: SortOrder
     cant_reservada?: SortOrder
+    fecha_creacion?: SortOrder
   }
 
   export type ARTICULOSAvgOrderByAggregateInput = {
@@ -28871,7 +28852,7 @@ export namespace Prisma {
     precio?: SortOrder
     barcode?: SortOrder
     stock_minimo?: SortOrder
-    id__medida?: SortOrder
+    id_medida?: SortOrder
     id_color?: SortOrder
     id_talle?: SortOrder
     id_proveedor?: SortOrder
@@ -28885,11 +28866,12 @@ export namespace Prisma {
     barcode?: SortOrder
     stock_minimo?: SortOrder
     vigente?: SortOrder
-    id__medida?: SortOrder
+    id_medida?: SortOrder
     id_color?: SortOrder
     id_talle?: SortOrder
     id_proveedor?: SortOrder
     cant_reservada?: SortOrder
+    fecha_creacion?: SortOrder
   }
 
   export type ARTICULOSMinOrderByAggregateInput = {
@@ -28899,11 +28881,12 @@ export namespace Prisma {
     barcode?: SortOrder
     stock_minimo?: SortOrder
     vigente?: SortOrder
-    id__medida?: SortOrder
+    id_medida?: SortOrder
     id_color?: SortOrder
     id_talle?: SortOrder
     id_proveedor?: SortOrder
     cant_reservada?: SortOrder
+    fecha_creacion?: SortOrder
   }
 
   export type ARTICULOSSumOrderByAggregateInput = {
@@ -28912,7 +28895,7 @@ export namespace Prisma {
     precio?: SortOrder
     barcode?: SortOrder
     stock_minimo?: SortOrder
-    id__medida?: SortOrder
+    id_medida?: SortOrder
     id_color?: SortOrder
     id_talle?: SortOrder
     id_proveedor?: SortOrder
@@ -28935,6 +28918,22 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
+
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -28951,28 +28950,26 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
-  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
-  }
-
   export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
     not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedBoolNullableFilter<$PrismaModel>
     _max?: NestedBoolNullableFilter<$PrismaModel>
+  }
+
+  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type StringNullableFilter<$PrismaModel = never> = {
@@ -29198,6 +29195,17 @@ export namespace Prisma {
     id_color?: SortOrder
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type ARTICULOSNullableScalarRelationFilter = {
     is?: ARTICULOSWhereInput | null
     isNot?: ARTICULOSWhereInput | null
@@ -29265,6 +29273,22 @@ export namespace Prisma {
     precio_compra?: SortOrder
     bonificacion?: SortOrder
     recargo_financiero?: SortOrder
+  }
+
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type ESTADOS_REMITOSCountOrderByAggregateInput = {
@@ -29944,15 +29968,23 @@ export namespace Prisma {
     connect?: REGISTRO_ARTICULOSWhereUniqueInput
   }
 
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
   }
 
-  export type NullableFloatFieldUpdateOperationsInput = {
+  export type FloatFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
     decrement?: number
@@ -29964,12 +29996,14 @@ export namespace Prisma {
     set?: boolean | null
   }
 
-  export type COLORESUpdateOneWithoutARTICULOSNestedInput = {
+  export type DateTimeFieldUpdateOperationsInput = {
+    set?: Date | string
+  }
+
+  export type COLORESUpdateOneRequiredWithoutARTICULOSNestedInput = {
     create?: XOR<COLORESCreateWithoutARTICULOSInput, COLORESUncheckedCreateWithoutARTICULOSInput>
     connectOrCreate?: COLORESCreateOrConnectWithoutARTICULOSInput
     upsert?: COLORESUpsertWithoutARTICULOSInput
-    disconnect?: COLORESWhereInput | boolean
-    delete?: COLORESWhereInput | boolean
     connect?: COLORESWhereUniqueInput
     update?: XOR<XOR<COLORESUpdateToOneWithWhereWithoutARTICULOSInput, COLORESUpdateWithoutARTICULOSInput>, COLORESUncheckedUpdateWithoutARTICULOSInput>
   }
@@ -29984,22 +30018,18 @@ export namespace Prisma {
     update?: XOR<XOR<PROVEEDORESUpdateToOneWithWhereWithoutARTICULOSInput, PROVEEDORESUpdateWithoutARTICULOSInput>, PROVEEDORESUncheckedUpdateWithoutARTICULOSInput>
   }
 
-  export type TALLESUpdateOneWithoutARTICULOSNestedInput = {
+  export type TALLESUpdateOneRequiredWithoutARTICULOSNestedInput = {
     create?: XOR<TALLESCreateWithoutARTICULOSInput, TALLESUncheckedCreateWithoutARTICULOSInput>
     connectOrCreate?: TALLESCreateOrConnectWithoutARTICULOSInput
     upsert?: TALLESUpsertWithoutARTICULOSInput
-    disconnect?: TALLESWhereInput | boolean
-    delete?: TALLESWhereInput | boolean
     connect?: TALLESWhereUniqueInput
     update?: XOR<XOR<TALLESUpdateToOneWithWhereWithoutARTICULOSInput, TALLESUpdateWithoutARTICULOSInput>, TALLESUncheckedUpdateWithoutARTICULOSInput>
   }
 
-  export type TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput = {
+  export type TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput = {
     create?: XOR<TIPOS_DE_MEDIDACreateWithoutARTICULOSInput, TIPOS_DE_MEDIDAUncheckedCreateWithoutARTICULOSInput>
     connectOrCreate?: TIPOS_DE_MEDIDACreateOrConnectWithoutARTICULOSInput
     upsert?: TIPOS_DE_MEDIDAUpsertWithoutARTICULOSInput
-    disconnect?: TIPOS_DE_MEDIDAWhereInput | boolean
-    delete?: TIPOS_DE_MEDIDAWhereInput | boolean
     connect?: TIPOS_DE_MEDIDAWhereUniqueInput
     update?: XOR<XOR<TIPOS_DE_MEDIDAUpdateToOneWithWhereWithoutARTICULOSInput, TIPOS_DE_MEDIDAUpdateWithoutARTICULOSInput>, TIPOS_DE_MEDIDAUncheckedUpdateWithoutARTICULOSInput>
   }
@@ -30054,14 +30084,6 @@ export namespace Prisma {
     delete?: REGISTRO_ARTICULOSWhereInput | boolean
     connect?: REGISTRO_ARTICULOSWhereUniqueInput
     update?: XOR<XOR<REGISTRO_ARTICULOSUpdateToOneWithWhereWithoutARTICULOSInput, REGISTRO_ARTICULOSUpdateWithoutARTICULOSInput>, REGISTRO_ARTICULOSUncheckedUpdateWithoutARTICULOSInput>
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput = {
@@ -30336,6 +30358,14 @@ export namespace Prisma {
     create?: XOR<REMITOSCreateWithoutDETALLES_REMITOInput, REMITOSUncheckedCreateWithoutDETALLES_REMITOInput>
     connectOrCreate?: REMITOSCreateOrConnectWithoutDETALLES_REMITOInput
     connect?: REMITOSWhereUniqueInput
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type ARTICULOSUpdateOneWithoutDETALLES_REMITONestedInput = {
@@ -31007,6 +31037,17 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
   export type NestedIntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -31018,20 +31059,20 @@ export namespace Prisma {
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
 
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
-  }
-
   export type NestedBoolNullableFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
     not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+
+  export type NestedDateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -31050,7 +31091,7 @@ export namespace Prisma {
     _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type NestedFloatFilter<$PrismaModel = never> = {
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
     in?: number[] | ListFloatFieldRefInput<$PrismaModel>
     notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
@@ -31058,7 +31099,12 @@ export namespace Prisma {
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -31077,7 +31123,7 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
-  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
     notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -31085,12 +31131,7 @@ export namespace Prisma {
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
   export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -31099,6 +31140,20 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedBoolNullableFilter<$PrismaModel>
     _max?: NestedBoolNullableFilter<$PrismaModel>
+  }
+
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type NestedStringNullableFilter<$PrismaModel = never> = {
@@ -31161,6 +31216,22 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
     _max?: NestedStringFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type NestedEnumtipo_operacionNullableFilter<$PrismaModel = never> = {
@@ -31601,12 +31672,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateWithoutARTICULOS_X_GRUPOInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
@@ -31618,16 +31690,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutARTICULOS_X_GRUPOInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUncheckedCreateNestedOneWithoutARTICULOSInput
@@ -31666,16 +31739,17 @@ export namespace Prisma {
   }
 
   export type ARTICULOSUpdateWithoutARTICULOS_X_GRUPOInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUpdateOneWithoutARTICULOSNestedInput
@@ -31683,16 +31757,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutARTICULOS_X_GRUPOInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUncheckedUpdateOneWithoutARTICULOSNestedInput
@@ -31739,12 +31814,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateWithoutARTICULOS_X_CLIENTESInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
@@ -31756,16 +31832,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutARTICULOS_X_CLIENTESInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUncheckedCreateNestedOneWithoutARTICULOSInput
@@ -31812,16 +31889,17 @@ export namespace Prisma {
   }
 
   export type ARTICULOSUpdateWithoutARTICULOS_X_CLIENTESInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUpdateOneWithoutARTICULOSNestedInput
@@ -31829,16 +31907,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutARTICULOS_X_CLIENTESInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUncheckedUpdateOneWithoutARTICULOSNestedInput
@@ -32017,12 +32096,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateWithoutCOLORESInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
     TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDACreateNestedOneWithoutARTICULOSInput
@@ -32034,15 +32114,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutCOLORESInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
@@ -32080,25 +32161,27 @@ export namespace Prisma {
     OR?: ARTICULOSScalarWhereInput[]
     NOT?: ARTICULOSScalarWhereInput | ARTICULOSScalarWhereInput[]
     id_articulo?: IntFilter<"ARTICULOS"> | number
-    cant?: IntNullableFilter<"ARTICULOS"> | number | null
-    precio?: FloatNullableFilter<"ARTICULOS"> | number | null
+    cant?: IntFilter<"ARTICULOS"> | number
+    precio?: FloatFilter<"ARTICULOS"> | number
     barcode?: IntNullableFilter<"ARTICULOS"> | number | null
-    stock_minimo?: IntNullableFilter<"ARTICULOS"> | number | null
+    stock_minimo?: IntFilter<"ARTICULOS"> | number
     vigente?: BoolNullableFilter<"ARTICULOS"> | boolean | null
-    id__medida?: IntNullableFilter<"ARTICULOS"> | number | null
-    id_color?: IntNullableFilter<"ARTICULOS"> | number | null
-    id_talle?: IntNullableFilter<"ARTICULOS"> | number | null
+    id_medida?: IntFilter<"ARTICULOS"> | number
+    id_color?: IntFilter<"ARTICULOS"> | number
+    id_talle?: IntFilter<"ARTICULOS"> | number
     id_proveedor?: IntNullableFilter<"ARTICULOS"> | number | null
     cant_reservada?: IntNullableFilter<"ARTICULOS"> | number | null
+    fecha_creacion?: DateTimeFilter<"ARTICULOS"> | Date | string
   }
 
   export type ARTICULOSCreateWithoutDETALLES_REMITOInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
@@ -32110,16 +32193,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutDETALLES_REMITOInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUncheckedCreateNestedOneWithoutARTICULOSInput
@@ -32192,16 +32276,17 @@ export namespace Prisma {
   }
 
   export type ARTICULOSUpdateWithoutDETALLES_REMITOInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUpdateOneWithoutARTICULOSNestedInput
@@ -32209,16 +32294,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutDETALLES_REMITOInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     REGISTRO_ARTICULOS?: REGISTRO_ARTICULOSUncheckedUpdateOneWithoutARTICULOSNestedInput
@@ -32546,12 +32632,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateWithoutPROVEEDORESInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
     TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDACreateNestedOneWithoutARTICULOSInput
@@ -32563,15 +32650,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutPROVEEDORESInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
@@ -32605,12 +32693,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateWithoutREGISTRO_ARTICULOSInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
@@ -32622,16 +32711,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutREGISTRO_ARTICULOSInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
@@ -32654,16 +32744,17 @@ export namespace Prisma {
   }
 
   export type ARTICULOSUpdateWithoutREGISTRO_ARTICULOSInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
@@ -32671,16 +32762,17 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutREGISTRO_ARTICULOSInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
@@ -33091,12 +33183,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateWithoutTALLESInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDACreateNestedOneWithoutARTICULOSInput
@@ -33108,15 +33201,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutTALLESInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
+    id_medida?: number
+    id_color?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
@@ -33150,12 +33244,13 @@ export namespace Prisma {
   }
 
   export type ARTICULOSCreateWithoutTIPOS_DE_MEDIDAInput = {
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     COLORES?: COLORESCreateNestedOneWithoutARTICULOSInput
     PROVEEDORES?: PROVEEDORESCreateNestedOneWithoutARTICULOSInput
     TALLES?: TALLESCreateNestedOneWithoutARTICULOSInput
@@ -33167,15 +33262,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedCreateWithoutTIPOS_DE_MEDIDAInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedCreateNestedManyWithoutARTICULOSInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedCreateNestedManyWithoutARTICULOSInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedCreateNestedManyWithoutARTICULOSInput
@@ -33528,27 +33624,29 @@ export namespace Prisma {
 
   export type ARTICULOSCreateManyCOLORESInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
   }
 
   export type ARTICULOSUpdateWithoutCOLORESInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
@@ -33557,15 +33655,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutCOLORESInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
@@ -33574,15 +33673,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateManyWithoutCOLORESInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type REMITOSCreateManyESTADOS_REMITOSInput = {
@@ -33811,27 +33911,29 @@ export namespace Prisma {
 
   export type ARTICULOSCreateManyPROVEEDORESInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_medida?: number
+    id_color?: number
+    id_talle?: number
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
   }
 
   export type ARTICULOSUpdateWithoutPROVEEDORESInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
@@ -33840,15 +33942,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutPROVEEDORESInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
@@ -33857,15 +33960,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateManyWithoutPROVEEDORESInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DETALLES_REMITOCreateManyREMITOSInput = {
@@ -34025,27 +34129,29 @@ export namespace Prisma {
 
   export type ARTICULOSCreateManyTALLESInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id__medida?: number | null
-    id_color?: number | null
+    id_medida?: number
+    id_color?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
   }
 
   export type ARTICULOSUpdateWithoutTALLESInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneWithoutARTICULOSNestedInput
+    TIPOS_DE_MEDIDA?: TIPOS_DE_MEDIDAUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
@@ -34054,15 +34160,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutTALLESInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
@@ -34071,40 +34178,43 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateManyWithoutTALLESInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id__medida?: NullableIntFieldUpdateOperationsInput | number | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
+    id_medida?: IntFieldUpdateOperationsInput | number
+    id_color?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ARTICULOSCreateManyTIPOS_DE_MEDIDAInput = {
     id_articulo?: number
-    cant?: number | null
-    precio?: number | null
+    cant?: number
+    precio?: number
     barcode?: number | null
-    stock_minimo?: number | null
+    stock_minimo?: number
     vigente?: boolean | null
-    id_color?: number | null
-    id_talle?: number | null
+    id_color?: number
+    id_talle?: number
     id_proveedor?: number | null
     cant_reservada?: number | null
+    fecha_creacion?: Date | string
   }
 
   export type ARTICULOSUpdateWithoutTIPOS_DE_MEDIDAInput = {
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
-    COLORES?: COLORESUpdateOneWithoutARTICULOSNestedInput
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+    COLORES?: COLORESUpdateOneRequiredWithoutARTICULOSNestedInput
     PROVEEDORES?: PROVEEDORESUpdateOneWithoutARTICULOSNestedInput
-    TALLES?: TALLESUpdateOneWithoutARTICULOSNestedInput
+    TALLES?: TALLESUpdateOneRequiredWithoutARTICULOSNestedInput
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUpdateManyWithoutARTICULOSNestedInput
@@ -34113,15 +34223,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateWithoutTIPOS_DE_MEDIDAInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
     ARTICULOS_X_GRUPO?: ARTICULOS_X_GRUPOUncheckedUpdateManyWithoutARTICULOSNestedInput
     ARTICULOS_X_CLIENTES?: ARTICULOS_X_CLIENTESUncheckedUpdateManyWithoutARTICULOSNestedInput
     DETALLES_REMITO?: DETALLES_REMITOUncheckedUpdateManyWithoutARTICULOSNestedInput
@@ -34130,15 +34241,16 @@ export namespace Prisma {
 
   export type ARTICULOSUncheckedUpdateManyWithoutTIPOS_DE_MEDIDAInput = {
     id_articulo?: IntFieldUpdateOperationsInput | number
-    cant?: NullableIntFieldUpdateOperationsInput | number | null
-    precio?: NullableFloatFieldUpdateOperationsInput | number | null
+    cant?: IntFieldUpdateOperationsInput | number
+    precio?: FloatFieldUpdateOperationsInput | number
     barcode?: NullableIntFieldUpdateOperationsInput | number | null
-    stock_minimo?: NullableIntFieldUpdateOperationsInput | number | null
+    stock_minimo?: IntFieldUpdateOperationsInput | number
     vigente?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    id_color?: NullableIntFieldUpdateOperationsInput | number | null
-    id_talle?: NullableIntFieldUpdateOperationsInput | number | null
+    id_color?: IntFieldUpdateOperationsInput | number
+    id_talle?: IntFieldUpdateOperationsInput | number
     id_proveedor?: NullableIntFieldUpdateOperationsInput | number | null
     cant_reservada?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type REMITOSCreateManyTIPOS_DE_PAGOInput = {
