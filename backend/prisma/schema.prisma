@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../prisma/generated/client"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -20,10 +20,11 @@ model ARTICULOS {
   id_proveedor             Int?
   cant_reservada           Int?
   fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
-  COLORES                  COLORES                    @relation(fields: [id_color], references: [id_color], onDelete: SetNull, map: "articulos_colores_fk")
+  descripcion              String?                    @db.VarChar(50)
+  COLORES                  COLORES                    @relation(fields: [id_color], references: [id_color], onDelete: SetDefault, map: "articulos_colores_fk")
   PROVEEDORES              PROVEEDORES?               @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
-  TALLES                   TALLES                     @relation(fields: [id_talle], references: [id_talle], onDelete: SetNull, map: "articulos_talles_fk")
-  TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA            @relation(fields: [id_medida], references: [id_medida], onDelete: SetNull, map: "articulos_tipos_de_medida_fk")
+  TALLES                   TALLES                     @relation(fields: [id_talle], references: [id_talle], onDelete: SetDefault, map: "articulos_talles_fk")
+  TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA            @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
   ARTICULOS_X_GRUPO        ARTICULOS_X_GRUPO[]
   ARTICULOS_X_CLIENTES     ARTICULOS_X_CLIENTES[]
   BONIFICACIONES_ARTICULOS BONIFICACIONES_ARTICULOS[] @ignore
@@ -205,7 +206,7 @@ model SUCURSAL {
 
 model TALLES {
   id_talle     Int         @id(map: "_talles__pk") @default(autoincrement())
-  nombre_talle String?     @db.VarChar(20)
+  nombre_talle String      @db.VarChar(20)
   ARTICULOS    ARTICULOS[]
 }
 

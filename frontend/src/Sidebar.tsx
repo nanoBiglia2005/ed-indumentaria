@@ -24,16 +24,6 @@ const ITEMS: { id: ItemId; nombre: string; icon: ReactNode }[] = [
     ),
   },
   {
-    id: 'proveedores',
-    nombre: 'Proveedores',
-    icon: (
-      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
-        <path strokeLinecap='round' strokeLinejoin='round' d='M21 8.25l-9-4.5-9 4.5 9 4.5 9-4.5z' />
-        <path strokeLinecap='round' strokeLinejoin='round' d='M3 8.25v7.5l9 4.5 9-4.5v-7.5' />
-      </svg>
-    ),
-  },
-  {
     id: 'configuracion',
     nombre: 'Configuración',
     icon: (
@@ -50,9 +40,7 @@ function Sidebar() {
   const [presionado, setPresionado] = useState<ItemId | null>(null);
 
   return (
-    <aside className='flex flex-col h-screen w-56 shrink-0 border-r border-black/10 bg-stone-50 py-6 px-3 gap-10'>
-      <img src='./img/logo.jpg'></img>
-
+    <aside className='flex-col h-screen w-56 shrink-0 border-r border-black/10 bg-stone-50 py-10 px-3 gap-10 hidden md:flex select-none'>
       <nav className='flex flex-col gap-1'>
         {ITEMS.map((item) => {
           const activo = seleccionado === item.id;
@@ -70,8 +58,8 @@ function Sidebar() {
                 ${clickeado ? 'scale-95' : 'scale-100'}
                 ${
                   activo
-                    ? 'bg-blue-500 text-white shadow-md'
-                    : 'text-gray-600 hover:bg-blue-100 hover:text-blue-500'
+                    ? 'bg-violet-500 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-amber-100 hover:text-amber-600'
                 }`}
             >
               <span

@@ -38,7 +38,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
   const [isClienteAssignOpen, setIsClienteAssignOpen] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/talles')
+    fetch('/api/talles')
       .then((res) => res.json())
       .then((data) => setTalles(data))
       .catch((err) => console.error('Error al obtener los talles:', err));
@@ -97,7 +97,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
         cant_reservada: 0,
       };
 
-      const response = await fetch('http://localhost:5000/api/articulos', {
+      const response = await fetch('/api/articulos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,14 +115,14 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
 
       await Promise.all([
         ...gruposSeleccionados.map((grupo) =>
-          fetch(`http://localhost:5000/api/articulos/${id_articulo}/grupos`, {
+          fetch(`/api/articulos/${id_articulo}/grupos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_grupo: grupo.id_grupo_articulo }),
           })
         ),
         ...clientesSeleccionados.map((cliente) =>
-          fetch(`http://localhost:5000/api/articulos/${id_articulo}/clientes`, {
+          fetch(`/api/articulos/${id_articulo}/clientes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_cliente: cliente.id_cliente }),
@@ -194,7 +194,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       value={cantidad === null ? '' : cantidad}
                       onChange={handleCantidadChange}
                       placeholder='0'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
                     />
                   </div>
 
@@ -209,7 +209,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       value={precio === null ? '' : precio}
                       onChange={handlePrecioChange}
                       placeholder='0.00'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
                     />
                   </div>
 
@@ -221,7 +221,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                     <select
                       value={idTalle}
                       onChange={(e) => setIdTalle(parseInt(e.target.value, 10))}
-                      className='w-full text-gray-700 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-full text-gray-700 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
                     >
                       {talles.map((talle) => (
                         <option key={talle.id_talle} value={talle.id_talle}>
@@ -241,7 +241,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                     <div className='mb-3 relative inline-flex w-full border-2 border-gray-300 rounded-lg bg-gray-100 p-1 gap-2'>
                       {/* Fondo animado */}
                       <div
-                        className={`absolute top-1 bottom-1 rounded-md bg-blue-600 transition-all duration-300 ease-in-out ${
+                        className={`absolute top-1 bottom-1 rounded-md bg-violet-600 transition-all duration-300 ease-in-out ${
                           barcodeAuto ? 'left-1/2 right-1' : 'left-1 right-1/2'
                         }`}
                       />
@@ -283,7 +283,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                         onChange={handleBarcodeChange}
                         placeholder={barcodeAuto ? 'Se generará automáticamente' : 'Sin Código de Barra'}
                         disabled={barcodeAuto}
-                        className={`w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                        className={`w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
                           barcodeAuto ? 'bg-gray-200 cursor-not-allowed text-gray-500' : ''
                         }`}
                       />
@@ -299,7 +299,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       <button
                         type='button'
                         onClick={() => setIsGrupoAssignOpen(true)}
-                        className='text-sm px-2 py-1 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors cursor-pointer'
+                        className='text-sm px-2 py-1 border border-violet-600 text-violet-600 rounded hover:bg-amber-50 transition-colors cursor-pointer'
                       >
                         Asignar a un Nuevo Grupo
                       </button>
@@ -341,7 +341,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       <button
                         type='button'
                         onClick={() => setIsClienteAssignOpen(true)}
-                        className='text-sm px-2 py-1 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors cursor-pointer'
+                        className='text-sm px-2 py-1 border border-violet-600 text-violet-600 rounded hover:bg-amber-50 transition-colors cursor-pointer'
                       >
                         Asignar a un Nuevo Cliente
                       </button>
@@ -386,7 +386,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                   <button
                     onClick={handleCreateArticle}
                     disabled={isLoading}
-                    className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-400 transition-colors'
+                    className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
                   >
                     {isLoading ? 'Creando...' : 'Crear'}
                   </button>
@@ -484,7 +484,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       onSuccess();
                       onClose();
                     }}
-                    className='cursor-pointer w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors'
+                    className='cursor-pointer w-full px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 transition-colors'
                   >
                     Volver a la Lista
                   </button>

@@ -12,6 +12,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.10",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-virtual": "^3.14.7",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1",

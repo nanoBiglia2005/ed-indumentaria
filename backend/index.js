@@ -149,6 +149,52 @@ app.post('/api/articulos', async (req, res) => {
   }
 });
 
+// Actualizar un articulo existente (tabla ARTICULOS)
+app.put('/api/articulos/:id_articulo', async (req, res) => {
+  try {
+    const id_articulo = parseInt(req.params.id_articulo, 10);
+    if (Number.isNaN(id_articulo)) {
+      return res.status(400).json({ message: 'El id del articulo debe ser un numero.' });
+    }
+
+    const {
+      cant,
+      precio,
+      barcode,
+      stock_minimo,
+      id_color,
+      id_talle,
+      cant_reservada,
+      descripcion,
+    } = req.body;
+
+    const articuloActualizado = await prisma.ARTICULOS.update({
+      where: { id_articulo },
+      data: {
+        cant,
+        precio,
+        barcode,
+        stock_minimo,
+        id_color,
+        id_talle,
+        cant_reservada,
+        descripcion,
+      },
+      include: articulosInclude,
+    });
+    res.status(200).json(articuloActualizado);
+  } catch (error) {
+    console.error('Error al actualizar el articulo:', error);
+    if (error.code === 'P2002') {
+      return res.status(409).json({ message: 'Ya existe un articulo con ese codigo de barra.', details: error.message });
+    }
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'El articulo no existe.', details: error.message });
+    }
+    res.status(500).json({ message: 'Error al actualizar el articulo.', details: error.message });
+  }
+});
+
 // Asignar un articulo a un GRUPO (tabla ARTICULOS_X_GRUPO)
 app.post('/api/articulos/:id_articulo/grupos', async (req, res) => {
   try {
@@ -186,6 +232,44 @@ app.post('/api/articulos/:id_articulo/clientes', async (req, res) => {
   } catch (error) {
     console.error('Error al asignar el articulo al cliente:', error);
     res.status(500).json({ message: 'Error al asignar el articulo al cliente.', details: error.message });
+  }
+});
+
+// Quitar un articulo de un GRUPO (tabla ARTICULOS_X_GRUPO)
+app.delete('/api/articulos/:id_articulo/grupos/:id_grupo', async (req, res) => {
+  try {
+    const id_articulo = parseInt(req.params.id_articulo, 10);
+    const id_grupo = parseInt(req.params.id_grupo, 10);
+    if (Number.isNaN(id_articulo) || Number.isNaN(id_grupo)) {
+      return res.status(400).json({ message: 'El id del articulo y del grupo deben ser numeros.' });
+    }
+
+    await prisma.ARTICULOS_X_GRUPO.deleteMany({
+      where: { id_articulo, id_grupo },
+    });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error al quitar el articulo del grupo:', error);
+    res.status(500).json({ message: 'Error al quitar el articulo del grupo.', details: error.message });
+  }
+});
+
+// Quitar un articulo de un CLIENTE (tabla ARTICULOS_X_CLIENTES)
+app.delete('/api/articulos/:id_articulo/clientes/:id_cliente', async (req, res) => {
+  try {
+    const id_articulo = parseInt(req.params.id_articulo, 10);
+    const id_cliente = parseInt(req.params.id_cliente, 10);
+    if (Number.isNaN(id_articulo) || Number.isNaN(id_cliente)) {
+      return res.status(400).json({ message: 'El id del articulo y del cliente deben ser numeros.' });
+    }
+
+    await prisma.ARTICULOS_X_CLIENTES.deleteMany({
+      where: { id_articulo, id_cliente },
+    });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error al quitar el articulo del cliente:', error);
+    res.status(500).json({ message: 'Error al quitar el articulo del cliente.', details: error.message });
   }
 });
 
@@ -253,6 +337,21 @@ app.get('/api/talles', async (req, res) => {
   } catch (error) {
     console.error('Error al obtener los talles:', error);
     res.status(500).json({ message: 'Error al obtener los talles.', details: error.message });
+  }
+});
+
+// ============================================================
+//  COLORES
+// ============================================================
+
+// Obtener TODOS los colores (para poblar el dropdown)
+app.get('/api/colores', async (req, res) => {
+  try {
+    const colores = await prisma.COLORES.findMany();
+    res.status(200).json(colores);
+  } catch (error) {
+    console.error('Error al obtener los colores:', error);
+    res.status(500).json({ message: 'Error al obtener los colores.', details: error.message });
   }
 });
 
