@@ -3,12 +3,13 @@ import type { ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { ArticuloConRelaciones } from '../../backend/types';
 import type {
-  GRUPOS_DE_ARTICULOS,
+  GRUPOS_DE_VENTA,
   CLIENTES,
   COLORES,
   TALLES,
-  ARTICULOS_X_GRUPO,
+  ARTICULOS_X_GRUPO_VENTA_alt,
   ARTICULOS_X_CLIENTES,
+  SUBGRUPOS_DE_VENTA_alt,
 } from '../../backend/generated/prisma/client';
 import CreateArticleModal from './CreateArticleModal';
 import EditArticleModal from './EditArticleModal';
@@ -16,27 +17,9 @@ import EditFieldModal from './EditFieldModal';
 import type { CampoEditable } from './EditFieldModal';
 import SelectListModal from './SelectListModal';
 import Sidebar from './Sidebar';
+import { resaltarCoincidencia } from './textUtils';
 
 type Opcion = { id: number; nombre: string };
-
-function resaltarCoincidencia(texto: string, termino: string): ReactNode {
-  if (!termino) return texto;
-
-  const escapado = termino.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const partes = texto.split(new RegExp(`(${escapado})`, 'gi'));
-  if (partes.length === 1) return texto;
-
-  const terminoLower = termino.toLowerCase();
-  return partes.map((parte, i) =>
-    parte.toLowerCase() === terminoLower ? (
-      <mark key={i} className='bg-violet-300 text-inherit rounded-sm'>
-        {parte}
-      </mark>
-    ) : (
-      <span key={i}>{parte}</span>
-    )
-  );
-}
 
 const ALTO_LINEA = 20;
 const PADDING_VERTICAL_FILA = 24;
@@ -103,16 +86,18 @@ function FilterDropdown({
 function New() {
   const [datosBackend, setDatosBackend] = useState<ArticuloConRelaciones[]>([]);
 
-  const [grupos, setGrupos] = useState<GRUPOS_DE_ARTICULOS[]>([]);
+  const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
   const [clientes, setClientes] = useState<CLIENTES[]>([]);
   const [colores, setColores] = useState<COLORES[]>([]);
   const [talles, setTalles] = useState<TALLES[]>([]);
+  const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA_alt[]>([]);
 
-  const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO[]>([]);
+  const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO_VENTA_alt[]>([]);
   const [articulosXClientes, setArticulosXClientes] = useState<ARTICULOS_X_CLIENTES[]>([]);
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<number | null>(null);
+  const [subgrupoSeleccionado, setSubgrupoSeleccionado] = useState<number | null>(null);
 
   const [busquedaInput, setBusquedaInput] = useState('');
   const [busqueda, setBusqueda] = useState('');
@@ -127,6 +112,8 @@ function New() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [campoAEditar, setCampoAEditar] = useState<CampoEditable | null>(null);
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
+  const [imprimiendoId, setImprimiendoId] = useState<number | null>(null);
+  const [impresoId, setImpresoId] = useState<number | null>(null);
 
   type ColumnaArticulo = {
     header: string;
@@ -138,17 +125,18 @@ function New() {
 
   const columnas: ColumnaArticulo[] = useMemo(() => [
     {
-      header: 'Vigente',
-      render: (item) => (item.vigente ? 'Vigente' : 'No Vigente'),
-      extraClassName: (item) => (item.vigente ? 'text-green-500' : 'text-red-500'),
-      width: 90,
-    },
-    {
       header: 'Código de Barra',
       render: (item) => (item.barcode ? '77900000' + item.barcode : 'No Asignado'),
       extraClassName: (item) => (!item.barcode ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'barcode',
       width: 170,
+    },
+    {
+      header: 'Descripción',
+      render: (item) => item.descripcion ?? 'Sin Descripción',
+      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-sm flex justify-center' : ''),
+      campo: 'descripcion',
+      width: 220,
     },
     { header: 'Talle',
       render: (item) => item.TALLES?.nombre_talle,
@@ -156,6 +144,7 @@ function New() {
       campo: 'id_talle',
       width: 130 },
     { header: 'Cantidad', render: (item) => item.cant, campo: 'cant', width: 100 },
+    { header: 'Precio', render: (item) => `${item.precio}$`, campo: 'precio', width: 120 },
     {
       header: 'Cantidad Reservada',
       render: (item) => item.cant_reservada,
@@ -168,22 +157,20 @@ function New() {
       campo: 'stock_minimo',
       width: 153,
     },
-    { header: 'Precio', render: (item) => `${item.precio}$`, campo: 'precio', width: 120 },
     { header: 'Color',
       render: (item) => item.COLORES?.nombre_color,
       extraClassName: (item) => (item.COLORES?.id_color == 1 ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'id_color',
       width: 140 },
-    {
-      header: 'Descripción',
-      render: (item) => item.descripcion ?? 'Sin Descripción',
-      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-sm flex justify-center' : ''),
-      campo: 'descripcion',
-      width: 220,
-    },
+      {
+        header: 'Vigente',
+        render: (item) => (item.vigente ? 'Vigente' : 'No Vigente'),
+        extraClassName: (item) => (item.vigente ? 'text-green-500' : 'text-red-500'),
+        width: 90,
+      },
   ], []);
 
-  const gridTemplateColumns = `${columnas.map((c) => `${c.width}px`).join(' ')} minmax(140px, 1fr)`;
+  const gridTemplateColumns = `${columnas.map((c) => `${c.width}px`).join(' ')} minmax(230px, 1fr)`;
 
   const scrollParentRef = useRef<HTMLDivElement>(null);
 
@@ -202,7 +189,7 @@ function New() {
     fetch('/api/articulos-x-grupo')
       .then((respuesta) => respuesta.json())
       .then((data) => setArticulosXGrupo(data))
-      .catch((error) => console.error('Error al obtener ARTICULOS_X_GRUPO:', error));
+      .catch((error) => console.error('Error al obtener ARTICULOS_X_GRUPO_VENTA_alt:', error));
   };
 
   const fetchArticulosXClientes = () => {
@@ -227,6 +214,29 @@ function New() {
   const abrirEdicionCompleta = (articulo: ArticuloConRelaciones) => {
     setArticuloAEditar(articulo);
     setIsEditModalOpen(true);
+  };
+
+  const handleImprimir = async (articulo: ArticuloConRelaciones) => {
+    setImprimiendoId(articulo.id_articulo);
+    try {
+      const respuesta = await fetch('/api/print', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_articulo: articulo.id_articulo, cantidad: 1 }),
+      });
+      const resultado = await respuesta.json();
+      if (!respuesta.ok || resultado.status === 'error') {
+        throw new Error(resultado.message ?? resultado.detail ?? 'No se pudo imprimir el articulo.');
+      }
+      setImpresoId(articulo.id_articulo);
+      setTimeout(() => {
+        setImpresoId((actual) => (actual === articulo.id_articulo ? null : actual));
+      }, 1500);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'No se pudo imprimir el articulo.');
+    } finally {
+      setImprimiendoId(null);
+    }
   };
 
   const abrirEdicionCampo = (articulo: ArticuloConRelaciones, campo: CampoEditable) => {
@@ -258,6 +268,11 @@ function New() {
       .then((data) => setTalles(data))
       .catch((error) => console.error('Error al obtener los talles:', error));
 
+    fetch('/api/subgrupos')
+      .then((respuesta) => respuesta.json())
+      .then((data) => setSubgrupos(data))
+      .catch((error) => console.error('Error al obtener los subgrupos:', error));
+
     fetchArticulosXGrupo();
     fetchArticulosXClientes();
   }, []);
@@ -268,11 +283,25 @@ function New() {
     if (grupoSeleccionado !== null) {
       const idsDelGrupo = new Set(
         articulosXGrupo
-          .filter((registro) => registro.id_grupo === grupoSeleccionado)
+          .filter((registro) => registro.id_grupo_venta === grupoSeleccionado)
           .map((registro) => registro.id_articulo)
       );
       articulosFiltrados = articulosFiltrados.filter((articulo) =>
         idsDelGrupo.has(articulo.id_articulo)
+      );
+    }
+
+    if (grupoSeleccionado !== null && subgrupoSeleccionado !== null) {
+      const idsDelSubgrupo = new Set(
+        articulosXGrupo
+          .filter(
+            (registro) =>
+              registro.id_grupo_venta === grupoSeleccionado && registro.id_subgrupo === subgrupoSeleccionado
+          )
+          .map((registro) => registro.id_articulo)
+      );
+      articulosFiltrados = articulosFiltrados.filter((articulo) =>
+        idsDelSubgrupo.has(articulo.id_articulo)
       );
     }
 
@@ -300,7 +329,16 @@ function New() {
     })
 
     return articulosFiltrados;
-  }, [datosBackend, articulosXGrupo, articulosXClientes, grupoSeleccionado, clienteSeleccionado, busqueda, columnas]);
+  }, [
+    datosBackend,
+    articulosXGrupo,
+    articulosXClientes,
+    grupoSeleccionado,
+    subgrupoSeleccionado,
+    clienteSeleccionado,
+    busqueda,
+    columnas,
+  ]);
 
   const rowVirtualizer = useVirtualizer({
     count: articulosFiltrados.length,
@@ -314,7 +352,7 @@ function New() {
 
     const idsDelGrupo = new Set(
       articulosXGrupo
-        .filter((registro) => registro.id_grupo === grupoSeleccionado)
+        .filter((registro) => registro.id_grupo_venta === grupoSeleccionado)
         .map((registro) => registro.id_articulo)
     );
 
@@ -327,6 +365,20 @@ function New() {
     return clientes.filter((cliente) => idsClientesDelGrupo.has(cliente.id_cliente));
   }, [grupoSeleccionado, articulosXGrupo, articulosXClientes, clientes]);
 
+  const subgruposFiltrados = useMemo(() => {
+    if (grupoSeleccionado === null) return [];
+
+    const idsSubgrupoDelGrupo = new Set(
+      articulosXGrupo
+        .filter(
+          (registro) => registro.id_grupo_venta === grupoSeleccionado && registro.id_subgrupo !== null
+        )
+        .map((registro) => registro.id_subgrupo)
+    );
+
+    return subgrupos.filter((subgrupo) => idsSubgrupoDelGrupo.has(subgrupo.id_subgrupo));
+  }, [grupoSeleccionado, articulosXGrupo, subgrupos]);
+
   useEffect(() => {
     if (
       clienteSeleccionado !== null &&
@@ -335,6 +387,15 @@ function New() {
       setClienteSeleccionado(null);
     }
   }, [clientesFiltrados, clienteSeleccionado]);
+
+  useEffect(() => {
+    if (
+      subgrupoSeleccionado !== null &&
+      !subgruposFiltrados.some((subgrupo) => subgrupo.id_subgrupo === subgrupoSeleccionado)
+    ) {
+      setSubgrupoSeleccionado(null);
+    }
+  }, [subgruposFiltrados, subgrupoSeleccionado]);
 
   return (
     <>
@@ -355,13 +416,27 @@ function New() {
               label='Filtrar por Grupo'
               textSize='xl'
               opciones={grupos.map((g) => ({
-                id: g.id_grupo_articulo,
-                nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo_articulo}`,
+                id: g.id_grupo,
+                nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
               }))}
               selectedId={grupoSeleccionado}
               onSelect={setGrupoSeleccionado}
               onClear={() => setGrupoSeleccionado(null)}
             />
+
+            {grupoSeleccionado !== null && (
+              <FilterDropdown
+                label='Filtrar por Subgrupo'
+                textSize='xl'
+                opciones={subgruposFiltrados.map((s) => ({
+                  id: s.id_subgrupo,
+                  nombre: s.nombre_subgrupo,
+                }))}
+                selectedId={subgrupoSeleccionado}
+                onSelect={setSubgrupoSeleccionado}
+                onClear={() => setSubgrupoSeleccionado(null)}
+              />
+            )}
 
             <FilterDropdown
             textSize='xl'
@@ -466,8 +541,28 @@ function New() {
                     );
                   })}
                   <div
-                    className={`py-3 border-black/20 border-l border-b group-hover:bg-amber-50 transition-color duration-100 ease-in flex items-center justify-center`}
+                    className={`py-3 border-black/20 border-l border-b group-hover:bg-amber-50 transition-color duration-100 ease-in flex items-center justify-center gap-2`}
                   >
+                    <button
+                      type='button'
+                      onClick={() => handleImprimir(item)}
+                      disabled={imprimiendoId === item.id_articulo}
+                      className={`rounded border px-3 py-1 text-sm font-semibold text-white transition-color duration-100 ease-in ${
+                        imprimiendoId === item.id_articulo || impresoId === item.id_articulo
+                          ? 'opacity-100'
+                          : 'opacity-0 group-hover:opacity-100'
+                      } ${
+                        impresoId === item.id_articulo
+                          ? 'border-green-600 bg-green-600'
+                          : 'cursor-pointer border-amber-500 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:cursor-wait disabled:bg-amber-300'
+                      }`}
+                    >
+                      {imprimiendoId === item.id_articulo
+                        ? 'Imprimiendo...'
+                        : impresoId === item.id_articulo
+                        ? '✓ Impreso'
+                        : 'Imprimir'}
+                    </button>
                     <button
                       type='button'
                       onClick={() => abrirEdicionCompleta(item)}

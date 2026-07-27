@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import type { TALLES, GRUPOS_DE_ARTICULOS, CLIENTES } from '../../backend/generated/prisma/client';
+import type { TALLES, GRUPOS_DE_VENTA, CLIENTES } from '../../backend/generated/prisma/client';
 import SelectListModal from './SelectListModal';
 
 interface CreateArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  grupos: GRUPOS_DE_ARTICULOS[];
+  grupos: GRUPOS_DE_VENTA[];
   clientes: CLIENTES[];
 }
 
@@ -32,7 +32,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
   const [articuloCreado, setArticuloCreado] = useState<ArticuloCreado | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-  const [gruposSeleccionados, setGruposSeleccionados] = useState<GRUPOS_DE_ARTICULOS[]>([]);
+  const [gruposSeleccionados, setGruposSeleccionados] = useState<GRUPOS_DE_VENTA[]>([]);
   const [clientesSeleccionados, setClientesSeleccionados] = useState<CLIENTES[]>([]);
   const [isGrupoAssignOpen, setIsGrupoAssignOpen] = useState(false);
   const [isClienteAssignOpen, setIsClienteAssignOpen] = useState(false);
@@ -118,7 +118,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
           fetch(`/api/articulos/${id_articulo}/grupos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_grupo: grupo.id_grupo_articulo }),
+            body: JSON.stringify({ id_grupo: grupo.id_grupo }),
           })
         ),
         ...clientesSeleccionados.map((cliente) =>
@@ -311,15 +311,15 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       <ul className='flex flex-wrap gap-2'>
                         {gruposSeleccionados.map((grupo) => (
                           <li
-                            key={grupo.id_grupo_articulo}
+                            key={grupo.id_grupo}
                             className='flex items-center gap-1 justify-between px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700 w-fit'
                           >
-                            <span>{grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo_articulo}`}</span>
+                            <span>{grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo}`}</span>
                             <button
                               type='button'
                               onClick={() =>
                                 setGruposSeleccionados((prev) =>
-                                  prev.filter((g) => g.id_grupo_articulo !== grupo.id_grupo_articulo)
+                                  prev.filter((g) => g.id_grupo !== grupo.id_grupo)
                                 )
                               }
                               className='font-bold text-gray-400 hover:text-red-600 cursor-pointer px-1'
@@ -466,7 +466,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                         <ul className='flex flex-wrap gap-2 flex-row-reverse'>
                         {gruposSeleccionados.map((grupo) => (
                           <li
-                            key={grupo.id_grupo_articulo}
+                            key={grupo.id_grupo}
                             className='flex items-center justify-between gap-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700'
                           >
                             <span>{grupo.nombre_grupo}</span>
@@ -501,10 +501,10 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
         onClose={() => setIsGrupoAssignOpen(false)}
         title='Asignar a un Grupo'
         opciones={grupos
-          .filter((g) => !gruposSeleccionados.some((sel) => sel.id_grupo_articulo === g.id_grupo_articulo))
-          .map((g) => ({ id: g.id_grupo_articulo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo_articulo}` }))}
+          .filter((g) => !gruposSeleccionados.some((sel) => sel.id_grupo === g.id_grupo))
+          .map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` }))}
         onSelect={(opcion) => {
-          const grupo = grupos.find((g) => g.id_grupo_articulo === opcion.id);
+          const grupo = grupos.find((g) => g.id_grupo === opcion.id);
           if (grupo) {
             setGruposSeleccionados((prev) => [...prev, grupo]);
           }

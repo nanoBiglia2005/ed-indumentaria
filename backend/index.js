@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const PRINT_SERVICE_URL = process.env.PRINT_SERVICE_URL || 'http://localhost:8001';
 
 app.use(cors());
 app.use(express.json());
@@ -55,7 +56,7 @@ app.get('/api/articulos', async (req, res) => {
   }
 });
 
-// Obtener articulos segun su GRUPO (via ARTICULOS_X_GRUPO)
+// Obtener articulos segun su GRUPO (via ARTICULOS_X_GRUPO_VENTA_alt)
 app.get('/api/articulos/grupo/:id_grupo', async (req, res) => {
   try {
     const id_grupo = parseInt(req.params.id_grupo, 10);
@@ -65,15 +66,15 @@ app.get('/api/articulos/grupo/:id_grupo', async (req, res) => {
 
     const articulos = await prisma.ARTICULOS.findMany({
       where: {
-        ARTICULOS_X_GRUPO: {
-          some: { id_grupo },
+        ARTICULOS_X_GRUPO_VENTA_alt: {
+          some: { id_grupo_venta: id_grupo },
         },
       },
       include: {
         ...articulosInclude,
-        ARTICULOS_X_GRUPO: {
-          where: { id_grupo },
-          include: { GRUPOS_DE_ARTICULOS: true },
+        ARTICULOS_X_GRUPO_VENTA_alt: {
+          where: { id_grupo_venta: id_grupo },
+          include: { GRUPOS_DE_VENTA: true },
         },
       },
     });
@@ -195,7 +196,7 @@ app.put('/api/articulos/:id_articulo', async (req, res) => {
   }
 });
 
-// Asignar un articulo a un GRUPO (tabla ARTICULOS_X_GRUPO)
+// Asignar un articulo a un GRUPO (tabla ARTICULOS_X_GRUPO_VENTA_alt)
 app.post('/api/articulos/:id_articulo/grupos', async (req, res) => {
   try {
     const id_articulo = parseInt(req.params.id_articulo, 10);
@@ -203,10 +204,10 @@ app.post('/api/articulos/:id_articulo/grupos', async (req, res) => {
       return res.status(400).json({ message: 'El id del articulo debe ser un numero.' });
     }
 
-    const { id_grupo, descripcion } = req.body;
+    const { id_grupo } = req.body;
 
-    const asignacion = await prisma.ARTICULOS_X_GRUPO.create({
-      data: { id_articulo, id_grupo, descripcion },
+    const asignacion = await prisma.ARTICULOS_X_GRUPO_VENTA_alt.create({
+      data: { id_articulo, id_grupo_venta: id_grupo },
     });
     res.status(201).json(asignacion);
   } catch (error) {
@@ -235,7 +236,7 @@ app.post('/api/articulos/:id_articulo/clientes', async (req, res) => {
   }
 });
 
-// Quitar un articulo de un GRUPO (tabla ARTICULOS_X_GRUPO)
+// Quitar un articulo de un GRUPO (tabla ARTICULOS_X_GRUPO_VENTA_alt)
 app.delete('/api/articulos/:id_articulo/grupos/:id_grupo', async (req, res) => {
   try {
     const id_articulo = parseInt(req.params.id_articulo, 10);
@@ -244,8 +245,8 @@ app.delete('/api/articulos/:id_articulo/grupos/:id_grupo', async (req, res) => {
       return res.status(400).json({ message: 'El id del articulo y del grupo deben ser numeros.' });
     }
 
-    await prisma.ARTICULOS_X_GRUPO.deleteMany({
-      where: { id_articulo, id_grupo },
+    await prisma.ARTICULOS_X_GRUPO_VENTA_alt.deleteMany({
+      where: { id_articulo, id_grupo_venta: id_grupo },
     });
     res.status(204).send();
   } catch (error) {
@@ -273,14 +274,14 @@ app.delete('/api/articulos/:id_articulo/clientes/:id_cliente', async (req, res) 
   }
 });
 
-// Obtener TODOS los registros de ARTICULOS_X_GRUPO (para filtrar en el frontend)
+// Obtener TODOS los registros de ARTICULOS_X_GRUPO_VENTA_alt (para filtrar en el frontend)
 app.get('/api/articulos-x-grupo', async (req, res) => {
   try {
-    const registros = await prisma.ARTICULOS_X_GRUPO.findMany();
+    const registros = await prisma.ARTICULOS_X_GRUPO_VENTA_alt.findMany();
     res.status(200).json(registros);
   } catch (error) {
-    console.error('Error al obtener ARTICULOS_X_GRUPO:', error);
-    res.status(500).json({ message: 'Error al obtener ARTICULOS_X_GRUPO.', details: error.message });
+    console.error('Error al obtener ARTICULOS_X_GRUPO_VENTA_alt:', error);
+    res.status(500).json({ message: 'Error al obtener ARTICULOS_X_GRUPO_VENTA_alt.', details: error.message });
   }
 });
 
@@ -296,13 +297,13 @@ app.get('/api/articulos-x-clientes', async (req, res) => {
 });
 
 // ============================================================
-//  GRUPOS DE ARTICULOS
+//  GRUPOS DE VENTA
 // ============================================================
 
-// Obtener TODOS los grupos de articulos (para poblar el dropdown)
+// Obtener TODOS los grupos de venta (para poblar el dropdown)
 app.get('/api/grupos', async (req, res) => {
   try {
-    const grupos = await prisma.GRUPOS_DE_ARTICULOS.findMany();
+    const grupos = await prisma.GRUPOS_DE_VENTA.findMany();
     res.status(200).json(grupos);
   } catch (error) {
     console.error('Error al obtener los grupos de articulos:', error);
@@ -310,18 +311,29 @@ app.get('/api/grupos', async (req, res) => {
   }
 });
 
-// Crear un nuevo grupo de articulos (tabla GRUPOS_DE_ARTICULOS)
+// Crear un nuevo grupo de venta (tabla GRUPOS_DE_VENTA)
 app.post('/api/grupos', async (req, res) => {
   try {
     const { nombre_grupo, tipo_grupo } = req.body;
 
-    const nuevoGrupo = await prisma.GRUPOS_DE_ARTICULOS.create({
+    const nuevoGrupo = await prisma.GRUPOS_DE_VENTA.create({
       data: { nombre_grupo, tipo_grupo },
     });
     res.status(201).json(nuevoGrupo);
   } catch (error) {
     console.error('Error al crear el grupo de articulos:', error);
     res.status(500).json({ message: 'Error al crear el grupo de articulos.', details: error.message });
+  }
+});
+
+// Obtener TODOS los subgrupos de venta (para filtrar en el frontend)
+app.get('/api/subgrupos', async (req, res) => {
+  try {
+    const subgrupos = await prisma.SUBGRUPOS_DE_VENTA_alt.findMany();
+    res.status(200).json(subgrupos);
+  } catch (error) {
+    console.error('Error al obtener los subgrupos de venta:', error);
+    res.status(500).json({ message: 'Error al obtener los subgrupos de venta.', details: error.message });
   }
 });
 
@@ -386,6 +398,54 @@ app.post('/api/clientes', async (req, res) => {
   } catch (error) {
     console.error('Error al crear el cliente:', error);
     res.status(500).json({ message: 'Error al crear el cliente.', details: error.message });
+  }
+});
+
+// ============================================================
+//  IMPRESION
+// ============================================================
+
+// Envia un articulo a imprimir en la impresora local del cliente (via print-service)
+app.post('/api/print', async (req, res) => {
+  try {
+    const id_articulo = parseInt(req.body.id_articulo, 10);
+    const cantidad = parseInt(req.body.cantidad, 10) || 1;
+    if (Number.isNaN(id_articulo)) {
+      return res.status(400).json({ message: 'El id del articulo debe ser un numero.' });
+    }
+
+    const articulo = await prisma.ARTICULOS.findUnique({
+      where: { id_articulo },
+      include: articulosInclude,
+    });
+    if (!articulo) {
+      return res.status(404).json({ message: 'El articulo no existe.' });
+    }
+
+    const printResponse = await fetch(`${PRINT_SERVICE_URL}/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        payload: {
+          id_articulo: articulo.id_articulo,
+          barcode: articulo.barcode,
+          descripcion: articulo.descripcion,
+          precio: articulo.precio,
+          talle: articulo.TALLES?.nombre_talle,
+          color: articulo.COLORES?.nombre_color,
+          cantidad,
+        },
+      }),
+    });
+
+    const printResult = await printResponse.json();
+    if (!printResponse.ok) {
+      return res.status(printResponse.status).json(printResult);
+    }
+    res.status(200).json(printResult);
+  } catch (error) {
+    console.error('Error al enviar el trabajo de impresion:', error);
+    res.status(500).json({ message: 'Error al enviar el trabajo de impresion.', details: error.message });
   }
 });
 

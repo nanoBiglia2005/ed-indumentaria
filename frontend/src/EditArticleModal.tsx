@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import type {
-  GRUPOS_DE_ARTICULOS,
+  GRUPOS_DE_VENTA,
   CLIENTES,
-  ARTICULOS_X_GRUPO,
+  ARTICULOS_X_GRUPO_VENTA_alt,
   ARTICULOS_X_CLIENTES,
 } from '../../backend/generated/prisma/client';
 import type { ArticuloConRelaciones } from '../../backend/types';
@@ -15,9 +15,9 @@ interface EditArticleModalProps {
   onClose: () => void;
   onSuccess: () => void;
   articulo: ArticuloConRelaciones | null;
-  grupos: GRUPOS_DE_ARTICULOS[];
+  grupos: GRUPOS_DE_VENTA[];
   clientes: CLIENTES[];
-  articulosXGrupo: ARTICULOS_X_GRUPO[];
+  articulosXGrupo: ARTICULOS_X_GRUPO_VENTA_alt[];
   articulosXClientes: ARTICULOS_X_CLIENTES[];
 }
 
@@ -34,8 +34,8 @@ export default function EditArticleModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [gruposOriginales, setGruposOriginales] = useState<GRUPOS_DE_ARTICULOS[]>([]);
-  const [gruposSeleccionados, setGruposSeleccionados] = useState<GRUPOS_DE_ARTICULOS[]>([]);
+  const [gruposOriginales, setGruposOriginales] = useState<GRUPOS_DE_VENTA[]>([]);
+  const [gruposSeleccionados, setGruposSeleccionados] = useState<GRUPOS_DE_VENTA[]>([]);
   const [clientesOriginales, setClientesOriginales] = useState<CLIENTES[]>([]);
   const [clientesSeleccionados, setClientesSeleccionados] = useState<CLIENTES[]>([]);
 
@@ -49,7 +49,7 @@ export default function EditArticleModal({
 
     const gruposDelArticulo = grupos.filter((grupo) =>
       articulosXGrupo.some(
-        (rel) => rel.id_articulo === articulo.id_articulo && rel.id_grupo === grupo.id_grupo_articulo
+        (rel) => rel.id_articulo === articulo.id_articulo && rel.id_grupo_venta === grupo.id_grupo
       )
     );
     const clientesDelArticulo = clientes.filter((cliente) =>
@@ -72,10 +72,10 @@ export default function EditArticleModal({
       setIsLoading(true);
       setError(null);
 
-      const gruposOriginalesIds = new Set(gruposOriginales.map((g) => g.id_grupo_articulo));
-      const gruposSeleccionadosIds = new Set(gruposSeleccionados.map((g) => g.id_grupo_articulo));
-      const gruposAAgregar = gruposSeleccionados.filter((g) => !gruposOriginalesIds.has(g.id_grupo_articulo));
-      const gruposAQuitar = gruposOriginales.filter((g) => !gruposSeleccionadosIds.has(g.id_grupo_articulo));
+      const gruposOriginalesIds = new Set(gruposOriginales.map((g) => g.id_grupo));
+      const gruposSeleccionadosIds = new Set(gruposSeleccionados.map((g) => g.id_grupo));
+      const gruposAAgregar = gruposSeleccionados.filter((g) => !gruposOriginalesIds.has(g.id_grupo));
+      const gruposAQuitar = gruposOriginales.filter((g) => !gruposSeleccionadosIds.has(g.id_grupo));
 
       const clientesOriginalesIds = new Set(clientesOriginales.map((c) => c.id_cliente));
       const clientesSeleccionadosIds = new Set(clientesSeleccionados.map((c) => c.id_cliente));
@@ -87,11 +87,11 @@ export default function EditArticleModal({
           fetch(`/api/articulos/${articulo.id_articulo}/grupos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_grupo: grupo.id_grupo_articulo }),
+            body: JSON.stringify({ id_grupo: grupo.id_grupo }),
           })
         ),
         ...gruposAQuitar.map((grupo) =>
-          fetch(`/api/articulos/${articulo.id_articulo}/grupos/${grupo.id_grupo_articulo}`, {
+          fetch(`/api/articulos/${articulo.id_articulo}/grupos/${grupo.id_grupo}`, {
             method: 'DELETE',
           })
         ),
@@ -180,15 +180,15 @@ export default function EditArticleModal({
                       <ul className='flex flex-wrap gap-2'>
                         {gruposSeleccionados.map((grupo) => (
                           <li
-                            key={grupo.id_grupo_articulo}
+                            key={grupo.id_grupo}
                             className='flex items-center gap-1 justify-between px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700 w-fit'
                           >
-                            <span>{grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo_articulo}`}</span>
+                            <span>{grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo}`}</span>
                             <button
                               type='button'
                               onClick={() =>
                                 setGruposSeleccionados((prev) =>
-                                  prev.filter((g) => g.id_grupo_articulo !== grupo.id_grupo_articulo)
+                                  prev.filter((g) => g.id_grupo !== grupo.id_grupo)
                                 )
                               }
                               className='font-bold text-gray-400 hover:text-red-600 cursor-pointer px-1'
@@ -270,10 +270,10 @@ export default function EditArticleModal({
         onClose={() => setIsGrupoAssignOpen(false)}
         title='Asignar a un Grupo'
         opciones={grupos
-          .filter((g) => !gruposSeleccionados.some((sel) => sel.id_grupo_articulo === g.id_grupo_articulo))
-          .map((g) => ({ id: g.id_grupo_articulo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo_articulo}` }))}
+          .filter((g) => !gruposSeleccionados.some((sel) => sel.id_grupo === g.id_grupo))
+          .map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` }))}
         onSelect={(opcion) => {
-          const grupo = grupos.find((g) => g.id_grupo_articulo === opcion.id);
+          const grupo = grupos.find((g) => g.id_grupo === opcion.id);
           if (grupo) {
             setGruposSeleccionados((prev) => [...prev, grupo]);
           }
