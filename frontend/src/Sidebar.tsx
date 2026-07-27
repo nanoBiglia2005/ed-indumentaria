@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react';
+import { NavLink } from 'react-router-dom';
 
-type ItemId = 'articulos' | 'ventas' | 'proveedores' | 'configuracion';
+type ItemId = 'articulos' | 'ventas' | 'configuracion';
 
-const ITEMS: { id: ItemId; nombre: string; icon: ReactNode }[] = [
+const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
   {
     id: 'articulos',
+    ruta: '/articulos',
     nombre: 'Articulos',
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
@@ -16,6 +18,7 @@ const ITEMS: { id: ItemId; nombre: string; icon: ReactNode }[] = [
   },
   {
     id: 'ventas',
+    ruta: '/ventas',
     nombre: 'Ventas',
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
@@ -25,6 +28,7 @@ const ITEMS: { id: ItemId; nombre: string; icon: ReactNode }[] = [
   },
   {
     id: 'configuracion',
+    ruta: '/configuracion',
     nombre: 'Configuración',
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
@@ -36,41 +40,45 @@ const ITEMS: { id: ItemId; nombre: string; icon: ReactNode }[] = [
 ];
 
 function Sidebar() {
-  const [seleccionado, setSeleccionado] = useState<ItemId>('articulos');
   const [presionado, setPresionado] = useState<ItemId | null>(null);
 
   return (
     <aside className='flex-col h-screen w-56 shrink-0 border-r border-black/10 bg-stone-50 py-10 px-3 gap-10 hidden md:flex select-none'>
       <nav className='flex flex-col gap-1'>
         {ITEMS.map((item) => {
-          const activo = seleccionado === item.id;
           const clickeado = presionado === item.id;
 
           return (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => setSeleccionado(item.id)}
+              to={item.ruta}
               onMouseDown={() => setPresionado(item.id)}
               onMouseUp={() => setPresionado(null)}
               onMouseLeave={() => setPresionado(null)}
-              className={`group flex items-center gap-3 px-3 py-2 rounded-lg font-semibold text-sm cursor-pointer
+              className={({ isActive }) =>
+                `group flex items-center gap-3 px-3 py-2 rounded-lg font-semibold text-sm cursor-pointer
                 transition-all duration-150 ease-in
                 ${clickeado ? 'scale-95' : 'scale-100'}
                 ${
-                  activo
+                  isActive
                     ? 'bg-violet-500 text-white shadow-md'
                     : 'text-gray-600 hover:bg-amber-100 hover:text-amber-600'
-                }`}
+                }`
+              }
             >
-              <span
-                className={`transition-transform duration-150 ease-in ${
-                  activo ? '' : 'group-hover:scale-110'
-                }`}
-              >
-                {item.icon}
-              </span>
-              <span>{item.nombre}</span>
-            </button>
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={`transition-transform duration-150 ease-in ${
+                      isActive ? '' : 'group-hover:scale-110'
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                  <span>{item.nombre}</span>
+                </>
+              )}
+            </NavLink>
           );
         })}
       </nav>

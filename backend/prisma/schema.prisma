@@ -29,7 +29,7 @@ model ARTICULOS {
   ARTICULOS_X_CLIENTES        ARTICULOS_X_CLIENTES[]
   ARTICULOS_X_GRUPO_VENTA_alt ARTICULOS_X_GRUPO_VENTA_alt[]
   BONIFICACIONES_ARTICULOS    BONIFICACIONES_ARTICULOS[]    @ignore
-  DETALLES_REMITO             DETALLES_REMITO[]
+  DETALLES_REMITO             DETALLES_REMITO[]             
   REGISTRO_ARTICULOS          REGISTRO_ARTICULOS?
 }
 
@@ -217,9 +217,10 @@ model TIPOS_DE_MEDIDA {
 
 model TIPOS_DE_PAGO {
   id_tipos_de_pago    Int       @id(map: "_tipos_de_pago__pk") @default(autoincrement())
-  nombre_tipo_de_pago String?   @db.VarChar(20)
-  recargo             Float?
+  nombre_tipo_de_pago String    @db.VarChar(20)
+  recargo             Float
   signo               Boolean?
+  modificable         Boolean   @default(true)
   REMITOS             REMITOS[]
 }
 

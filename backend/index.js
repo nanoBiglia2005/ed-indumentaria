@@ -402,6 +402,48 @@ app.post('/api/clientes', async (req, res) => {
 });
 
 // ============================================================
+//  TIPOS DE PAGO
+// ============================================================
+
+// Obtener TODOS los tipos de pago
+app.get('/api/tipos-de-pago', async (req, res) => {
+  try {
+    const tiposDePago = await prisma.TIPOS_DE_PAGO.findMany();
+    res.status(200).json(tiposDePago);
+  } catch (error) {
+    console.error('Error al obtener los tipos de pago:', error);
+    res.status(500).json({ message: 'Error al obtener los tipos de pago.', details: error.message });
+  }
+});
+
+// Actualizar el recargo de un tipo de pago (tabla TIPOS_DE_PAGO)
+app.put('/api/tipos-de-pago/:id_tipos_de_pago', async (req, res) => {
+  try {
+    const id_tipos_de_pago = parseInt(req.params.id_tipos_de_pago, 10);
+    if (Number.isNaN(id_tipos_de_pago)) {
+      return res.status(400).json({ message: 'El id del tipo de pago debe ser un numero.' });
+    }
+
+    const recargo = Number(req.body.recargo);
+    if (!Number.isFinite(recargo) || recargo < 0) {
+      return res.status(400).json({ message: 'El recargo debe ser un numero mayor o igual a 0.' });
+    }
+
+    const tipoDePagoActualizado = await prisma.TIPOS_DE_PAGO.update({
+      where: { id_tipos_de_pago },
+      data: { recargo },
+    });
+    res.status(200).json(tipoDePagoActualizado);
+  } catch (error) {
+    console.error('Error al actualizar el tipo de pago:', error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'El tipo de pago no existe.', details: error.message });
+    }
+    res.status(500).json({ message: 'Error al actualizar el tipo de pago.', details: error.message });
+  }
+});
+
+// ============================================================
 //  IMPRESION
 // ============================================================
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import type { ArticuloConRelaciones } from '../../backend/types';
+import type { ArticuloConRelaciones } from '../../../backend/types';
 import type {
   GRUPOS_DE_VENTA,
   CLIENTES,
@@ -10,14 +10,13 @@ import type {
   ARTICULOS_X_GRUPO_VENTA_alt,
   ARTICULOS_X_CLIENTES,
   SUBGRUPOS_DE_VENTA_alt,
-} from '../../backend/generated/prisma/client';
-import CreateArticleModal from './CreateArticleModal';
-import EditArticleModal from './EditArticleModal';
-import EditFieldModal from './EditFieldModal';
-import type { CampoEditable } from './EditFieldModal';
-import SelectListModal from './SelectListModal';
-import Sidebar from './Sidebar';
-import { resaltarCoincidencia } from './textUtils';
+} from '../../../backend/generated/prisma/client';
+import CreateArticleModal from '../CreateArticleModal';
+import EditArticleModal from '../EditArticleModal';
+import EditFieldModal from '../EditFieldModal';
+import type { CampoEditable } from '../EditFieldModal';
+import SelectListModal from '../SelectListModal';
+import { resaltarCoincidencia } from '../textUtils';
 
 type Opcion = { id: number; nombre: string };
 
@@ -83,7 +82,7 @@ function FilterDropdown({
   );
 }
 
-function New() {
+function ArticulosPage() {
   const [datosBackend, setDatosBackend] = useState<ArticuloConRelaciones[]>([]);
 
   const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
@@ -399,9 +398,7 @@ function New() {
 
   return (
     <>
-      <div className='flex h-screen'>
-        <Sidebar />
-        <div className='flex flex-col justify-center flex-1 min-w-0 px-10 py-6'>
+      <div className='flex flex-col justify-center flex-1 min-w-0 px-10 py-6'>
         <div className='border px-3 rounded-xl border-violet-500 h-full min-w-0 flex flex-col shadow-xl'>
         <div className='flex my-4 gap-4 shrink-0 select-none'>
           <button
@@ -578,7 +575,6 @@ function New() {
         </div>
       </div>
       </div>
-      </div>
 
       <CreateArticleModal
         isOpen={isModalOpen}
@@ -609,8 +605,7 @@ function New() {
         colores={colores}
       />
     </>
-    
   );
 }
 
-export default New;
+export default ArticulosPage;
