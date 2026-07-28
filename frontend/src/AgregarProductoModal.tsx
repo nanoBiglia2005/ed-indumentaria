@@ -272,7 +272,7 @@ export default function AgregarProductoModal({
           <div className='fixed inset-0 bg-black/25' />
         </Transition.Child>
 
-        <div className='fixed inset-0 overflow-y-auto'>
+        <div className='fixed inset-0 overflow-y-auto select-none'>
           <div className='flex min-h-full items-center justify-center p-4 text-center'>
             <Transition.Child
               as={Fragment}

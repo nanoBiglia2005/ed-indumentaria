@@ -1,10 +1,10 @@
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import type { RemitoCreado } from '../../backend/types';
+import type { RemitoConDetalles } from '../../backend/types';
 import RemitoCard from './RemitoCard';
 
 interface VentaExitosaModalProps {
-  remito: RemitoCreado | null;
+  remito: RemitoConDetalles | null;
   onClose: () => void;
 }
 
@@ -39,13 +39,6 @@ export default function VentaExitosaModal({ remito, onClose }: VentaExitosaModal
                 <Dialog.Title as='h3' className='text-lg font-medium leading-6 text-green-600 mb-4 text-center'>
                   ✓ Venta Registrada Exitosamente
                 </Dialog.Title>
-
-                {remito?.impresion?.status === 'error' && (
-                  <div className='mb-4 p-3 bg-amber-100 border border-amber-400 text-amber-800 rounded flex flex-col'>
-                    <span>La venta se guardó, pero no se pudo imprimir el remito.</span>
-                    <span className='text-amber-700 text-xs'>{remito.impresion.message}</span>
-                  </div>
-                )}
 
                 {remito && <RemitoCard remito={remito} abiertoPorDefecto />}
 

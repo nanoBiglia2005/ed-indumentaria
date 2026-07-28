@@ -75,10 +75,21 @@ def _anchos_columnas(columnas: int) -> tuple[int, int, int]:
     return ancho_precio, ancho_cantidad, ancho_total
 
 
-def _tres_columnas(precio: str, cantidad: str, total: str, anchos: tuple[int, int, int]) -> str:
+def _tres_columnas(izquierda: str, centro: str, derecha: str, anchos: tuple[int, int, int]) -> str:
     return (
-        _centrar(precio, anchos[0]) + _centrar(cantidad, anchos[1]) + _centrar(total, anchos[2])
+        _centrar(izquierda, anchos[0]) + _centrar(centro, anchos[1]) + _centrar(derecha, anchos[2])
     ).rstrip()
+
+
+def _anchos_total(columnas: int) -> tuple[int, int, int]:
+    """Tres columnas para el bloque del total: [vacia][efectivo][tarjeta].
+
+    Los importes van en doble tamaño y las etiquetas de abajo en tamaño normal.
+    Como a doble ancho cada caracter ocupa 2 columnas, los importes usan la mitad
+    de estos anchos y asi ambas filas terminan alineadas.
+    """
+    ancho = columnas // 3
+    return (ancho, ancho, columnas - 2 * ancho)
 
 
 def _par_precios(efectivo: str, tarjeta: str, ancho: int) -> str:
@@ -139,28 +150,12 @@ def imprimir_remito(
     data += ESC + b't' + bytes([0])   # codepage CP437
 
     # --- Encabezado: numero de remito a la izquierda, fecha a la derecha ---
-    id_remito = remito.get("id_remito")
-    encabezado_izquierda = f"Remito #{id_remito}" if id_remito is not None else ""
+    encabezado_izquierda = "Cliente = Stefano Biglia"
     data += ESC + b'a\x00'
     data += _texto(_dos_columnas(encabezado_izquierda, str(remito.get("fecha") or ""), columnas) + "\n")
 
-    # --- Titulo: Efectivo | Tarjeta ---
-    data += b'\n'
-    data += ESC + b'a\x02'
-    data += GS + b'!' + bytes([TAMANO_DOBLE])
-    data += ESC + b'E\x01'
-    data += _texto("Efectivo|Tarjeta\n")
-    data += ESC + b'E\x00'
-    data += GS + b'!' + bytes([TAMANO_NORMAL])
-
-    recargo = float(remito.get("recargo_tarjeta") or 0)
-    if recargo:
-        recargo_texto = f"{int(recargo)}" if recargo.is_integer() else f"{recargo:.2f}"
-        data += ESC + b'E\x01'
-        data += _texto(f"({recargo_texto}% Recargo)\n")
-        data += ESC + b'E\x00'
-
     # --- Items ---
+    data += b'\n'
     data += ESC + b'a\x00'
     data += _texto("-" * columnas + "\n")
 
@@ -196,21 +191,40 @@ def imprimir_remito(
 
         data += _texto("-" * columnas + "\n")
 
-    # --- Total ---
-    data += b'\n'
-    data += GS + b'!' + bytes([TAMANO_DOBLE])
-    data += ESC + b'E\x01'
-    data += ESC + b'a\x00'
-    data += _texto("TOTAL\n")
-    data += ESC + b'a\x02'
-    data += _texto(
-        f"{_formato_precio(remito.get('total_efectivo'))}"
-        f"|{_formato_precio(remito.get('total_tarjeta'))}\n"
-    )
-    data += ESC + b'E\x00'
-    data += GS + b'!' + bytes([TAMANO_NORMAL])
+    # --- Total, con las etiquetas Efectivo/Tarjeta debajo de cada importe ---
+    anchos_total = _anchos_total(columnas)
+    # A doble ancho cada caracter ocupa 2 columnas: media medida por columna.
+    anchos_importes = tuple(ancho // 2 for ancho in anchos_total)
 
+    data += b'\n'
     data += ESC + b'a\x00'
+    data += ESC + b'E\x01'
+    data += GS + b'!' + bytes([TAMANO_DOBLE])
+    # "TOTAL" va en la primera columna (la que quedaba vacia), asi los importes
+    # no se corren y siguen alineados con las etiquetas de abajo.
+    data += _texto(
+        _tres_columnas(
+            "TOTAL",
+            _formato_precio(remito.get('total_efectivo')),
+            _formato_precio(remito.get('total_tarjeta')),
+            anchos_importes,
+        )
+        + "\n"
+    )
+    data += GS + b'!' + bytes([TAMANO_NORMAL])
+    data += _texto(_tres_columnas("", "Efectivo", "Tarjeta", anchos_total) + "\n")
+    data += ESC + b'E\x00'
+
+    recargo = float(remito.get("recargo_tarjeta") or 0)
+    if recargo:
+        recargo_texto = f"{int(recargo)}" if recargo.is_integer() else f"{recargo:.2f}"
+        linea_recargo = f"({recargo_texto}% Recargo)"
+        if len(linea_recargo) <= anchos_total[2]:
+            # Debajo de "Tarjeta", que es el precio al que se le aplica el recargo.
+            data += _texto(_tres_columnas("", "", linea_recargo, anchos_total) + "\n")
+        else:
+            # En papel angosto no entra en esa columna: se pega al margen derecho.
+            data += _texto(linea_recargo.rjust(columnas) + "\n")
 
     # Alimentar papel
     data += ESC + b'd\x07'

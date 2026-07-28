@@ -40,11 +40,30 @@ export type RemitoConDetalles = Prisma.REMITOSGetPayload<{
   include: typeof remitosInclude;
 }>;
 
+/** Como se paga un articulo de la venta. */
+export type MetodoPago = 'efectivo' | 'tarjeta';
+
 /**
- * Respuesta de POST /api/remitos: el remito creado mas el resultado de la
- * impresion. La venta se guarda igual aunque la impresora falle, asi que
- * `impresion.status` avisa si hay que reintentar o revisar la impresora.
+ * Un articulo de la venta con sus dos precios posibles, ya redondeados por el
+ * backend. El frontend muestra estos valores tal cual: el redondeo vive en un
+ * solo lugar.
  */
-export type RemitoCreado = RemitoConDetalles & {
-  impresion: { status: 'ok' | 'error'; message?: string };
+export type ItemVenta = {
+  id_articulo: number;
+  descripcion: string;
+  cantidad: number;
+  precio_efectivo: number;
+  precio_tarjeta: number;
+};
+
+/**
+ * Respuesta de POST /api/remitos/preparar: estan calculados los precios (y salvo
+ * que se pida `imprimir: false`, ya se imprimio el ticket) pero todavia no se
+ * registro nada. La venta sigue igual aunque la impresora falle, por eso
+ * `impresion.status` viene aparte: 'omitida' es cuando se salteo a proposito.
+ */
+export type VentaImpresa = {
+  items: ItemVenta[];
+  recargo_tarjeta: number;
+  impresion: { status: 'ok' | 'error' | 'omitida'; message?: string };
 };

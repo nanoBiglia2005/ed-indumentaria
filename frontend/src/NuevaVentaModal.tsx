@@ -1,6 +1,6 @@
 import { useMemo, useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import type { ArticuloConRelaciones, RemitoCreado } from '../../backend/types';
+import type { ArticuloConRelaciones, VentaImpresa } from '../../backend/types';
 import AgregarProductoModal from './AgregarProductoModal';
 
 const MAX_LINEAS_DESCRIPCION = 3;
@@ -13,14 +13,18 @@ interface ProductoSeleccionado {
 interface NuevaVentaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onVentaCreada: (remito: RemitoCreado) => void;
+  /** Se imprimio el ticket; todavia no se registro nada. Sigue el paso de pago. */
+  onVentaImpresa: (venta: VentaImpresa) => void;
 }
 
-export default function NuevaVentaModal({ isOpen, onClose, onVentaCreada }: NuevaVentaModalProps) {
+export default function NuevaVentaModal({ isOpen, onClose, onVentaImpresa }: NuevaVentaModalProps) {
   const [productos, setProductos] = useState<ProductoSeleccionado[]>([]);
   const [isAgregarOpen, setIsAgregarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // Cual de los dos botones de confirmar esta en curso (null = ninguno).
+  const [accionEnCurso, setAccionEnCurso] = useState<'con-impresion' | 'sin-impresion' | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const isLoading = accionEnCurso !== null;
 
   const resetForm = () => {
     setProductos([]);
@@ -60,7 +64,7 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaCreada }: Nuev
     setProductos((prev) => prev.filter((p) => p.articulo.id_articulo !== id_articulo));
   };
 
-  const handleConfirmar = async () => {
+  const handleConfirmar = async (imprimir: boolean) => {
     if (productos.length === 0) {
       setError('Agregá al menos un artículo a la venta.');
       return;
@@ -77,13 +81,16 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaCreada }: Nuev
     }
 
     try {
-      setIsLoading(true);
+      setAccionEnCurso(imprimir ? 'con-impresion' : 'sin-impresion');
       setError(null);
 
-      const response = await fetch('/api/remitos', {
+      // Calcula los precios y, si corresponde, imprime el ticket con los dos
+      // valores. La venta se registra recien en el paso del metodo de pago.
+      const response = await fetch('/api/remitos/preparar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          imprimir,
           detalles: productos.map((p) => ({
             id_articulo: p.articulo.id_articulo,
             cantidad: p.cantidad,
@@ -96,13 +103,13 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaCreada }: Nuev
         throw new Error(errorData.details || errorData.message);
       }
 
-      const remitoCreado: RemitoCreado = await response.json();
+      const ventaImpresa: VentaImpresa = await response.json();
       resetForm();
-      onVentaCreada(remitoCreado);
+      onVentaImpresa(ventaImpresa);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar la venta.');
+      setError(err instanceof Error ? err.message : 'No se pudo preparar la venta.');
     } finally {
-      setIsLoading(false);
+      setAccionEnCurso(null);
     }
   };
 
@@ -122,7 +129,7 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaCreada }: Nuev
             <div className='fixed inset-0 bg-black/25' />
           </Transition.Child>
 
-          <div className='fixed inset-0 overflow-y-auto'>
+          <div className='fixed inset-0 overflow-y-auto select-none'>
             <div className='flex min-h-full items-center justify-center p-4 text-center'>
               <Transition.Child
                 as={Fragment}
@@ -170,17 +177,20 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaCreada }: Nuev
                     ) : (
                       productos.map(({ articulo, cantidad }) => (
                         <div key={articulo.id_articulo} className='flex items-center gap-3 px-4 py-2'>
-                          <span
-                            className='flex-1 min-w-0 text-md text-gray-800 text-left break-words'
-                            style={{
-                              display: '-webkit-box',
-                              WebkitLineClamp: MAX_LINEAS_DESCRIPCION,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {articulo.descripcion ?? 'Sin Descripción'}
-                          </span>
+                          <div className='flex-1 min-w-0 flex flex-col text-left'>
+                            <span
+                              className='text-md text-gray-800 break-words'
+                              style={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: MAX_LINEAS_DESCRIPCION,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {articulo.descripcion ?? 'Sin Descripción'}
+                            </span>
+                            <span className='text-sm font-medium text-gray-500'>{articulo.precio}$</span>
+                          </div>
                           <input
                             type='number'
                             min={1}
@@ -204,20 +214,27 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaCreada }: Nuev
                     )}
                   </div>
 
-                  <div className='mt-6 flex gap-3'>
+                  <div className='mt-8 flex flex-col gap-3'>
+                    <button
+                      onClick={() => handleConfirmar(true)}
+                      disabled={isLoading}
+                      className='flex-1 px-3 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
+                    >
+                      {accionEnCurso === 'con-impresion' ? 'Imprimiendo...' : 'Confirmar e Imprimir'}
+                    </button>
+                    <button
+                      onClick={() => handleConfirmar(false)}
+                      disabled={isLoading}
+                      className='flex-1 px-3 py-2 cursor-pointer text-sm font-medium text-black border hover:bg-amber-50 rounded-md disabled:opacity-60 transition-colors'
+                    >
+                      {accionEnCurso === 'sin-impresion' ? 'Preparando...' : 'Confirmar Sin Imprimir'}
+                    </button>
                     <button
                       onClick={handleClose}
                       disabled={isLoading}
-                      className='flex-1 px-4 py-2 text-md font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60'
+                      className='flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60'
                     >
                       Cerrar
-                    </button>
-                    <button
-                      onClick={handleConfirmar}
-                      disabled={isLoading}
-                      className='flex-1 px-4 py-2 cursor-pointer text-md font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
-                    >
-                      {isLoading ? 'Guardando...' : 'Confirmar'}
                     </button>
                   </div>
                 </Dialog.Panel>

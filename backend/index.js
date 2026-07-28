@@ -472,48 +472,112 @@ const formatearFecha = (fecha) => {
   return `${dia}/${mes}/${valor.getUTCFullYear()}`;
 };
 
-// Arma el payload que imprime el remito, con los precios en efectivo y en tarjeta.
-// El recargo de tarjeta sale de TIPOS_DE_PAGO (configurable desde la app).
-const construirPayloadRemito = async (remito) => {
+const METODOS_DE_PAGO = ['efectivo', 'tarjeta'];
+
+// Valida los articulos de una venta y les calcula los dos precios posibles.
+// Los precios NUNCA se toman del cliente: se leen de ARTICULOS y el recargo de
+// TIPOS_DE_PAGO. Devuelve { error: { status, message } } si algo no valida.
+const resolverItemsVenta = async (detalles) => {
+  if (!Array.isArray(detalles) || detalles.length === 0) {
+    return { error: { status: 400, message: 'La venta debe tener al menos un articulo.' } };
+  }
+
+  const cantidadesPorArticulo = new Map();
+  const metodosPorArticulo = new Map();
+
+  for (const detalle of detalles) {
+    const id_articulo = parseInt(detalle.id_articulo, 10);
+    const cantidad = parseInt(detalle.cantidad, 10);
+
+    if (Number.isNaN(id_articulo)) {
+      return { error: { status: 400, message: 'Los articulos de la venta son invalidos.' } };
+    }
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      return {
+        error: { status: 400, message: 'Las cantidades de la venta deben ser numeros enteros mayores a 0.' },
+      };
+    }
+
+    // Al imprimir todavia no hay metodo elegido: se asume efectivo.
+    const metodo = detalle.metodo_pago ?? 'efectivo';
+    if (!METODOS_DE_PAGO.includes(metodo)) {
+      return { error: { status: 400, message: `Metodo de pago invalido: "${metodo}".` } };
+    }
+
+    cantidadesPorArticulo.set(id_articulo, cantidad);
+    metodosPorArticulo.set(id_articulo, metodo);
+  }
+
+  const articulos = await prisma.ARTICULOS.findMany({
+    where: { id_articulo: { in: [...cantidadesPorArticulo.keys()] } },
+  });
+
+  if (articulos.length !== cantidadesPorArticulo.size) {
+    return { error: { status: 404, message: 'Alguno de los articulos de la venta no existe.' } };
+  }
+
+  const articuloNoVigente = articulos.find((articulo) => !articulo.vigente);
+  if (articuloNoVigente) {
+    return {
+      error: {
+        status: 409,
+        message: `El articulo "${articuloNoVigente.descripcion ?? articuloNoVigente.id_articulo}" ya no esta vigente.`,
+      },
+    };
+  }
+
   const tiposDePago = await prisma.TIPOS_DE_PAGO.findMany();
   const tarjeta = tiposDePago.find((tipo) =>
     (tipo.nombre_tipo_de_pago ?? '').toLowerCase().includes('tarjeta')
   );
 
   if (!tarjeta) {
-    console.warn('No se encontro un tipo de pago "Tarjeta": el remito se imprime sin recargo.');
+    console.warn('No se encontro un tipo de pago "Tarjeta": la venta se calcula sin recargo.');
   }
 
   const recargoTarjeta = tarjeta?.recargo ?? 0;
   const multiplicador = 1 + recargoTarjeta / 100;
 
-  const items = remito.DETALLES_REMITO.map((detalle) => {
-    // El precio en efectivo ya se guardo redondeado al crear el remito.
-    const precio = detalle.precio ?? 0;
-    const cantidad = detalle.cantidad ?? 0;
-    // El recargo tambien se redondea, asi el ticket muestra solo numeros redondos.
-    const precioTarjeta = redondearPrecio(precio * multiplicador);
+  const items = articulos.map((articulo) => {
+    const precioEfectivo = redondearPrecio(articulo.precio);
 
     return {
-      descripcion: detalle.ARTICULOS?.descripcion ?? `Articulo ${detalle.id_articulo}`,
-      cantidad,
-      precio_efectivo: precio,
-      precio_tarjeta: precioTarjeta,
-      // Los subtotales salen del unitario ya redondeado, para que las lineas
-      // del ticket cierren con el total.
-      subtotal_efectivo: precio * cantidad,
-      subtotal_tarjeta: precioTarjeta * cantidad,
+      id_articulo: articulo.id_articulo,
+      descripcion: articulo.descripcion ?? `Articulo ${articulo.id_articulo}`,
+      cantidad: cantidadesPorArticulo.get(articulo.id_articulo),
+      metodo_pago: metodosPorArticulo.get(articulo.id_articulo),
+      precio_efectivo: precioEfectivo,
+      // El recargo tambien se redondea, asi todo queda en numeros redondos.
+      precio_tarjeta: redondearPrecio(precioEfectivo * multiplicador),
     };
   });
 
+  return { items, recargoTarjeta };
+};
+
+// Arma el payload del ticket, que muestra siempre los dos precios (el cliente
+// elige como paga despues de verlo). `id_remito` va en null porque se imprime
+// antes de registrar la venta.
+const construirPayloadTicket = (items, recargoTarjeta, { id_remito = null, fecha = new Date() } = {}) => {
+  const lineas = items.map((item) => ({
+    descripcion: item.descripcion,
+    cantidad: item.cantidad,
+    precio_efectivo: item.precio_efectivo,
+    precio_tarjeta: item.precio_tarjeta,
+    // Los subtotales salen del unitario ya redondeado, para que las lineas
+    // del ticket cierren con el total.
+    subtotal_efectivo: item.precio_efectivo * item.cantidad,
+    subtotal_tarjeta: item.precio_tarjeta * item.cantidad,
+  }));
+
   return {
     tipo: 'remito',
-    id_remito: remito.id_remito,
-    fecha: formatearFecha(remito.fecha_de_emision),
+    id_remito,
+    fecha: formatearFecha(fecha),
     recargo_tarjeta: recargoTarjeta,
-    total_efectivo: remito.total_neto ?? 0,
-    total_tarjeta: items.reduce((acumulado, item) => acumulado + item.subtotal_tarjeta, 0),
-    items,
+    total_efectivo: lineas.reduce((acumulado, linea) => acumulado + linea.subtotal_efectivo, 0),
+    total_tarjeta: lineas.reduce((acumulado, linea) => acumulado + linea.subtotal_tarjeta, 0),
+    items: lineas,
   };
 };
 
@@ -531,51 +595,63 @@ app.get('/api/remitos', async (req, res) => {
   }
 });
 
-// Crear un nuevo remito (venta) junto con sus detalles (tablas REMITOS y DETALLES_REMITO)
-app.post('/api/remitos', async (req, res) => {
+// Prepara una venta ANTES de registrarla: calcula los precios y (salvo que se
+// pida `imprimir: false`) imprime el ticket con los dos precios, para que el
+// cliente elija como paga recien despues de verlo. NO escribe nada en la base.
+// Devuelve los items ya calculados para que el frontend muestre esos mismos
+// precios sin tener que replicar el redondeo.
+app.post('/api/remitos/preparar', async (req, res) => {
   try {
-    const { detalles } = req.body;
-
-    if (!Array.isArray(detalles) || detalles.length === 0) {
-      return res.status(400).json({ message: 'La venta debe tener al menos un articulo.' });
+    const { error, items, recargoTarjeta } = await resolverItemsVenta(req.body.detalles);
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
     }
 
-    const cantidadesPorArticulo = new Map();
-    for (const detalle of detalles) {
-      const id_articulo = parseInt(detalle.id_articulo, 10);
-      const cantidad = parseInt(detalle.cantidad, 10);
-
-      if (Number.isNaN(id_articulo)) {
-        return res.status(400).json({ message: 'Los articulos de la venta son invalidos.' });
-      }
-      if (!Number.isInteger(cantidad) || cantidad <= 0) {
-        return res.status(400).json({ message: 'Las cantidades de la venta deben ser numeros enteros mayores a 0.' });
-      }
-
-      cantidadesPorArticulo.set(id_articulo, cantidad);
-    }
-
-    const articulos = await prisma.ARTICULOS.findMany({
-      where: { id_articulo: { in: [...cantidadesPorArticulo.keys()] } },
-    });
-
-    if (articulos.length !== cantidadesPorArticulo.size) {
-      return res.status(404).json({ message: 'Alguno de los articulos de la venta no existe.' });
-    }
-
-    const articuloNoVigente = articulos.find((articulo) => !articulo.vigente);
-    if (articuloNoVigente) {
-      return res.status(409).json({
-        message: `El articulo "${articuloNoVigente.descripcion ?? articuloNoVigente.id_articulo}" ya no esta vigente.`,
+    if (req.body.imprimir === false) {
+      return res.status(200).json({
+        items,
+        recargo_tarjeta: recargoTarjeta,
+        impresion: { status: 'omitida' },
       });
     }
 
-    // El precio de venta se redondea aca: en DETALLES_REMITO y en los totales de
-    // REMITOS quedan siempre enteros terminados en 0.
-    const detallesData = articulos.map((articulo) => ({
-      id_articulo: articulo.id_articulo,
-      precio: redondearPrecio(articulo.precio),
-      cantidad: cantidadesPorArticulo.get(articulo.id_articulo),
+    // Si falla la impresion no se corta el flujo: los precios estan en pantalla,
+    // asi que la venta puede seguir y el frontend avisa del problema.
+    let impresion = { status: 'ok' };
+    try {
+      const { respuesta, resultado } = await enviarTrabajoDeImpresion(
+        construirPayloadTicket(items, recargoTarjeta)
+      );
+
+      if (!respuesta.ok || resultado.status === 'error') {
+        throw new Error(resultado.message ?? resultado.detail ?? 'No se pudo imprimir el remito.');
+      }
+    } catch (errorImpresion) {
+      console.error('Error al imprimir el remito:', errorImpresion);
+      impresion = { status: 'error', message: errorImpresion.message };
+    }
+
+    res.status(200).json({ items, recargo_tarjeta: recargoTarjeta, impresion });
+  } catch (error) {
+    console.error('Error al preparar la venta:', error);
+    res.status(500).json({ message: 'Error al preparar la venta.', details: error.message });
+  }
+});
+
+// Crear un nuevo remito (venta) junto con sus detalles (tablas REMITOS y DETALLES_REMITO).
+// Cada detalle trae su `metodo_pago`, que define cual de los dos precios se guarda.
+// El ticket ya se imprimio en /api/remitos/imprimir, asi que aca no se imprime nada.
+app.post('/api/remitos', async (req, res) => {
+  try {
+    const { error, items } = await resolverItemsVenta(req.body.detalles);
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    const detallesData = items.map((item) => ({
+      id_articulo: item.id_articulo,
+      precio: item.metodo_pago === 'tarjeta' ? item.precio_tarjeta : item.precio_efectivo,
+      cantidad: item.cantidad,
     }));
 
     const totalVenta = detallesData.reduce((acumulado, d) => acumulado + d.precio * d.cantidad, 0);
@@ -594,24 +670,7 @@ app.post('/api/remitos', async (req, res) => {
       include: remitosInclude,
     });
 
-    // La venta ya quedo guardada: si falla la impresion no se revierte, se avisa
-    // en la respuesta para que el frontend lo muestre.
-    let impresion = { status: 'ok' };
-    try {
-      const payload = await construirPayloadRemito(nuevoRemito);
-      const { respuesta, resultado } = await enviarTrabajoDeImpresion(payload);
-
-      if (!respuesta.ok || resultado.status === 'error') {
-        throw new Error(
-          resultado.message ?? resultado.detail ?? 'No se pudo imprimir el remito.'
-        );
-      }
-    } catch (error) {
-      console.error('Error al imprimir el remito:', error);
-      impresion = { status: 'error', message: error.message };
-    }
-
-    res.status(201).json({ ...nuevoRemito, impresion });
+    res.status(201).json(nuevoRemito);
   } catch (error) {
     console.error('Error al crear la venta:', error);
     res.status(500).json({ message: 'Error al crear la venta.', details: error.message });

@@ -65,10 +65,13 @@ function RemitoCard({ remito, abiertoPorDefecto = false }: RemitoCardProps) {
           ) : (
             remito.DETALLES_REMITO.map((detalle) => (
               <div key={detalle.id_detalle} className='flex items-center justify-between gap-3 py-2 text-sm text-black'>
-                <span className='truncate'>{detalle.ARTICULOS?.descripcion ?? `Artículo ${detalle.id_articulo}`}</span>
+                <div className='flex flex-col min-w-[300px]'>
+                  <span className='truncate'>{detalle.ARTICULOS?.descripcion ?? `Artículo ${detalle.id_articulo}`}</span>
+                  <span className='font-medium text-gray-500'>{detalle.precio ?? 0}$</span>
+                </div>     
                 <div className='flex items-center gap-4 shrink-0 text-gray-600'>
                   <span>x{detalle.cantidad}</span>
-                  <span className='font-medium text-black w-16 text-right'>{detalle.precio ?? 0}$</span>
+                  <span className='font-medium text-black text-md'>{detalle.precio && detalle.cantidad ? detalle.precio * detalle.cantidad : 0}$</span>
                 </div>
               </div>
             ))

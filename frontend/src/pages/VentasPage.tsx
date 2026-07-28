@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { RemitoConDetalles, RemitoCreado } from '../../../backend/types';
+import type { RemitoConDetalles, VentaImpresa } from '../../../backend/types';
+import MetodoPagoModal from '../MetodoPagoModal';
 import NuevaVentaModal from '../NuevaVentaModal';
 import RemitoCard from '../RemitoCard';
 import SectionWrapper from '../SectionWrapper';
@@ -10,8 +11,10 @@ function VentasPage() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Los tres pasos de una venta: elegir productos -> elegir metodo de pago -> resultado.
   const [isNuevaVentaOpen, setIsNuevaVentaOpen] = useState(false);
-  const [ventaCreada, setVentaCreada] = useState<RemitoCreado | null>(null);
+  const [ventaPendiente, setVentaPendiente] = useState<VentaImpresa | null>(null);
+  const [ventaCreada, setVentaCreada] = useState<RemitoConDetalles | null>(null);
 
   const fetchRemitos = useCallback(() => {
     setCargando(true);
@@ -35,8 +38,15 @@ function VentasPage() {
     fetchRemitos();
   }, [fetchRemitos]);
 
-  const handleVentaCreada = (remito: RemitoCreado) => {
+  // Ya se imprimio el ticket pero todavia no hay nada en la base: cierra la
+  // seleccion de productos y pasa a elegir como se paga.
+  const handleVentaImpresa = (venta: VentaImpresa) => {
     setIsNuevaVentaOpen(false);
+    setVentaPendiente(venta);
+  };
+
+  const handleVentaCreada = (remito: RemitoConDetalles) => {
+    setVentaPendiente(null);
     fetchRemitos();
     setVentaCreada(remito);
   };
@@ -75,6 +85,12 @@ function VentasPage() {
       <NuevaVentaModal
         isOpen={isNuevaVentaOpen}
         onClose={() => setIsNuevaVentaOpen(false)}
+        onVentaImpresa={handleVentaImpresa}
+      />
+
+      <MetodoPagoModal
+        venta={ventaPendiente}
+        onClose={() => setVentaPendiente(null)}
         onVentaCreada={handleVentaCreada}
       />
 
