@@ -61,24 +61,26 @@ function ConfiguracionPage() {
             {tiposDePago.map((tipoDePago) => (
               <div
                 key={tipoDePago.id_tipos_de_pago}
-                className='w-[200px] hover:shadow-lg transition-all duration-100 ease-in px-4 py-4 border-violet-500 border flex flex-col rounded text-black'
+                className='w-[200px] group relative h-fit hover:shadow-lg transition-all duration-100 ease-in px-4 py-4 border-violet-500 border flex flex-col rounded text-black'
               >
-                <span className='text-xl font-semibold truncate' title={tipoDePago.nombre_tipo_de_pago ?? undefined}>
+                <span className='text-xl font-semibold truncate' title={tipoDePago.nombre_tipo_de_pago}>
                   {tipoDePago.nombre_tipo_de_pago ?? 'Sin nombre'}
                 </span>
                 <span className='text-md text-gray-600'>
                   Recargo: {tipoDePago.recargo}
                   {tipoDePago.signo ? '%' : ''}
                 </span>
-                <div className='px-1'>
-                  <button
-                    type='button'
-                    onClick={() => abrirEdicionRecargo(tipoDePago)}
-                    className='border border-violet-400 transition-color duration-100 ease-in hover:bg-violet-400 hover:text-white rounded w-full py-1 text-sm text-center mt-7 cursor-pointer'
-                  >
-                    Editar
-                  </button>
-                </div>
+                {tipoDePago.modificable && (
+                  <div className='px-1 overflow-hidden max-h-0 opacity-0 -translate-y-1 group-hover:max-h-12 group-hover:opacity-100 group-hover:translate-y-0 group-hover:mt-3 transition-all duration-200 ease-in-out'>
+                    <button
+                      type='button'
+                      onClick={() => abrirEdicionRecargo(tipoDePago)}
+                      className='border transition-color duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded w-full py-1 text-sm text-center cursor-pointer'
+                    >
+                      Editar
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

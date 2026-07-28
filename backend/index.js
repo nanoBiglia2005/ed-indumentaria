@@ -444,8 +444,196 @@ app.put('/api/tipos-de-pago/:id_tipos_de_pago', async (req, res) => {
 });
 
 // ============================================================
+//  REMITOS (VENTAS)
+// ============================================================
+
+// Relaciones que se incluyen al consultar REMITOS.
+// Debe reflejar el de backend/types.ts.
+const remitosInclude = {
+  DETALLES_REMITO: {
+    include: { ARTICULOS: true },
+  },
+};
+
+// Redondeo comercial de la venta, en dos pasos:
+//   1) se van los centavos  (>= .50 sube)
+//   2) el precio queda "redondo" a la decena (ultimo digito >= 5 sube)
+// Los dos pasos NO son lo mismo que redondear directo a la decena:
+// 104.6 -> 105 -> 110, mientras que a la decena directa daria 100.
+// Se aplica recien al confirmar la venta: el carrito muestra los precios originales.
+const redondearPrecio = (valor) => Math.round(Math.round(valor) / 10) * 10;
+
+// Las fechas de REMITOS son columnas @db.Date, o sea medianoche UTC. Hay que
+// leerlas en UTC: con la hora local de Argentina (UTC-3) caerian el dia anterior.
+const formatearFecha = (fecha) => {
+  const valor = fecha ? new Date(fecha) : new Date();
+  const dia = String(valor.getUTCDate()).padStart(2, '0');
+  const mes = String(valor.getUTCMonth() + 1).padStart(2, '0');
+  return `${dia}/${mes}/${valor.getUTCFullYear()}`;
+};
+
+// Arma el payload que imprime el remito, con los precios en efectivo y en tarjeta.
+// El recargo de tarjeta sale de TIPOS_DE_PAGO (configurable desde la app).
+const construirPayloadRemito = async (remito) => {
+  const tiposDePago = await prisma.TIPOS_DE_PAGO.findMany();
+  const tarjeta = tiposDePago.find((tipo) =>
+    (tipo.nombre_tipo_de_pago ?? '').toLowerCase().includes('tarjeta')
+  );
+
+  if (!tarjeta) {
+    console.warn('No se encontro un tipo de pago "Tarjeta": el remito se imprime sin recargo.');
+  }
+
+  const recargoTarjeta = tarjeta?.recargo ?? 0;
+  const multiplicador = 1 + recargoTarjeta / 100;
+
+  const items = remito.DETALLES_REMITO.map((detalle) => {
+    // El precio en efectivo ya se guardo redondeado al crear el remito.
+    const precio = detalle.precio ?? 0;
+    const cantidad = detalle.cantidad ?? 0;
+    // El recargo tambien se redondea, asi el ticket muestra solo numeros redondos.
+    const precioTarjeta = redondearPrecio(precio * multiplicador);
+
+    return {
+      descripcion: detalle.ARTICULOS?.descripcion ?? `Articulo ${detalle.id_articulo}`,
+      cantidad,
+      precio_efectivo: precio,
+      precio_tarjeta: precioTarjeta,
+      // Los subtotales salen del unitario ya redondeado, para que las lineas
+      // del ticket cierren con el total.
+      subtotal_efectivo: precio * cantidad,
+      subtotal_tarjeta: precioTarjeta * cantidad,
+    };
+  });
+
+  return {
+    tipo: 'remito',
+    id_remito: remito.id_remito,
+    fecha: formatearFecha(remito.fecha_de_emision),
+    recargo_tarjeta: recargoTarjeta,
+    total_efectivo: remito.total_neto ?? 0,
+    total_tarjeta: items.reduce((acumulado, item) => acumulado + item.subtotal_tarjeta, 0),
+    items,
+  };
+};
+
+// Obtener TODOS los remitos (ventas), con sus detalles y articulos
+app.get('/api/remitos', async (req, res) => {
+  try {
+    const remitos = await prisma.REMITOS.findMany({
+      include: remitosInclude,
+      orderBy: { id_remito: 'desc' },
+    });
+    res.status(200).json(remitos);
+  } catch (error) {
+    console.error('Error al obtener los remitos:', error);
+    res.status(500).json({ message: 'Error al obtener los remitos.', details: error.message });
+  }
+});
+
+// Crear un nuevo remito (venta) junto con sus detalles (tablas REMITOS y DETALLES_REMITO)
+app.post('/api/remitos', async (req, res) => {
+  try {
+    const { detalles } = req.body;
+
+    if (!Array.isArray(detalles) || detalles.length === 0) {
+      return res.status(400).json({ message: 'La venta debe tener al menos un articulo.' });
+    }
+
+    const cantidadesPorArticulo = new Map();
+    for (const detalle of detalles) {
+      const id_articulo = parseInt(detalle.id_articulo, 10);
+      const cantidad = parseInt(detalle.cantidad, 10);
+
+      if (Number.isNaN(id_articulo)) {
+        return res.status(400).json({ message: 'Los articulos de la venta son invalidos.' });
+      }
+      if (!Number.isInteger(cantidad) || cantidad <= 0) {
+        return res.status(400).json({ message: 'Las cantidades de la venta deben ser numeros enteros mayores a 0.' });
+      }
+
+      cantidadesPorArticulo.set(id_articulo, cantidad);
+    }
+
+    const articulos = await prisma.ARTICULOS.findMany({
+      where: { id_articulo: { in: [...cantidadesPorArticulo.keys()] } },
+    });
+
+    if (articulos.length !== cantidadesPorArticulo.size) {
+      return res.status(404).json({ message: 'Alguno de los articulos de la venta no existe.' });
+    }
+
+    const articuloNoVigente = articulos.find((articulo) => !articulo.vigente);
+    if (articuloNoVigente) {
+      return res.status(409).json({
+        message: `El articulo "${articuloNoVigente.descripcion ?? articuloNoVigente.id_articulo}" ya no esta vigente.`,
+      });
+    }
+
+    // El precio de venta se redondea aca: en DETALLES_REMITO y en los totales de
+    // REMITOS quedan siempre enteros terminados en 0.
+    const detallesData = articulos.map((articulo) => ({
+      id_articulo: articulo.id_articulo,
+      precio: redondearPrecio(articulo.precio),
+      cantidad: cantidadesPorArticulo.get(articulo.id_articulo),
+    }));
+
+    const totalVenta = detallesData.reduce((acumulado, d) => acumulado + d.precio * d.cantidad, 0);
+    const ahora = new Date();
+
+    const nuevoRemito = await prisma.REMITOS.create({
+      data: {
+        fecha_de_emision: ahora,
+        fecha_de_creacion: ahora,
+        total_bruto: totalVenta,
+        total_neto: totalVenta,
+        DETALLES_REMITO: {
+          create: detallesData,
+        },
+      },
+      include: remitosInclude,
+    });
+
+    // La venta ya quedo guardada: si falla la impresion no se revierte, se avisa
+    // en la respuesta para que el frontend lo muestre.
+    let impresion = { status: 'ok' };
+    try {
+      const payload = await construirPayloadRemito(nuevoRemito);
+      const { respuesta, resultado } = await enviarTrabajoDeImpresion(payload);
+
+      if (!respuesta.ok || resultado.status === 'error') {
+        throw new Error(
+          resultado.message ?? resultado.detail ?? 'No se pudo imprimir el remito.'
+        );
+      }
+    } catch (error) {
+      console.error('Error al imprimir el remito:', error);
+      impresion = { status: 'error', message: error.message };
+    }
+
+    res.status(201).json({ ...nuevoRemito, impresion });
+  } catch (error) {
+    console.error('Error al crear la venta:', error);
+    res.status(500).json({ message: 'Error al crear la venta.', details: error.message });
+  }
+});
+
+// ============================================================
 //  IMPRESION
 // ============================================================
+
+// Envia un trabajo al print-service, que lo reenvia por websocket a la impresora local.
+// El `tipo` del payload decide que imprime el printer-client ('barcode' o 'remito').
+const enviarTrabajoDeImpresion = async (payload) => {
+  const respuesta = await fetch(`${PRINT_SERVICE_URL}/jobs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ payload }),
+  });
+
+  const resultado = await respuesta.json().catch(() => ({}));
+  return { respuesta, resultado };
+};
 
 // Envia un articulo a imprimir en la impresora local del cliente (via print-service)
 app.post('/api/print', async (req, res) => {
@@ -464,23 +652,17 @@ app.post('/api/print', async (req, res) => {
       return res.status(404).json({ message: 'El articulo no existe.' });
     }
 
-    const printResponse = await fetch(`${PRINT_SERVICE_URL}/jobs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        payload: {
-          id_articulo: articulo.id_articulo,
-          barcode: articulo.barcode,
-          descripcion: articulo.descripcion,
-          precio: articulo.precio,
-          talle: articulo.TALLES?.nombre_talle,
-          color: articulo.COLORES?.nombre_color,
-          cantidad,
-        },
-      }),
+    const { respuesta: printResponse, resultado: printResult } = await enviarTrabajoDeImpresion({
+      tipo: 'barcode',
+      id_articulo: articulo.id_articulo,
+      barcode: articulo.barcode,
+      descripcion: articulo.descripcion,
+      precio: articulo.precio,
+      talle: articulo.TALLES?.nombre_talle,
+      color: articulo.COLORES?.nombre_color,
+      cantidad,
     });
 
-    const printResult = await printResponse.json();
     if (!printResponse.ok) {
       return res.status(printResponse.status).json(printResult);
     }

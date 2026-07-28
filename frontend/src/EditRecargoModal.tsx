@@ -37,8 +37,8 @@ export default function EditRecargoModal({
 
   const handleRecargoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value;
-    // Solo digitos y un unico punto decimal: sin letras ni signo negativo.
-    if (!/^\d*\.?\d*$/.test(valor)) {
+    // Solo digitos y un unico punto decimal, con hasta 2 decimales: sin letras ni signo negativo.
+    if (!/^\d*\.?\d{0,2}$/.test(valor)) {
       triggerShake();
       return;
     }

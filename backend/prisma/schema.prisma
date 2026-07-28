@@ -29,7 +29,7 @@ model ARTICULOS {
   ARTICULOS_X_CLIENTES        ARTICULOS_X_CLIENTES[]
   ARTICULOS_X_GRUPO_VENTA_alt ARTICULOS_X_GRUPO_VENTA_alt[]
   BONIFICACIONES_ARTICULOS    BONIFICACIONES_ARTICULOS[]    @ignore
-  DETALLES_REMITO             DETALLES_REMITO[]             
+  DETALLES_REMITO             DETALLES_REMITO[]
   REGISTRO_ARTICULOS          REGISTRO_ARTICULOS?
 }
 
@@ -89,10 +89,10 @@ model DETALLES_REMITO {
   color              String?    @db.VarChar(30)
   medida             String?    @db.VarChar(20)
   observacion        String?    @db.VarChar(40)
-  precio_venta       Float?
-  precio_compra      Float?
+  precio             Float?
   bonificacion       Float?
   recargo_financiero Float?
+  cantidad           Int?
   ARTICULOS          ARTICULOS? @relation(fields: [id_articulo], references: [id_articulo], map: "_detalles_remito__articulos_fk")
   REMITOS            REMITOS?   @relation(fields: [id_remito], references: [id_remito], onDelete: Cascade, map: "_detalles_remito__remitos_fk")
 }

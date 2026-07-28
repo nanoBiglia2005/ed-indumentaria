@@ -1,0 +1,113 @@
+2026-07-28 10:59:41,477 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 10:59:46,725 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 10:59:52,090 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 10:59:57,308 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:02,551 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:07,786 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:13,031 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:18,269 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:23,509 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:28,751 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:34,017 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:39,261 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:44,509 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:49,749 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:00:55,089 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:00,328 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:05,557 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:10,787 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:16,008 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:21,249 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:26,478 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:31,708 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:36,938 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:42,178 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:47,404 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:52,626 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:01:57,994 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:03,234 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:08,454 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:13,674 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:18,908 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:24,134 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:29,375 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:34,604 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:39,836 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:45,085 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:50,314 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:02:55,545 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:03:00,912 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-07-28 11:03:06,277 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-07-28 11:03:11,572 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-07-28 11:03:16,846 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-07-28 11:03:22,121 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-07-28 11:03:27,399 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 503); reintentando en 5s
+2026-07-28 11:03:32,692 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 503); reintentando en 5s
+2026-07-28 11:03:38,003 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 503); reintentando en 5s
+2026-07-28 11:03:43,387 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 503); reintentando en 5s
+2026-07-28 11:03:48,865 INFO Conectado al servidor de impresión
+2026-07-28 12:28:29,594 WARNING Conexión perdida (received 1012 (service restart); then sent 1012 (service restart)); reintentando en 5s
+2026-07-28 12:28:34,930 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-07-28 12:28:40,231 INFO Conectado al servidor de impresión
+2026-07-28 12:28:59,300 ERROR Error al imprimir el trabajo 776cbf1b-ebd3-4c80-a525-8e393946ffb4
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 47, in run
+    ) as websocket:
+                ^^^
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 29, in handle_print_job
+    def handle_print_job(payload: dict) -> None:
+                         ^^^^^^^^^^^^^^^^^^
+KeyError: 'barcode'
+2026-07-28 12:30:08,787 ERROR Error al imprimir el trabajo 47ce9dda-eb48-4aea-ae77-15452842ec9c
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 47, in run
+    ) as websocket:
+                ^^^
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 29, in handle_print_job
+    def handle_print_job(payload: dict) -> None:
+                         ^^^^^^^^^^^^^^^^^^
+KeyError: 'barcode'
+2026-07-28 12:30:35,211 ERROR Error al imprimir el trabajo b7f917ea-b455-4c5f-ad15-cef4724dce15
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 47, in run
+    ) as websocket:
+                ^^^
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 29, in handle_print_job
+    def handle_print_job(payload: dict) -> None:
+                         ^^^^^^^^^^^^^^^^^^
+KeyError: 'barcode'
+Traceback (most recent call last):
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 40, in run
+    
+    ...<12 lines>...
+    
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\connection.py", line 242, in __aiter__
+    yield await self.recv()
+          ^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\connection.py", line 294, in recv
+    return await self.recv_messages.get(decode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\messages.py", line 150, in get
+    frame = await self.frames.get(not self.closed)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\messages.py", line 51, in get
+    await self.get_waiter
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_TEST\ed-indumentaria-test\printer-client\client.py", line 61, in <module>
+    # llega como "'barcode'" y no se entiende del lado del navegador.
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
