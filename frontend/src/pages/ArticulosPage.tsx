@@ -125,7 +125,7 @@ function ArticulosPage() {
   const columnas: ColumnaArticulo[] = useMemo(() => [
     {
       header: 'Código de Barra',
-      render: (item) => (item.barcode ? '77900000' + item.barcode : 'No Asignado'),
+      render: (item) => (item.barcode ? '779000' + item.barcode : 'No Asignado'),
       extraClassName: (item) => (!item.barcode ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'barcode',
       width: 170,
