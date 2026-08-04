@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import type { ARTICULOS, CLIENTES, ARTICULOS_X_GRUPO_VENTA } from '../../backend/generated/prisma/client';
+import type { ARTICULOS, CLIENTES, ARTICULOS_X_CLIENTE } from '../../backend/generated/prisma/client';
 import InlineFilterDropdown from './InlineFilterDropdown';
 
 interface EditClientesModalProps {
@@ -10,7 +10,7 @@ interface EditClientesModalProps {
   onSuccess: () => void;
   articulo: ARTICULOS | null;
   clientes: CLIENTES[];
-  articulosXGrupo: ARTICULOS_X_GRUPO_VENTA[];
+  articulosXCliente: ARTICULOS_X_CLIENTE[];
 }
 
 export default function EditClientesModal({
@@ -19,7 +19,7 @@ export default function EditClientesModal({
   onSuccess,
   articulo,
   clientes,
-  articulosXGrupo,
+  articulosXCliente,
 }: EditClientesModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export default function EditClientesModal({
     setError(null);
 
     const clientesDelArticulo = clientes.filter((cliente) =>
-      articulosXGrupo.some(
+      articulosXCliente.some(
         (rel) => rel.id_articulo === articulo.id_articulo && rel.id_cliente === cliente.id_cliente
       )
     );
@@ -55,25 +55,20 @@ export default function EditClientesModal({
       const clientesAAgregar = clientesSeleccionados.filter((c) => !clientesOriginalesIds.has(c.id_cliente));
       const clientesAQuitar = clientesOriginales.filter((c) => !clientesSeleccionadosIds.has(c.id_cliente));
 
-      // Primero se quitan y despues se agregan: si el articulo no esta en
-      // ningun grupo, agregar un cliente crea una fila via su grupo exclusivo.
-      const resultados: Response[] = [];
-      for (const cliente of clientesAQuitar) {
-        resultados.push(
-          await fetch(`/api/articulos/${articulo.id_articulo}/clientes/${cliente.id_cliente}`, {
-            method: 'DELETE',
-          })
-        );
-      }
-      for (const cliente of clientesAAgregar) {
-        resultados.push(
-          await fetch(`/api/articulos/${articulo.id_articulo}/clientes`, {
+      const resultados = await Promise.all([
+        ...clientesAAgregar.map((cliente) =>
+          fetch(`/api/articulos/${articulo.id_articulo}/clientes`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_cliente: cliente.id_cliente }),
           })
-        );
-      }
+        ),
+        ...clientesAQuitar.map((cliente) =>
+          fetch(`/api/articulos/${articulo.id_articulo}/clientes/${cliente.id_cliente}`, {
+            method: 'DELETE',
+          })
+        ),
+      ]);
 
       if (resultados.some((r) => !r.ok)) {
         throw new Error('Hubo un error al actualizar los colegios/clubes asociados.');

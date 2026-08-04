@@ -6,6 +6,7 @@ import type {
   GRUPOS_DE_VENTA,
   CLIENTES,
   ARTICULOS_X_GRUPO_VENTA,
+  ARTICULOS_X_CLIENTE,
   SUBGRUPOS_DE_VENTA,
 } from '../../../backend/generated/prisma/client';
 import CreateArticleModal from '../CreateArticleModal';
@@ -35,7 +36,7 @@ function ListaDeChips({ nombres, vacioTexto }: { nombres: string[]; vacioTexto: 
       {visibles.map((nombre) => (
         <span
           key={nombre}
-          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-xs text-gray-700'
+          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700'
         >
           {nombre}
         </span>
@@ -134,6 +135,7 @@ function ArticulosPage() {
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
 
   const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO_VENTA[]>([]);
+  const [articulosXCliente, setArticulosXCliente] = useState<ARTICULOS_X_CLIENTE[]>([]);
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<number | null>(null);
@@ -190,6 +192,13 @@ function ArticulosPage() {
       .catch((error) => console.error('Error al obtener ARTICULOS_X_GRUPO_VENTA:', error));
   };
 
+  const fetchArticulosXCliente = () => {
+    fetch('/api/articulos-x-cliente')
+      .then((respuesta) => respuesta.json())
+      .then((data) => setArticulosXCliente(data))
+      .catch((error) => console.error('Error al obtener ARTICULOS_X_CLIENTE:', error));
+  };
+
   const fetchGrupos = () => {
     fetch('/api/grupos')
       .then((respuesta) => respuesta.json())
@@ -228,11 +237,13 @@ function ArticulosPage() {
   const handleArticuloCreado = () => {
     fetchArticulos();
     fetchArticulosXGrupo();
+    fetchArticulosXCliente();
   };
 
   const handleArticuloActualizado = () => {
     fetchArticulos();
     fetchArticulosXGrupo();
+    fetchArticulosXCliente();
   };
 
   const abrirEdicionGrupos = useCallback((articulo: ARTICULOS) => {
@@ -326,8 +337,7 @@ function ArticulosPage() {
 
   const clientesPorArticulo = useMemo(() => {
     const mapa = new Map<number, string[]>();
-    for (const registro of articulosXGrupo) {
-      if (registro.id_cliente === null) continue;
+    for (const registro of articulosXCliente) {
       const cliente = clientes.find((c) => c.id_cliente === registro.id_cliente);
       if (!cliente) continue;
       const lista = mapa.get(registro.id_articulo) ?? [];
@@ -335,7 +345,7 @@ function ArticulosPage() {
       mapa.set(registro.id_articulo, lista);
     }
     return mapa;
-  }, [articulosXGrupo, clientes]);
+  }, [articulosXCliente, clientes]);
 
   const subgruposPorArticulo = useMemo(() => {
     const mapa = new Map<number, string[]>();
@@ -370,22 +380,15 @@ function ArticulosPage() {
       render: (item) => item.descripcion ?? 'Sin Nombre',
       extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'descripcion',
-      width: 180,
+      width: 190,
     },
     {
       header: 'Detalle',
       render: (item) => item.detalle ?? 'Sin Detalle',
       extraClassName: (item) => (!item.detalle ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'detalle',
-      width: 150,
+      width: 130,
     },
-    { header: 'Talle',
-      render: (item) => item.talle ?? 'Sin Talle',
-      extraClassName: (item) => (!item.talle ? 'text-gray-400 text-sm flex justify-center' : ''),
-      campo: 'talle',
-      width: 90 },
-    { header: 'Cantidad', render: (item) => item.cant, campo: 'cant', width: 100 },
-    { header: 'Precio', render: (item) => `${item.precio}$`, campo: 'precio', width: 100 },
     {
       header: 'Grupos',
       render: (item) => formatearListaConLimite(gruposPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Grupos',
@@ -402,7 +405,7 @@ function ArticulosPage() {
         <ListaDeChips nombres={subgruposPorArticulo.get(item.id_articulo) ?? []} vacioTexto='Sin Subgrupos' />
       ),
       onClick: (item) => abrirEdicionSubgrupos(item),
-      width: 120,
+      width: 160,
     },
     {
       header: 'Colegios/Clubes',
@@ -413,6 +416,13 @@ function ArticulosPage() {
       onClick: (item) => abrirEdicionClientes(item),
       width: 150,
     },
+    { header: 'Talle',
+      render: (item) => item.talle ?? 'Sin Talle',
+      extraClassName: (item) => (!item.talle ? 'text-gray-400 text-sm flex justify-center' : ''),
+      campo: 'talle',
+      width: 90 },
+    { header: 'Cantidad', render: (item) => item.cant, campo: 'cant', width: 100 },
+    { header: 'Precio', render: (item) => `${item.precio}$`, campo: 'precio', width: 100 },
     {
       header: 'C. Reservada',
       render: (item) => item.cant_reservada,
@@ -448,7 +458,7 @@ function ArticulosPage() {
     handleToggleVigente,
   ]);
 
-  const gridTemplateColumns = `${columnas.map((c) => `${c.width}px`).join(' ')} minmax(130px, 1fr)`;
+  const gridTemplateColumns = `${columnas.map((c) => `${c.width}px`).join(' ')} minmax(110px, 1fr)`;
 
   useEffect(() => {
     fetchArticulos();
@@ -456,6 +466,7 @@ function ArticulosPage() {
     fetchClientes();
     fetchSubgrupos();
     fetchArticulosXGrupo();
+    fetchArticulosXCliente();
   }, []);
 
   const articulosFiltrados = useMemo(() => {
@@ -488,7 +499,7 @@ function ArticulosPage() {
 
     if (clienteSeleccionado !== null) {
       const idsDelCliente = new Set(
-        articulosXGrupo
+        articulosXCliente
           .filter((registro) => registro.id_cliente === clienteSeleccionado)
           .map((registro) => registro.id_articulo)
       );
@@ -510,6 +521,7 @@ function ArticulosPage() {
   }, [
     datosBackend,
     articulosXGrupo,
+    articulosXCliente,
     grupoSeleccionado,
     subgrupoSeleccionado,
     clienteSeleccionado,
@@ -525,9 +537,18 @@ function ArticulosPage() {
   });
 
   const subgruposFiltrados = useMemo(() => {
-    if (grupoSeleccionado === null) return [];
+    if (grupoSeleccionado === null) return subgrupos;
     return subgrupos.filter((subgrupo) => subgrupo.id_grupo === grupoSeleccionado);
   }, [grupoSeleccionado, subgrupos]);
+
+  // Al elegir un subgrupo se selecciona automaticamente su grupo padre.
+  const handleSeleccionarSubgrupo = (idSubgrupo: number) => {
+    setSubgrupoSeleccionado(idSubgrupo);
+    const subgrupo = subgrupos.find((s) => s.id_subgrupo === idSubgrupo);
+    if (subgrupo) {
+      setGrupoSeleccionado(subgrupo.id_grupo);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -560,7 +581,10 @@ function ArticulosPage() {
               }))}
               selectedId={grupoSeleccionado}
               onSelect={setGrupoSeleccionado}
-              onClear={() => setGrupoSeleccionado(null)}
+              onClear={() => {
+                setGrupoSeleccionado(null);
+                setSubgrupoSeleccionado(null);
+              }}
               onCrear={() => setCrearModalTipo('grupo')}
               crearLabel='Crear Grupo'
             />
@@ -573,9 +597,8 @@ function ArticulosPage() {
                   nombre: s.nombre_subgrupo,
                 }))}
                 selectedId={subgrupoSeleccionado}
-                onSelect={setSubgrupoSeleccionado}
+                onSelect={handleSeleccionarSubgrupo}
                 onClear={() => setSubgrupoSeleccionado(null)}
-                disabled={grupoSeleccionado === null}
                 onCrear={() => setCrearModalTipo('subgrupo')}
                 crearLabel='Crear Subgrupo'
             />
@@ -763,7 +786,7 @@ function ArticulosPage() {
         onSuccess={handleArticuloActualizado}
         articulo={articuloAEditar}
         clientes={clientes}
-        articulosXGrupo={articulosXGrupo}
+        articulosXCliente={articulosXCliente}
       />
 
       <EditSubgruposModal

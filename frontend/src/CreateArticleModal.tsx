@@ -104,24 +104,22 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
       const nuevoArticulo = await response.json();
       const id_articulo = nuevoArticulo.id_articulo;
 
-      // Primero los grupos y despues los clientes: el cliente se marca sobre
-      // las filas de grupo del articulo en ARTICULOS_X_GRUPO_VENTA.
-      await Promise.all(
-        gruposSeleccionados.map((grupo) =>
+      await Promise.all([
+        ...gruposSeleccionados.map((grupo) =>
           fetch(`/api/articulos/${id_articulo}/grupos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_grupo: grupo.id_grupo }),
           })
-        )
-      );
-      for (const cliente of clientesSeleccionados) {
-        await fetch(`/api/articulos/${id_articulo}/clientes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id_cliente: cliente.id_cliente }),
-        });
-      }
+        ),
+        ...clientesSeleccionados.map((cliente) =>
+          fetch(`/api/articulos/${id_articulo}/clientes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_cliente: cliente.id_cliente }),
+          })
+        ),
+      ]);
 
       setArticuloCreado({
         id_articulo: nuevoArticulo.id_articulo,

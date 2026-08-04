@@ -58,6 +58,7 @@ export default function AgrupacionSection({
 
   const itemsVisibles = itemsFiltrados.slice(0, cantidadVisible);
   const hayMas = itemsFiltrados.length > cantidadVisible;
+  const seExpandio = cantidadVisible > CANTIDAD_INICIAL;
 
   return (
     <div className='mb-10'>
@@ -143,15 +144,26 @@ export default function AgrupacionSection({
             ))}
           </div>
 
-          {hayMas && (
-            <div className='mt-4'>
-              <button
-                type='button'
-                onClick={() => setCantidadVisible((actual) => actual + CANTIDAD_INCREMENTO)}
-                className='px-4 py-1.5 text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 transition-colors cursor-pointer'
-              >
-                Ver más
-              </button>
+          {(hayMas || seExpandio) && (
+            <div className='mt-4 flex gap-3'>
+              {hayMas && (
+                <button
+                  type='button'
+                  onClick={() => setCantidadVisible((actual) => actual + CANTIDAD_INCREMENTO)}
+                  className='px-4 py-1.5 text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 transition-colors cursor-pointer'
+                >
+                  Ver más
+                </button>
+              )}
+              {seExpandio && (
+                <button
+                  type='button'
+                  onClick={() => setCantidadVisible(CANTIDAD_INICIAL)}
+                  className='px-4 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer'
+                >
+                  Ver menos
+                </button>
+              )}
             </div>
           )}
         </>

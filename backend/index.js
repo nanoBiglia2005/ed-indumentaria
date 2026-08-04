@@ -182,29 +182,15 @@ app.post('/api/articulos/:id_articulo/clientes', async (req, res) => {
 
     const { id_cliente } = req.body;
 
-    const filasMarcadas = await prisma.ARTICULOS_X_GRUPO_VENTA.updateMany({
-      where: { id_articulo, id_cliente: null },
-      data: { id_cliente },
+    const asignacion = await prisma.ARTICULOS_X_CLIENTE.create({
+      data: { id_articulo, id_cliente },
     });
-
-    if (filasMarcadas.count === 0) {
-      const cliente = await prisma.CLIENTES.findUnique({ where: { id_cliente } });
-      if (!cliente) {
-        return res.status(404).json({ message: 'El cliente no existe.' });
-      }
-      if (cliente.grupo_venta_exclusivo === null) {
-        return res.status(409).json({
-          message: 'El articulo no pertenece a ningun grupo y el cliente no tiene grupo exclusivo.',
-        });
-      }
-      await prisma.ARTICULOS_X_GRUPO_VENTA.create({
-        data: { id_articulo, id_grupo_venta: cliente.grupo_venta_exclusivo, id_cliente },
-      });
-    }
-
-    res.status(201).json({ id_articulo, id_cliente });
+    res.status(201).json(asignacion);
   } catch (error) {
     console.error('Error al asignar el articulo al cliente:', error);
+    if (error.code === 'P2003') {
+      return res.status(404).json({ message: 'El articulo o el cliente no existen.', details: error.message });
+    }
     res.status(500).json({ message: 'Error al asignar el articulo al cliente.', details: error.message });
   }
 });
@@ -271,9 +257,8 @@ app.delete('/api/articulos/:id_articulo/clientes/:id_cliente', async (req, res) 
       return res.status(400).json({ message: 'El id del articulo y del cliente deben ser numeros.' });
     }
 
-    await prisma.ARTICULOS_X_GRUPO_VENTA.updateMany({
+    await prisma.ARTICULOS_X_CLIENTE.deleteMany({
       where: { id_articulo, id_cliente },
-      data: { id_cliente: null },
     });
     res.status(204).send();
   } catch (error) {
@@ -310,6 +295,16 @@ app.get('/api/articulos-x-grupo', async (req, res) => {
   } catch (error) {
     console.error('Error al obtener ARTICULOS_X_GRUPO_VENTA:', error);
     res.status(500).json({ message: 'Error al obtener ARTICULOS_X_GRUPO_VENTA.', details: error.message });
+  }
+});
+
+app.get('/api/articulos-x-cliente', async (req, res) => {
+  try {
+    const registros = await prisma.ARTICULOS_X_CLIENTE.findMany();
+    res.status(200).json(registros);
+  } catch (error) {
+    console.error('Error al obtener ARTICULOS_X_CLIENTE:', error);
+    res.status(500).json({ message: 'Error al obtener ARTICULOS_X_CLIENTE.', details: error.message });
   }
 });
 

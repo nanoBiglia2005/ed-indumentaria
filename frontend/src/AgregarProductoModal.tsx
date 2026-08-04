@@ -7,6 +7,7 @@ import type {
   GRUPOS_DE_VENTA,
   CLIENTES,
   ARTICULOS_X_GRUPO_VENTA,
+  ARTICULOS_X_CLIENTE,
   SUBGRUPOS_DE_VENTA,
 } from '../../backend/generated/prisma/client';
 import InlineFilterDropdown from './InlineFilterDropdown';
@@ -68,6 +69,7 @@ export default function AgregarProductoModal({
   const [clientes, setClientes] = useState<CLIENTES[]>([]);
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
   const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO_VENTA[]>([]);
+  const [articulosXCliente, setArticulosXCliente] = useState<ARTICULOS_X_CLIENTE[]>([]);
 
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,14 +112,19 @@ export default function AgregarProductoModal({
         if (!r.ok) throw new Error('No se pudo obtener la relacion de articulos y grupos.');
         return r.json();
       }),
+      fetch('/api/articulos-x-cliente').then((r) => {
+        if (!r.ok) throw new Error('No se pudo obtener la relacion de articulos y clientes.');
+        return r.json();
+      }),
     ])
       .then(
-        ([articulosData, gruposData, clientesData, subgruposData, articulosXGrupoData]) => {
+        ([articulosData, gruposData, clientesData, subgruposData, articulosXGrupoData, articulosXClienteData]) => {
           setArticulos(articulosData);
           setGrupos(gruposData);
           setClientes(clientesData);
           setSubgrupos(subgruposData);
           setArticulosXGrupo(articulosXGrupoData);
+          setArticulosXCliente(articulosXClienteData);
         }
       )
       .catch((err) => {
@@ -169,7 +176,7 @@ export default function AgregarProductoModal({
 
     if (clienteSeleccionado !== null) {
       const idsDelCliente = new Set(
-        articulosXGrupo
+        articulosXCliente
           .filter((registro) => registro.id_cliente === clienteSeleccionado)
           .map((registro) => registro.id_articulo)
       );
@@ -187,6 +194,7 @@ export default function AgregarProductoModal({
   }, [
     articulos,
     articulosXGrupo,
+    articulosXCliente,
     articulosExcluidos,
     grupoSeleccionado,
     subgrupoSeleccionado,
