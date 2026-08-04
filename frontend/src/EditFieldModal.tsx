@@ -1,41 +1,42 @@
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import type { TALLES, COLORES } from '../../backend/generated/prisma/client';
-import type { ArticuloConRelaciones } from '../../backend/types';
-import SelectListModal from './SelectListModal';
+import type { ARTICULOS } from '../../backend/generated/prisma/client';
+import { dividirBarcodeManual, combinarBarcode } from './barcodeUtils';
 
-const DESCRIPCION_MAX = 50;
+const DESCRIPCION_MAX = 70;
+const TALLE_MAX = 30;
 
 export type CampoEditable =
   | 'barcode'
-  | 'id_talle'
+  | 'talle'
   | 'cant'
   | 'cant_reservada'
   | 'stock_minimo'
   | 'precio'
-  | 'id_color'
-  | 'descripcion';
+  | 'descripcion'
+  | 'detalle';
 
-const CAMPO_INFO: Record<CampoEditable, { titulo: string; tipo: 'numero' | 'precio' | 'barcode' | 'descripcion' | 'talle' | 'color' }> = {
+const CAMPO_INFO: Record<
+  CampoEditable,
+  { titulo: string; tipo: 'numero' | 'precio' | 'barcode' | 'descripcion' | 'talle' | 'color'; placeholder?: string }
+> = {
   cant: { titulo: 'Editar Cantidad', tipo: 'numero' },
   cant_reservada: { titulo: 'Editar Cantidad Reservada', tipo: 'numero' },
   stock_minimo: { titulo: 'Editar Cantidad Minima', tipo: 'numero' },
   precio: { titulo: 'Editar Precio', tipo: 'precio' },
   barcode: { titulo: 'Editar Código de Barra', tipo: 'barcode' },
-  descripcion: { titulo: 'Editar Descripción', tipo: 'descripcion' },
-  id_talle: { titulo: 'Editar Talle', tipo: 'talle' },
-  id_color: { titulo: 'Editar Color', tipo: 'color' },
+  descripcion: { titulo: 'Editar Nombre', tipo: 'descripcion', placeholder: 'Nombre del artículo' },
+  detalle: { titulo: 'Editar Detalle', tipo: 'descripcion', placeholder: 'Detalle del artículo' },
+  talle: { titulo: 'Editar Talle', tipo: 'talle' },
 };
 
 interface EditFieldModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  articulo: ArticuloConRelaciones | null;
+  articulo: ARTICULOS | null;
   campo: CampoEditable | null;
-  talles: TALLES[];
-  colores: COLORES[];
 }
 
 export default function EditFieldModal({
@@ -44,14 +45,9 @@ export default function EditFieldModal({
   onSuccess,
   articulo,
   campo,
-  talles,
-  colores,
 }: EditFieldModalProps) {
   const [valorNumero, setValorNumero] = useState<number | null>(0);
   const [valorTexto, setValorTexto] = useState<string>('');
-  const [valorId, setValorId] = useState<number>(0);
-
-  const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,16 +72,16 @@ export default function EditFieldModal({
         setValorNumero(articulo.precio);
         break;
       case 'barcode':
-        setValorTexto(articulo.barcode !== null ? String(articulo.barcode) : '');
+        setValorTexto(combinarBarcode(articulo.barcode_header, articulo.barcode_tail));
         break;
       case 'descripcion':
         setValorTexto(articulo.descripcion ?? '');
         break;
-      case 'id_talle':
-        setValorId(articulo.id_talle);
+      case 'detalle':
+        setValorTexto(articulo.detalle ?? '');
         break;
-      case 'id_color':
-        setValorId(articulo.id_color);
+      case 'talle':
+        setValorTexto(articulo.talle ?? '');
         break;
     }
   }, [isOpen, articulo, campo]);
@@ -135,14 +131,16 @@ export default function EditFieldModal({
           payload = { precio: valorNumero || 0 };
           break;
         case 'barcode':
-          payload = { barcode: !valorTexto.trim() ? null : parseInt(valorTexto, 10) };
+          payload = dividirBarcodeManual(valorTexto);
           break;
         case 'descripcion':
           payload = { descripcion: valorTexto.trim() === '' ? null : valorTexto };
           break;
-        case 'id_talle':
-        case 'id_color':
-          payload = { [campo]: valorId };
+        case 'detalle':
+          payload = { detalle: valorTexto.trim() === '' ? null : valorTexto };
+          break;
+        case 'talle':
+          payload = { talle: valorTexto.trim() === '' ? null : valorTexto.trim() };
           break;
       }
 
@@ -170,8 +168,6 @@ export default function EditFieldModal({
 
   const info = CAMPO_INFO[campo];
   const caracteresRestantes = DESCRIPCION_MAX - valorTexto.length;
-  const talleSeleccionado = talles.find((t) => t.id_talle === valorId) ?? null;
-  const colorSeleccionado = colores.find((c) => c.id_color === valorId) ?? null;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -234,7 +230,6 @@ export default function EditFieldModal({
 
                 {info.tipo === 'barcode' && (
                   <div className='flex items-center'>
-                    <span className='px-2 text-gray-700'>#77900000</span>
                     <input
                       type='text'
                       value={valorTexto}
@@ -261,30 +256,21 @@ export default function EditFieldModal({
                       type='text'
                       value={valorTexto}
                       onChange={handleDescripcionChange}
-                      placeholder='Descripción del artículo'
+                      placeholder={info.placeholder ?? 'Nombre del artículo'}
                       className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
                     />
                   </div>
                 )}
 
                 {info.tipo === 'talle' && (
-                  <button
-                    type='button'
-                    onClick={() => setIsSelectOpen(true)}
-                    className='w-full text-left px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer'
-                  >
-                    {talleSeleccionado ? talleSeleccionado.nombre_talle : 'Seleccionar Talle'}
-                  </button>
-                )}
-
-                {info.tipo === 'color' && (
-                  <button
-                    type='button'
-                    onClick={() => setIsSelectOpen(true)}
-                    className='w-full text-left px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer'
-                  >
-                    {colorSeleccionado ? colorSeleccionado.nombre_color : 'Seleccionar Color'}
-                  </button>
+                  <input
+                    type='text'
+                    value={valorTexto}
+                    onChange={(e) => setValorTexto(e.target.value.slice(0, TALLE_MAX))}
+                    maxLength={TALLE_MAX}
+                    placeholder='Sin Talle'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  />
                 )}
 
                 <div className='mt-6 flex gap-3'>
@@ -307,32 +293,6 @@ export default function EditFieldModal({
           </div>
         </div>
       </Dialog>
-
-      {info.tipo === 'talle' && (
-        <SelectListModal
-          isOpen={isSelectOpen}
-          onClose={() => setIsSelectOpen(false)}
-          title='Seleccionar Talle'
-          opciones={talles.map((t) => ({ id: t.id_talle, nombre: t.nombre_talle }))}
-          onSelect={(opcion) => {
-            setValorId(opcion.id);
-            setIsSelectOpen(false);
-          }}
-        />
-      )}
-
-      {info.tipo === 'color' && (
-        <SelectListModal
-          isOpen={isSelectOpen}
-          onClose={() => setIsSelectOpen(false)}
-          title='Seleccionar Color'
-          opciones={colores.map((c) => ({ id: c.id_color, nombre: c.nombre_color ?? `Color ${c.id_color}` }))}
-          onSelect={(opcion) => {
-            setValorId(opcion.id);
-            setIsSelectOpen(false);
-          }}
-        />
-      )}
     </Transition>
   );
 }

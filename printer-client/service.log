@@ -1,0 +1,60 @@
+2026-08-03 11:50:48,054 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:50:53,395 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:50:58,654 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:03,906 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:09,138 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:14,380 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:19,616 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:24,878 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:30,129 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:35,375 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:40,632 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:45,889 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:51,217 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:51:56,579 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:01,824 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:07,047 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:12,287 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:17,536 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:22,772 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:28,017 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:33,237 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:38,483 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:43,718 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:48,947 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:54,277 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:52:59,648 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:04,890 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:10,141 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:15,388 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:20,626 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:25,880 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:31,119 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:36,352 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:41,595 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:46,832 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:52,069 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:53:57,400 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:02,722 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:07,948 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:13,180 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:18,423 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:23,650 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:28,869 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:34,111 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-03 11:54:39,409 INFO Conectado al servidor de impresión
+2026-08-03 11:55:10,580 WARNING Conexión perdida (no close frame received or sent); reintentando en 5s
+2026-08-03 11:55:16,026 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:21,323 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:26,622 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:31,913 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:37,193 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:42,474 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:47,775 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:53,070 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 11:55:58,357 INFO Conectado al servidor de impresión
+2026-08-03 12:03:57,823 WARNING Conexión perdida (no close frame received or sent); reintentando en 5s
+2026-08-03 12:04:03,112 INFO Conectado al servidor de impresión
+2026-08-03 20:10:40,934 WARNING Conexión perdida (no close frame received or sent); reintentando en 5s
+2026-08-03 20:10:46,318 WARNING Conexión perdida (transfer codings aren't supported); reintentando en 5s
+2026-08-03 20:10:51,622 INFO Conectado al servidor de impresión

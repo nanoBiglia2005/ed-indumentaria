@@ -1,12 +1,13 @@
 import { useMemo, useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import type { ArticuloConRelaciones, VentaImpresa } from '../../backend/types';
+import type { ARTICULOS } from '../../backend/generated/prisma/client';
+import type { VentaImpresa } from '../../backend/types';
 import AgregarProductoModal from './AgregarProductoModal';
 
 const MAX_LINEAS_DESCRIPCION = 3;
 
 interface ProductoSeleccionado {
-  articulo: ArticuloConRelaciones;
+  articulo: ARTICULOS;
   cantidad: number | null;
 }
 
@@ -48,7 +49,7 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaImpresa }: Nue
     [productos]
   );
 
-  const handleAgregarProducto = (articulo: ArticuloConRelaciones) => {
+  const handleAgregarProducto = (articulo: ARTICULOS) => {
     setProductos((prev) => [...prev, { articulo, cantidad: 1 }]);
     setError(null);
   };
@@ -187,7 +188,7 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaImpresa }: Nue
                                 overflow: 'hidden',
                               }}
                             >
-                              {articulo.descripcion ?? 'Sin Descripción'}
+                              {articulo.descripcion ?? 'Sin Nombre'}
                             </span>
                             <span className='text-sm font-medium text-gray-500'>{articulo.precio}$</span>
                           </div>

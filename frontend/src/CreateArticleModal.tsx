@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import type { TALLES, GRUPOS_DE_VENTA, CLIENTES } from '../../backend/generated/prisma/client';
+import type { GRUPOS_DE_VENTA, CLIENTES } from '../../backend/generated/prisma/client';
 import SelectListModal from './SelectListModal';
+import { dividirBarcodeManual, combinarBarcode, BARCODE_AUTOMATICO } from './barcodeUtils';
 
 interface CreateArticleModalProps {
   isOpen: boolean;
@@ -13,10 +14,11 @@ interface CreateArticleModalProps {
 }
 
 interface ArticuloCreado {
-  barcode: number | null;
+  barcode_header: number | null;
+  barcode_tail: number | null;
   cant: number | null;
   precio: number | null;
-  nombreTalle: string | null;
+  talle: string | null;
   id_articulo: number;
 }
 
@@ -25,8 +27,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
   const [precio, setPrecio] = useState<number | null>(0);
   const [barcode, setBarcode] = useState<string>('');
   const [barcodeAuto, setBarcodeAuto] = useState<boolean>(false);
-  const [idTalle, setIdTalle] = useState<number>(0);
-  const [talles, setTalles] = useState<TALLES[]>([]);
+  const [talle, setTalle] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [articuloCreado, setArticuloCreado] = useState<ArticuloCreado | null>(null);
@@ -37,29 +38,22 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
   const [isGrupoAssignOpen, setIsGrupoAssignOpen] = useState(false);
   const [isClienteAssignOpen, setIsClienteAssignOpen] = useState(false);
 
-  useEffect(() => {
-    fetch('/api/talles')
-      .then((res) => res.json())
-      .then((data) => setTalles(data))
-      .catch((err) => console.error('Error al obtener los talles:', err));
-  }, []);
+  const resetForm = () => {
+    setCantidad(0);
+    setPrecio(0);
+    setBarcode('');
+    setBarcodeAuto(false);
+    setTalle('');
+    setError(null);
+    setGruposSeleccionados([]);
+    setClientesSeleccionados([]);
+  };
 
   useEffect(() => {
     if (!isOpen) {
       resetForm();
     }
   }, [isOpen]);
-
-  const resetForm = () => {
-    setCantidad(0);
-    setPrecio(0);
-    setBarcode('');
-    setBarcodeAuto(false);
-    setIdTalle(0);
-    setError(null);
-    setGruposSeleccionados([]);
-    setClientesSeleccionados([]);
-  };
 
 
   const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,13 +81,10 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
       const payload = {
         cant: cantidad || 0,
         precio: precio || 0,
-        barcode: barcodeAuto ? -1 : (!barcode.trim() ? null : parseInt(barcode,10)),
-        id_talle: idTalle,
+        ...(barcodeAuto ? BARCODE_AUTOMATICO : dividirBarcodeManual(barcode)),
+        talle: talle.trim() === '' ? null : talle.trim(),
         stock_minimo: 0,
-
         vigente: true,
-        id__medida: 1,
-        id_color: 1,
         cant_reservada: 0,
       };
 
@@ -113,29 +104,32 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
       const nuevoArticulo = await response.json();
       const id_articulo = nuevoArticulo.id_articulo;
 
-      await Promise.all([
-        ...gruposSeleccionados.map((grupo) =>
+      // Primero los grupos y despues los clientes: el cliente se marca sobre
+      // las filas de grupo del articulo en ARTICULOS_X_GRUPO_VENTA.
+      await Promise.all(
+        gruposSeleccionados.map((grupo) =>
           fetch(`/api/articulos/${id_articulo}/grupos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_grupo: grupo.id_grupo }),
           })
-        ),
-        ...clientesSeleccionados.map((cliente) =>
-          fetch(`/api/articulos/${id_articulo}/clientes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_cliente: cliente.id_cliente }),
-          })
-        ),
-      ]);
+        )
+      );
+      for (const cliente of clientesSeleccionados) {
+        await fetch(`/api/articulos/${id_articulo}/clientes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_cliente: cliente.id_cliente }),
+        });
+      }
 
       setArticuloCreado({
         id_articulo: nuevoArticulo.id_articulo,
-        barcode: nuevoArticulo.barcode,
+        barcode_header: nuevoArticulo.barcode_header,
+        barcode_tail: nuevoArticulo.barcode_tail,
         cant: nuevoArticulo.cant,
         precio: nuevoArticulo.precio,
-        nombreTalle: nuevoArticulo.TALLES.nombre_talle,
+        talle: nuevoArticulo.talle,
       });
       setShowSuccessDialog(true);
     } catch (err) {
@@ -218,17 +212,14 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                     <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Talle
                     </label>
-                    <select
-                      value={idTalle}
-                      onChange={(e) => setIdTalle(parseInt(e.target.value, 10))}
+                    <input
+                      type='text'
+                      value={talle}
+                      onChange={(e) => setTalle(e.target.value)}
+                      maxLength={30}
+                      placeholder='Sin Talle'
                       className='w-full text-gray-700 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
-                    >
-                      {talles.map((talle) => (
-                        <option key={talle.id_talle} value={talle.id_talle}>
-                          {talle.nombre_talle}
-                        </option>
-                      ))}
-                    </select>
+                    />
                   </div>
 
                   {/* Código de Barra */}
@@ -274,9 +265,9 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       </button>
                     </div>
 
-                    {/* Input de Código de Barra */}
+                    {/* Input de Código de Barra: los primeros 6 dígitos se guardan como
+                    cabecera y el resto como cola. */}
                     <div className='flex items-center'>
-                      <span className='px-2 text-gray-700'>#77900000</span>
                       <input
                         type='text'
                         value={barcode}
@@ -287,7 +278,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                           barcodeAuto ? 'bg-gray-200 cursor-not-allowed text-gray-500' : ''
                         }`}
                       />
-                    </div>                 
+                    </div>
                   </div>
 
                   {/* Grupos de Articulos */}
@@ -433,7 +424,9 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       <div className='flex justify-between'>
                         <span className='text-sm font-medium text-gray-700'>Código de Barra:</span>
                         <span className='text-sm text-gray-900 font-semibold'>
-                          {articuloCreado.barcode ? '77900000'+articuloCreado.barcode : 'No Asignado'}
+                          {articuloCreado.barcode_header === null && articuloCreado.barcode_tail === null
+                            ? 'No Asignado'
+                            : combinarBarcode(articuloCreado.barcode_header, articuloCreado.barcode_tail)}
                         </span>
                       </div>
                       <div className='flex justify-between'>
@@ -446,7 +439,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                       </div>
                       <div className='flex justify-between'>
                         <span className='text-sm font-medium text-gray-700'>Talle:</span>
-                        <span className='text-sm text-gray-900 font-semibold'>{articuloCreado.nombreTalle}</span>
+                        <span className='text-sm text-gray-900 font-semibold'>{articuloCreado.talle ?? 'Sin Talle'}</span>
                       </div>
                       <div className='flex justify-between gap-3 items-center'>
                         <span className='text-sm font-medium text-gray-700'>Clientes:</span>

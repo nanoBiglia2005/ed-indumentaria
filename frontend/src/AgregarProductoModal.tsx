@@ -3,13 +3,12 @@ import type { ReactNode } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type {
+  ARTICULOS,
   GRUPOS_DE_VENTA,
   CLIENTES,
-  ARTICULOS_X_GRUPO_VENTA_alt,
-  ARTICULOS_X_CLIENTES,
-  SUBGRUPOS_DE_VENTA_alt,
+  ARTICULOS_X_GRUPO_VENTA,
+  SUBGRUPOS_DE_VENTA,
 } from '../../backend/generated/prisma/client';
-import type { ArticuloConRelaciones } from '../../backend/types';
 import InlineFilterDropdown from './InlineFilterDropdown';
 import { resaltarCoincidencia } from './textUtils';
 
@@ -21,28 +20,28 @@ const ROW_HEIGHT = MAX_LINEAS_CELDA * ALTO_LINEA + PADDING_VERTICAL_FILA + BORDE
 
 type ColumnaArticulo = {
   header: string;
-  render: (item: ArticuloConRelaciones) => ReactNode;
-  extraClassName?: (item: ArticuloConRelaciones) => string;
+  render: (item: ARTICULOS) => ReactNode;
+  extraClassName?: (item: ARTICULOS) => string;
   width: number;
 };
 
 const COLUMNAS: ColumnaArticulo[] = [
   {
     header: 'Código de Barra',
-    render: (item) => (item.barcode ? '77900000' + item.barcode : 'No Asignado'),
-    extraClassName: (item) => (!item.barcode ? 'text-gray-400 text-xs' : ''),
+    render: (item) => (item.barcode_tail ? '77900000' + item.barcode_tail : 'No Asignado'),
+    extraClassName: (item) => (!item.barcode_tail ? 'text-gray-400 text-xs' : ''),
     width: 125,
   },
   {
-    header: 'Descripción',
-    render: (item) => item.descripcion ?? 'Sin Descripción',
+    header: 'Nombre',
+    render: (item) => item.descripcion ?? 'Sin Nombre',
     extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-xs' : ''),
     width: 230,
   },
   {
     header: 'Talle',
-    render: (item) => item.TALLES?.nombre_talle,
-    extraClassName: (item) => (item.TALLES?.id_talle == 0 ? 'text-gray-400 text-xs' : ''),
+    render: (item) => item.talle ?? 'Sin Talle',
+    extraClassName: (item) => (!item.talle ? 'text-gray-400 text-xs' : ''),
     width: 85,
   },
   { header: 'Cantidad', render: (item) => item.cant, width: 75 },
@@ -55,7 +54,7 @@ interface AgregarProductoModalProps {
   isOpen: boolean;
   onClose: () => void;
   articulosExcluidos: number[];
-  onAgregar: (articulo: ArticuloConRelaciones) => void;
+  onAgregar: (articulo: ARTICULOS) => void;
 }
 
 export default function AgregarProductoModal({
@@ -64,12 +63,11 @@ export default function AgregarProductoModal({
   articulosExcluidos,
   onAgregar,
 }: AgregarProductoModalProps) {
-  const [articulos, setArticulos] = useState<ArticuloConRelaciones[]>([]);
+  const [articulos, setArticulos] = useState<ARTICULOS[]>([]);
   const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
   const [clientes, setClientes] = useState<CLIENTES[]>([]);
-  const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA_alt[]>([]);
-  const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO_VENTA_alt[]>([]);
-  const [articulosXClientes, setArticulosXClientes] = useState<ARTICULOS_X_CLIENTES[]>([]);
+  const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
+  const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO_VENTA[]>([]);
 
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,26 +110,14 @@ export default function AgregarProductoModal({
         if (!r.ok) throw new Error('No se pudo obtener la relacion de articulos y grupos.');
         return r.json();
       }),
-      fetch('/api/articulos-x-clientes').then((r) => {
-        if (!r.ok) throw new Error('No se pudo obtener la relacion de articulos y colegios.');
-        return r.json();
-      }),
     ])
       .then(
-        ([
-          articulosData,
-          gruposData,
-          clientesData,
-          subgruposData,
-          articulosXGrupoData,
-          articulosXClientesData,
-        ]) => {
+        ([articulosData, gruposData, clientesData, subgruposData, articulosXGrupoData]) => {
           setArticulos(articulosData);
           setGrupos(gruposData);
           setClientes(clientesData);
           setSubgrupos(subgruposData);
           setArticulosXGrupo(articulosXGrupoData);
-          setArticulosXClientes(articulosXClientesData);
         }
       )
       .catch((err) => {
@@ -141,46 +127,10 @@ export default function AgregarProductoModal({
       .finally(() => setCargando(false));
   }, [isOpen]);
 
-  const clientesFiltrados = useMemo(() => {
-    if (grupoSeleccionado === null) return clientes;
-
-    const idsDelGrupo = new Set(
-      articulosXGrupo
-        .filter((registro) => registro.id_grupo_venta === grupoSeleccionado)
-        .map((registro) => registro.id_articulo)
-    );
-
-    const idsClientesDelGrupo = new Set(
-      articulosXClientes
-        .filter((registro) => registro.id_cliente !== null && idsDelGrupo.has(registro.id_articulo))
-        .map((registro) => registro.id_cliente)
-    );
-
-    return clientes.filter((cliente) => idsClientesDelGrupo.has(cliente.id_cliente));
-  }, [grupoSeleccionado, articulosXGrupo, articulosXClientes, clientes]);
-
   const subgruposFiltrados = useMemo(() => {
     if (grupoSeleccionado === null) return [];
-
-    const idsSubgrupoDelGrupo = new Set(
-      articulosXGrupo
-        .filter(
-          (registro) => registro.id_grupo_venta === grupoSeleccionado && registro.id_subgrupo !== null
-        )
-        .map((registro) => registro.id_subgrupo)
-    );
-
-    return subgrupos.filter((subgrupo) => idsSubgrupoDelGrupo.has(subgrupo.id_subgrupo));
-  }, [grupoSeleccionado, articulosXGrupo, subgrupos]);
-
-  useEffect(() => {
-    if (
-      clienteSeleccionado !== null &&
-      !clientesFiltrados.some((cliente) => cliente.id_cliente === clienteSeleccionado)
-    ) {
-      setClienteSeleccionado(null);
-    }
-  }, [clientesFiltrados, clienteSeleccionado]);
+    return subgrupos.filter((subgrupo) => subgrupo.id_grupo === grupoSeleccionado);
+  }, [grupoSeleccionado, subgrupos]);
 
   useEffect(() => {
     if (
@@ -219,7 +169,7 @@ export default function AgregarProductoModal({
 
     if (clienteSeleccionado !== null) {
       const idsDelCliente = new Set(
-        articulosXClientes
+        articulosXGrupo
           .filter((registro) => registro.id_cliente === clienteSeleccionado)
           .map((registro) => registro.id_articulo)
       );
@@ -237,7 +187,6 @@ export default function AgregarProductoModal({
   }, [
     articulos,
     articulosXGrupo,
-    articulosXClientes,
     articulosExcluidos,
     grupoSeleccionado,
     subgrupoSeleccionado,
@@ -252,7 +201,7 @@ export default function AgregarProductoModal({
     overscan: 10,
   });
 
-  const handleAgregar = (articulo: ArticuloConRelaciones) => {
+  const handleAgregar = (articulo: ARTICULOS) => {
     onAgregar(articulo);
     onClose();
   };
@@ -308,8 +257,7 @@ export default function AgregarProductoModal({
                     disabled={cargando}
                   />
 
-                  {grupoSeleccionado !== null && (
-                    <InlineFilterDropdown
+                  <InlineFilterDropdown
                       label='Filtrar por Subgrupo'
                       opciones={subgruposFiltrados.map((s) => ({
                         id: s.id_subgrupo,
@@ -318,13 +266,12 @@ export default function AgregarProductoModal({
                       selectedId={subgrupoSeleccionado}
                       onSelect={setSubgrupoSeleccionado}
                       onClear={() => setSubgrupoSeleccionado(null)}
-                      disabled={cargando}
-                    />
-                  )}
-
+                      disabled={cargando || grupoSeleccionado === null}
+                  />
+                  
                   <InlineFilterDropdown
                     label='Filtrar por Colegio'
-                    opciones={clientesFiltrados.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
+                    opciones={clientes.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
                     selectedId={clienteSeleccionado}
                     onSelect={setClienteSeleccionado}
                     onClear={() => setClienteSeleccionado(null)}
@@ -389,7 +336,7 @@ export default function AgregarProductoModal({
 
                   {!cargando && !error && articulosFiltrados.length === 0 && (
                     <p className='px-3 py-4 text-sm text-gray-400 italic text-center'>
-                      No hay articulos disponibles para agregar.
+                      No hay articulos que coincidan con la busqueda
                     </p>
                   )}
 
@@ -405,6 +352,7 @@ export default function AgregarProductoModal({
                             style={{
                               gridTemplateColumns: GRID_TEMPLATE_COLUMNS,
                               height: ROW_HEIGHT,
+                              overflow: 'hidden',
                               transform: `translateY(${virtualRow.start}px)`,
                             }}
                           >
@@ -423,6 +371,8 @@ export default function AgregarProductoModal({
                                       WebkitLineClamp: MAX_LINEAS_CELDA,
                                       WebkitBoxOrient: 'vertical',
                                       overflow: 'hidden',
+                                      lineHeight: `${ALTO_LINEA}px`,
+                                      minWidth: 0,
                                     }}
                                   >
                                     {busqueda ? resaltarCoincidencia(valorTexto, busqueda) : valorTexto}
