@@ -8,6 +8,7 @@ import type {
   ARTICULOS_X_GRUPO_VENTA,
   ARTICULOS_X_CLIENTE,
   SUBGRUPOS_DE_VENTA,
+  LINEAS,
 } from '../../../backend/generated/prisma/client';
 import CreateArticleModal from '../CreateArticleModal';
 import EditGruposModal from '../EditGruposModal';
@@ -22,6 +23,8 @@ import type { TipoAgrupacion } from '../CrearAgrupacionModal';
 import { normalizarBusqueda, resaltarCoincidencia } from '../textUtils';
 import ColumnFilterModal from '../ColumnFilterModal';
 import type { FiltroColumna, OpcionFiltro } from '../ColumnFilterModal';
+import AccionMasivaModal from '../AccionMasivaModal';
+import type { AccionMasiva } from '../AccionMasivaModal';
 
 const SIN_ASIGNAR_ID = -1;
 
@@ -79,6 +82,7 @@ const PADDING_VERTICAL_FILA = 24;
 const BORDE_FILA = 1;
 const MAX_LINEAS_CELDA = 4;
 const ROW_HEIGHT = MAX_LINEAS_CELDA * ALTO_LINEA + PADDING_VERTICAL_FILA + BORDE_FILA;
+const ANCHO_COL_SELECCION = 44;
 
 function FilterDropdown({
   label,
@@ -157,6 +161,7 @@ function ArticulosPage() {
   const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
   const [clientes, setClientes] = useState<CLIENTES[]>([]);
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
+  const [lineas, setLineas] = useState<LINEAS[]>([]);
 
   const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO_VENTA[]>([]);
   const [articulosXCliente, setArticulosXCliente] = useState<ARTICULOS_X_CLIENTE[]>([]);
@@ -178,6 +183,7 @@ function ArticulosPage() {
   const [isEditGruposOpen, setIsEditGruposOpen] = useState(false);
   const [isEditClientesOpen, setIsEditClientesOpen] = useState(false);
   const [isEditSubgruposOpen, setIsEditSubgruposOpen] = useState(false);
+  const [isEditLineaOpen, setIsEditLineaOpen] = useState(false);
   const [isEliminarModalOpen, setIsEliminarModalOpen] = useState(false);
   const [campoAEditar, setCampoAEditar] = useState<CampoEditable | null>(null);
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
@@ -188,6 +194,9 @@ function ArticulosPage() {
   const [filtrosColumna, setFiltrosColumna] = useState<Record<string, FiltroColumna>>({});
   const [columnaFiltroAbierta, setColumnaFiltroAbierta] = useState<string | null>(null);
   const [ordenColumna, setOrdenColumna] = useState<{ key: string; direccion: 'asc' | 'desc' } | null>(null);
+  const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set());
+  const [accionMasiva, setAccionMasiva] = useState<AccionMasiva | null>(null);
+  const [actualizandoMasivo, setActualizandoMasivo] = useState(false);
 
   type FiltroDefTexto = { tipo: 'texto' };
   type FiltroDefRango = { tipo: 'rango'; getValor: (item: ARTICULOS) => number | null };
@@ -262,6 +271,13 @@ function ArticulosPage() {
       .catch((error) => console.error('Error al obtener los clientes:', error));
   };
 
+  const fetchLineas = () => {
+    fetch('/api/lineas')
+      .then((respuesta) => respuesta.json())
+      .then((data) => setLineas(data))
+      .catch((error) => console.error('Error al obtener las lineas:', error));
+  };
+
   const handleAgrupacionCreada = (opcion: { id: number; nombre: string }) => {
     if (crearModalTipo === 'grupo') {
       fetchGrupos();
@@ -302,6 +318,32 @@ function ArticulosPage() {
     setArticuloAEditar(articulo);
     setIsEditSubgruposOpen(true);
   }, []);
+
+  const abrirEdicionLinea = useCallback((articulo: ARTICULOS) => {
+    setArticuloAEditar(articulo);
+    setIsEditLineaOpen(true);
+  }, []);
+
+  // idLinea === SIN_ASIGNAR_ID representa la opcion "Sin Línea" del modal,
+  // que limpia la asignacion actual.
+  const handleSeleccionarLinea = async (idLinea: number) => {
+    if (!articuloAEditar) return;
+    try {
+      const respuesta = await fetch(`/api/articulos/${articuloAEditar.id_articulo}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_linea: idLinea === SIN_ASIGNAR_ID ? null : idLinea }),
+      });
+      if (!respuesta.ok) {
+        const errorData = await respuesta.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.message);
+      }
+      setIsEditLineaOpen(false);
+      fetchArticulos();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'No se pudo actualizar la línea del articulo.');
+    }
+  };
 
   const abrirEliminacion = useCallback((articulo: ARTICULOS) => {
     setArticuloAEditar(articulo);
@@ -465,6 +507,21 @@ function ArticulosPage() {
       filtro: { tipo: 'seleccion', getValores: (item) => clientesDeArticulo.get(item.id_articulo) ?? [] },
     },
     {
+      header: 'Línea',
+      render: (item) => lineas.find((l) => l.id_linea === item.id_linea)?.nombre_linea ?? 'Sin Línea',
+      extraClassName: (item) => (item.id_linea === null ? 'text-gray-400 text-sm flex justify-center' : 'font-semibold text-[14px]'),
+      onClick: (item) => abrirEdicionLinea(item),
+      width: 120,
+      filtroKey: 'linea',
+      filtro: {
+        tipo: 'seleccion',
+        getValores: (item) => {
+          const linea = lineas.find((l) => l.id_linea === item.id_linea);
+          return linea ? [{ id: linea.id_linea, nombre: linea.nombre_linea }] : [];
+        },
+      },
+    },
+    {
       header: 'Grupos',
       render: (item) => formatearListaConLimite(gruposPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Grupos',
       renderCell: (item) => (
@@ -545,12 +602,7 @@ function ArticulosPage() {
     },
       {
         header: 'Vigente',
-        render: (item) =>
-          actualizandoVigenciaId === item.id_articulo
-            ? 'Actualizando...'
-            : item.vigente
-            ? 'Vigente'
-            : 'No Vigente',
+        render: (item) => item.vigente ? 'Vigente' : 'No Vigente',
         extraClassName: (item) => ((item.vigente ? 'text-green-500' : 'text-red-500') + ' text-[15px] flex items-center justify-center'),
         onClick: (item) => handleToggleVigente(item),
         width: 120,
@@ -571,20 +623,23 @@ function ArticulosPage() {
     gruposDeArticulo,
     clientesDeArticulo,
     subgruposDeArticulo,
+    lineas,
     actualizandoVigenciaId,
     abrirEdicionGrupos,
     abrirEdicionClientes,
     abrirEdicionSubgrupos,
+    abrirEdicionLinea,
     handleToggleVigente,
   ]);
 
-  const gridTemplateColumns = `${columnas.map((c) => `${c.width}px`).join(' ')} minmax(110px, 1fr)`;
+  const gridTemplateColumns = `${ANCHO_COL_SELECCION}px ${columnas.map((c) => `${c.width}px`).join(' ')} minmax(110px, 1fr)`;
 
   useEffect(() => {
     fetchArticulos();
     fetchGrupos();
     fetchClientes();
     fetchSubgrupos();
+    fetchLineas();
     fetchArticulosXGrupo();
     fetchArticulosXCliente();
   }, []);
@@ -723,6 +778,124 @@ function ArticulosPage() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articulosBase, filtrosColumna, columnas, ordenColumna]);
+
+  // El "estado de seleccion" existe mientras haya al menos un articulo
+  // seleccionado; al deseleccionar el ultimo la tabla vuelve a su estado normal.
+  const modoSeleccion = seleccionados.size > 0;
+
+  // Si un articulo seleccionado deja de existir (p.ej. fue eliminado),
+  // se lo quita de la seleccion.
+  useEffect(() => {
+    setSeleccionados((prev) => {
+      if (prev.size === 0) return prev;
+      const idsExistentes = new Set(datosBackend.map((a) => a.id_articulo));
+      const siguiente = new Set([...prev].filter((id) => idsExistentes.has(id)));
+      return siguiente.size === prev.size ? prev : siguiente;
+    });
+  }, [datosBackend]);
+
+  const toggleSeleccion = (id: number) => {
+    setSeleccionados((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(id)) {
+        siguiente.delete(id);
+      } else {
+        siguiente.add(id);
+      }
+      return siguiente;
+    });
+  };
+
+  const todosSeleccionados =
+    articulosFiltrados.length > 0 && articulosFiltrados.every((a) => seleccionados.has(a.id_articulo));
+
+  // Checkbox del header: selecciona todos los articulos visibles en la lista
+  // actual; si ya estan todos seleccionados, los deselecciona.
+  const handleSeleccionarTodos = () => {
+    setSeleccionados((prev) => {
+      const siguiente = new Set(prev);
+      if (todosSeleccionados) {
+        for (const articulo of articulosFiltrados) siguiente.delete(articulo.id_articulo);
+      } else {
+        for (const articulo of articulosFiltrados) siguiente.add(articulo.id_articulo);
+      }
+      return siguiente;
+    });
+  };
+
+  const handleVigenciaMasiva = async (vigente: boolean) => {
+    if (actualizandoMasivo) return;
+    setActualizandoMasivo(true);
+    try {
+      const resultados = await Promise.allSettled(
+        [...seleccionados].map((id) =>
+          fetch(`/api/articulos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vigente }),
+          }).then(async (respuesta) => {
+            if (!respuesta.ok) {
+              const errorData = await respuesta.json().catch(() => ({}));
+              throw new Error(errorData.details || errorData.message);
+            }
+          })
+        )
+      );
+      const fallidos = resultados.filter((r) => r.status === 'rejected').length;
+      if (fallidos > 0) {
+        alert(`No se pudo actualizar la vigencia de ${fallidos} de ${resultados.length} articulos.`);
+      }
+      fetchArticulos();
+    } finally {
+      setActualizandoMasivo(false);
+    }
+  };
+
+  // Ejecuta la accion confirmada en el modal (eliminar o imprimir todos los
+  // seleccionados). Si algo falla, lanza para que el modal muestre el error.
+  const ejecutarAccionMasiva = async () => {
+    const ids = [...seleccionados];
+
+    if (accionMasiva === 'eliminar') {
+      const resultados = await Promise.allSettled(
+        ids.map((id) =>
+          fetch(`/api/articulos/${id}`, { method: 'DELETE' }).then(async (respuesta) => {
+            if (!respuesta.ok) {
+              const errorData = await respuesta.json().catch(() => ({}));
+              throw new Error(errorData.message || errorData.details);
+            }
+          })
+        )
+      );
+      handleArticuloActualizado();
+      const fallidos = resultados.filter((r) => r.status === 'rejected').length;
+      if (fallidos > 0) {
+        throw new Error(`No se pudieron eliminar ${fallidos} de ${ids.length} articulos.`);
+      }
+      return;
+    }
+
+    if (accionMasiva === 'imprimir') {
+      // Secuencial para no saturar el servicio de impresion.
+      let fallidos = 0;
+      for (const id of ids) {
+        try {
+          const respuesta = await fetch('/api/print', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_articulo: id, cantidad: 1 }),
+          });
+          const resultado = await respuesta.json();
+          if (!respuesta.ok || resultado.status === 'error') fallidos++;
+        } catch {
+          fallidos++;
+        }
+      }
+      if (fallidos > 0) {
+        throw new Error(`No se pudieron imprimir ${fallidos} de ${ids.length} articulos.`);
+      }
+    }
+  };
 
   const columnaConFiltroAbierto = columnas.find((c) => c.filtroKey === columnaFiltroAbierta) ?? null;
 
@@ -912,15 +1085,77 @@ function ArticulosPage() {
             className='grid text-black sticky top-0 z-10 isolate will-change-transform'
             style={{ gridTemplateColumns, transform: 'translateZ(0)' }}
           >
-            {columnas.map((columna, i) => {
+            <span className={`py-3 border-black/35 bg-stone-100 border-b flex items-center justify-center ${modoSeleccion ? 'bg-violet-500' : ''}`}>
+              <input
+                type='checkbox'
+                checked={todosSeleccionados}
+                onChange={handleSeleccionarTodos}
+                title={todosSeleccionados ? 'Deseleccionar todos' : 'Seleccionar todos'}
+                className='h-4 w-4 accent-violet-300 cursor-pointer'
+              />
+            </span>
+            {modoSeleccion ? (
+              <div
+                className='border-black/35 bg-violet-500 border-b border-l overflow-hidden'
+                style={{ gridColumn: '2 / -1' }}
+              >
+                <div className='sticky w-fit flex items-center gap-2 px-3 py-2'>
+                  <span className='text-white text-[13px] font-semibold whitespace-nowrap pr-1'>
+                    {seleccionados.size} {seleccionados.size === 1 ? 'seleccionado' : 'seleccionados'}
+                  </span>
+                  <button
+                    type='button'
+                    onClick={() => setSeleccionados(new Set())}
+                    disabled={actualizandoMasivo}
+                    className='rounded border border-white/70 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+                  >
+                    Deseleccionar
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => handleVigenciaMasiva(true)}
+                    disabled={actualizandoMasivo}
+                    className='rounded border border-green-600 bg-green-600 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-green-700 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+                  >
+                    {actualizandoMasivo ? 'Actualizando...' : 'Establecer Vigente'}
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => handleVigenciaMasiva(false)}
+                    disabled={actualizandoMasivo}
+                    className='rounded border border-orange-500 bg-orange-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-orange-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+                  >
+                    {actualizandoMasivo ? 'Actualizando...' : 'Establecer No Vigente'}
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setAccionMasiva('imprimir')}
+                    disabled={actualizandoMasivo}
+                    className='rounded border border-amber-500 bg-amber-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-amber-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+                  >
+                    Imprimir
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setAccionMasiva('eliminar')}
+                    disabled={actualizandoMasivo}
+                    className='rounded border border-red-500 bg-red-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-red-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+            {columnas.map((columna) => {
               const filtroActivo = filtrosColumna[columna.filtroKey];
               const ordenActivo = ordenColumna?.key === columna.filtroKey ? ordenColumna.direccion : null;
               return (
                 <div
                   key={columna.header}
-                  className={`flex items-stretch border-black/35 text-[13px] font-medium border-b transition-colors duration-100 ease-in ${
-                    i > 0 ? 'border-l' : ''
-                  } ${filtroActivo ? 'bg-violet-500 text-white' : 'bg-stone-100'}`}
+                  className={`flex items-stretch border-black/35 text-[13px] font-medium border-b border-l transition-colors duration-100 ease-in ${
+                    filtroActivo ? 'bg-violet-500 text-white' : 'bg-stone-100'
+                  }`}
                 >
                   <button
                     type='button'
@@ -955,7 +1190,7 @@ function ArticulosPage() {
                         ? 'Orden descendente (click para quitar)'
                         : `Ordenar por ${columna.header}`
                     }
-                    className={`shrink-0 py-3 pl-1 pr-3 cursor-pointer transition-colors duration-100 ease-in ${
+                    className={`shrink-0 py-3 px-2 cursor-pointer transition-colors duration-100 ease-in ${
                       filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-100'
                     } ${
                       ordenActivo
@@ -975,6 +1210,8 @@ function ArticulosPage() {
             <span className='py-3 px-4 border-black/35 bg-stone-100 border-b border-l text-[13px] font-medium flex items-center justify-center'>
               Acción
             </span>
+              </>
+            )}
           </div>
 
           {articulosFiltrados.length === 0 && (
@@ -996,7 +1233,19 @@ function ArticulosPage() {
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
                 >
-                  {columnas.map((columna, i) => {
+                  <label
+                    className={`py-3 border-black/20 border-b flex items-center justify-center cursor-pointer group-hover:bg-amber-50 transition-color duration-100 ease-in ${
+                      seleccionados.has(item.id_articulo) ? 'bg-amber-100' : ''
+                    }`}
+                  >
+                    <input
+                      type='checkbox'
+                      checked={seleccionados.has(item.id_articulo)}
+                      onChange={() => toggleSeleccion(item.id_articulo)}
+                      className='h-4 w-4 accent-violet-600 cursor-pointer'
+                    />
+                  </label>
+                  {columnas.map((columna) => {
                     const valorTexto = String(columna.render(item) ?? '');
                     const filtroTextoColumna = filtrosColumna[columna.filtroKey];
                     const terminoResaltado =
@@ -1013,8 +1262,8 @@ function ArticulosPage() {
                             ? () => abrirEdicionCampo(item, columna.campo!)
                             : undefined
                         }
-                        className={`py-3 px-4 border-black/20 border-b flex items-center break-words group-hover:bg-amber-50 transition-color duration-100 ease-in ${
-                          i > 0 ? 'border-l' : ''
+                        className={`py-3 px-4 border-black/20 border-b border-l flex items-center break-words group-hover:bg-amber-50 transition-color duration-100 ease-in ${
+                          seleccionados.has(item.id_articulo) ? 'bg-amber-100' : ''
                         } ${columna.campo || columna.onClick ? 'cursor-pointer hover:bg-amber-300' : ''} ${
                           columna.extraClassName ? columna.extraClassName(item) : ''
                         }`}
@@ -1038,7 +1287,9 @@ function ArticulosPage() {
                     );
                   })}
                   <div
-                    className={`py-3 border-black/20 border-l border-b group-hover:bg-amber-50 transition-color duration-100 ease-in flex flex-col items-center justify-center gap-2`}
+                    className={`py-3 border-black/20 border-l border-b group-hover:bg-amber-50 transition-color duration-100 ease-in flex flex-col items-center justify-center gap-2 ${
+                      seleccionados.has(item.id_articulo) ? 'bg-violet-50' : ''
+                    }`}
                   >
                     <button
                       type='button'
@@ -1112,6 +1363,17 @@ function ArticulosPage() {
         articulosXGrupo={articulosXGrupo}
       />
 
+      <SelectListModal
+        isOpen={isEditLineaOpen}
+        onClose={() => setIsEditLineaOpen(false)}
+        title='Editar Línea'
+        opciones={[
+          { id: SIN_ASIGNAR_ID, nombre: 'Sin Línea' },
+          ...lineas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea })),
+        ]}
+        onSelect={(opcion) => handleSeleccionarLinea(opcion.id)}
+      />
+
       <EliminarArticuloModal
         isOpen={isEliminarModalOpen}
         onClose={() => setIsEliminarModalOpen(false)}
@@ -1134,6 +1396,14 @@ function ArticulosPage() {
         tipo={crearModalTipo ?? 'grupo'}
         grupos={grupos}
         grupoPreseleccionado={grupoSeleccionado}
+      />
+
+      <AccionMasivaModal
+        isOpen={accionMasiva !== null}
+        onClose={() => setAccionMasiva(null)}
+        accion={accionMasiva}
+        cantidad={seleccionados.size}
+        onConfirmar={ejecutarAccionMasiva}
       />
 
       <ColumnFilterModal

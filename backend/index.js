@@ -100,6 +100,7 @@ app.put('/api/articulos/:id_articulo', async (req, res) => {
       descripcion,
       detalle,
       vigente,
+      id_linea,
     } = req.body;
 
     const articuloActualizado = await prisma.ARTICULOS.update({
@@ -115,6 +116,7 @@ app.put('/api/articulos/:id_articulo', async (req, res) => {
         descripcion,
         detalle,
         vigente,
+        id_linea,
       },
     });
     res.status(200).json(articuloActualizado);
@@ -632,6 +634,16 @@ app.delete('/api/clientes/:id_cliente', async (req, res) => {
       });
     }
     res.status(500).json({ message: 'Error al eliminar el colegio/club.', details: error.message });
+  }
+});
+
+app.get('/api/lineas', async (req, res) => {
+  try {
+    const lineas = await prisma.LINEAS.findMany();
+    res.status(200).json(lineas);
+  } catch (error) {
+    console.error('Error al obtener las lineas:', error);
+    res.status(500).json({ message: 'Error al obtener las lineas.', details: error.message });
   }
 });
 

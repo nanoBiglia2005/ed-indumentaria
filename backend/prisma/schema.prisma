@@ -22,6 +22,8 @@ model ARTICULOS {
   detalle                  String?                    @db.VarChar(50)
   barcode_header           String?                    @db.VarChar(6)
   talle                    String?                    @db.VarChar(30)
+  id_linea                 Int?
+  LINEAS                   LINEAS?                    @relation(fields: [id_linea], references: [id_linea], map: "articulos_lineas_fk")
   PROVEEDORES              PROVEEDORES?               @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
   TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA            @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
   ARTICULOS_X_CLIENTE      ARTICULOS_X_CLIENTE[]
@@ -228,6 +230,12 @@ model ARTICULOS_X_CLIENTE {
   id_cliente  Int
   ARTICULOS   ARTICULOS @relation(fields: [id_articulo], references: [id_articulo], onDelete: Cascade, map: "articulos_x_cliente_articulos_fk")
   CLIENTES    CLIENTES  @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "articulos_x_cliente_clientes_fk")
+}
+
+model LINEAS {
+  id_linea     Int         @id(map: "lineas_pk") @default(autoincrement())
+  nombre_linea String      @db.VarChar(20)
+  ARTICULOS    ARTICULOS[]
 }
 
 enum tipo_operacion {
