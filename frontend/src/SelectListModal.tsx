@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { resaltarCoincidencia } from './textUtils';
+import { normalizarBusqueda, resaltarCoincidencia } from './textUtils';
 
 export type OpcionSeleccionable = { id: number; nombre: string };
 
@@ -34,8 +34,8 @@ export default function SelectListModal({
 
   const opcionesFiltradas = useMemo(() => {
     if (busqueda === '') return opciones;
-    const termino = busqueda.toLowerCase();
-    return opciones.filter((opcion) => opcion.nombre.toLowerCase().includes(termino));
+    const termino = normalizarBusqueda(busqueda);
+    return opciones.filter((opcion) => normalizarBusqueda(opcion.nombre).includes(termino));
   }, [opciones, busqueda]);
 
   const mostrarBuscador = opciones.length > 0 || Boolean(onCrear);

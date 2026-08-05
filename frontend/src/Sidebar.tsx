@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
 type ItemId = 'articulos' | 'ventas' | 'configuracion';
@@ -41,48 +41,91 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
 
 function Sidebar() {
   const [presionado, setPresionado] = useState<ItemId | null>(null);
+  const [expandido, setExpandido] = useState(false);
+  const asideRef = useRef<HTMLElement>(null);
+
+  // Fuera de md la sidebar queda compacta (solo iconos); un click en
+  // cualquier parte de ella la expande, y un click afuera la vuelve a cerrar.
+  useEffect(() => {
+    if (!expandido) return;
+
+    const handleClickFuera = (e: MouseEvent) => {
+      if (asideRef.current && !asideRef.current.contains(e.target as Node)) {
+        setExpandido(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickFuera);
+    return () => document.removeEventListener('mousedown', handleClickFuera);
+  }, [expandido]);
 
   return (
-    <aside className='flex-col h-screen w-56 shrink-0 border-r border-black/10 bg-stone-50 py-10 px-3 gap-10 hidden md:flex select-none'>
-      <nav className='flex flex-col gap-1'>
-        {ITEMS.map((item) => {
-          const clickeado = presionado === item.id;
+    <>
+      {/* Reserva el espacio en el flujo normal; la sidebar real flota encima */}
+      <div className='h-screen w-16 md:w-56 shrink-0' aria-hidden='true' />
 
-          return (
-            <NavLink
-              key={item.id}
-              to={item.ruta}
-              onMouseDown={() => setPresionado(item.id)}
-              onMouseUp={() => setPresionado(null)}
-              onMouseLeave={() => setPresionado(null)}
-              className={({ isActive }) =>
-                `group flex items-center gap-3 px-3 py-2 rounded-lg font-semibold text-sm cursor-pointer
-                transition-all duration-150 ease-in
-                ${clickeado ? 'scale-95' : 'scale-100'}
-                ${
-                  isActive
-                    ? 'bg-violet-500 text-white shadow-md'
-                    : 'text-gray-600 hover:bg-amber-100 hover:text-amber-600'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <span
-                    className={`transition-transform duration-150 ease-in ${
-                      isActive ? '' : 'group-hover:scale-110'
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-                  <span>{item.nombre}</span>
-                </>
-              )}
-            </NavLink>
-          );
-        })}
-      </nav>
-    </aside>
+      {expandido && (
+        <div
+          className='fixed inset-0 bg-black/40 z-30 md:hidden'
+          onClick={() => setExpandido(false)}
+          aria-hidden='true'
+        />
+      )}
+
+      <aside
+        ref={asideRef}
+        onClick={() => setExpandido(true)}
+        className={`fixed left-0 top-0 z-40 flex flex-col h-screen border-r border-black/10 bg-stone-50 py-10 px-3 gap-10 select-none overflow-hidden transition-[width] duration-200 ease-in-out ${
+          expandido ? 'w-56 shadow-xl' : 'w-16'
+        } md:w-56`}
+      >
+        <nav className='flex flex-col gap-1'>
+          {ITEMS.map((item) => {
+            const clickeado = presionado === item.id;
+
+            return (
+              <NavLink
+                key={item.id}
+                to={item.ruta}
+                onMouseDown={() => setPresionado(item.id)}
+                onMouseUp={() => setPresionado(null)}
+                onMouseLeave={() => setPresionado(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandido(false);
+                }}
+                className={({ isActive }) =>
+                  `group flex items-center gap-3 px-3 py-2 rounded-lg font-semibold text-sm cursor-pointer
+                  transition-all duration-150 ease-in
+                  ${clickeado ? 'scale-95' : 'scale-100'}
+                  ${expandido ? 'justify-start' : 'justify-center md:justify-start'}
+                  ${
+                    isActive
+                      ? 'bg-violet-500 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-amber-100 hover:text-amber-600'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span
+                      className={`shrink-0 transition-transform duration-150 ease-in ${
+                        isActive ? '' : 'group-hover:scale-110'
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
+                    <span className={`whitespace-nowrap ${expandido ? 'inline' : 'hidden md:inline'}`}>
+                      {item.nombre}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+        </nav>
+      </aside>
+    </>
   );
 }
 

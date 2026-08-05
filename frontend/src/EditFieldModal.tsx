@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import type { ARTICULOS } from '../../backend/generated/prisma/client';
-import { dividirBarcodeManual, combinarBarcode } from './barcodeUtils';
+import { BARCODE_TAIL_MAX } from './barcodeUtils';
 
 const DESCRIPCION_MAX = 70;
 const TALLE_MAX = 30;
@@ -52,6 +52,7 @@ export default function EditFieldModal({
   const [error, setError] = useState<string | null>(null);
 
   const descripcionRef = useRef<HTMLInputElement>(null);
+  const barcodeRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isOpen || !articulo || !campo) return;
@@ -72,7 +73,7 @@ export default function EditFieldModal({
         setValorNumero(articulo.precio);
         break;
       case 'barcode':
-        setValorTexto(combinarBarcode(articulo.barcode_header, articulo.barcode_tail));
+        setValorTexto(articulo.barcode_tail ?? '');
         break;
       case 'descripcion':
         setValorTexto(articulo.descripcion ?? '');
@@ -86,8 +87,8 @@ export default function EditFieldModal({
     }
   }, [isOpen, articulo, campo]);
 
-  const triggerShake = () => {
-    const el = descripcionRef.current;
+  const triggerShake = (ref: React.RefObject<HTMLInputElement | null>) => {
+    const el = ref.current;
     if (!el) return;
     el.classList.remove('animate-shake');
     void el.offsetWidth;
@@ -100,14 +101,20 @@ export default function EditFieldModal({
   };
 
   const handleBarcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValorTexto(e.target.value.replace(/[^0-9]/g, ''));
+    const soloNumeros = e.target.value.replace(/[^0-9]/g, '');
+    if (soloNumeros.length > BARCODE_TAIL_MAX) {
+      setValorTexto(soloNumeros.slice(0, BARCODE_TAIL_MAX));
+      triggerShake(barcodeRef);
+      return;
+    }
+    setValorTexto(soloNumeros);
   };
 
   const handleDescripcionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value;
     if (valor.length > DESCRIPCION_MAX) {
       setValorTexto(valor.slice(0, DESCRIPCION_MAX));
-      triggerShake();
+      triggerShake(descripcionRef);
       return;
     }
     setValorTexto(valor);
@@ -131,7 +138,7 @@ export default function EditFieldModal({
           payload = { precio: valorNumero || 0 };
           break;
         case 'barcode':
-          payload = dividirBarcodeManual(valorTexto);
+          payload = { barcode_tail: valorTexto.trim() === '' ? null : valorTexto.trim() };
           break;
         case 'descripcion':
           payload = { descripcion: valorTexto.trim() === '' ? null : valorTexto };
@@ -229,14 +236,32 @@ export default function EditFieldModal({
                 )}
 
                 {info.tipo === 'barcode' && (
-                  <div className='flex items-center'>
-                    <input
-                      type='text'
-                      value={valorTexto}
-                      onChange={handleBarcodeChange}
-                      placeholder='Sin Código de Barra'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
-                    />
+                  <div>
+                    <div className='flex items-center justify-end mb-1'>
+                      <span
+                        className={`text-xs transition-colors ${
+                          valorTexto.length >= BARCODE_TAIL_MAX ? 'text-red-500 opacity-100' : 'text-gray-400 opacity-70'
+                        }`}
+                      >
+                        {valorTexto.length}/{BARCODE_TAIL_MAX} dígitos
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      {articulo?.barcode_header && (
+                        <span className='shrink-0 px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500 text-sm'>
+                          {articulo.barcode_header}
+                        </span>
+                      )}
+                      <input
+                        ref={barcodeRef}
+                        type='text'
+                        value={valorTexto}
+                        onChange={handleBarcodeChange}
+                        placeholder='Sin numeración'
+                        maxLength={BARCODE_TAIL_MAX}
+                        className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                      />
+                    </div>
                   </div>
                 )}
 

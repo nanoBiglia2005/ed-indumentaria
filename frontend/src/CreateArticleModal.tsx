@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import type { GRUPOS_DE_VENTA, CLIENTES } from '../../backend/generated/prisma/client';
 import SelectListModal from './SelectListModal';
-import { dividirBarcodeManual, combinarBarcode, BARCODE_AUTOMATICO } from './barcodeUtils';
+import { dividirBarcodeManual, combinarBarcode, BARCODE_AUTOMATICO, BARCODE_MAX } from './barcodeUtils';
 
 interface CreateArticleModalProps {
   isOpen: boolean;
@@ -14,8 +14,8 @@ interface CreateArticleModalProps {
 }
 
 interface ArticuloCreado {
-  barcode_header: number | null;
-  barcode_tail: number | null;
+  barcode_header: string | null;
+  barcode_tail: string | null;
   cant: number | null;
   precio: number | null;
   talle: string | null;
@@ -68,7 +68,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
 
   const handleBarcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!barcodeAuto) {
-      const soloNumeros = e.target.value.replace(/[^0-9]/g, '');
+      const soloNumeros = e.target.value.replace(/[^0-9]/g, '').slice(0, BARCODE_MAX);
       setBarcode(soloNumeros);
     }
   };
@@ -265,6 +265,17 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
 
                     {/* Input de Código de Barra: los primeros 6 dígitos se guardan como
                     cabecera y el resto como cola. */}
+                    {!barcodeAuto && (
+                      <div className='flex items-center justify-end mb-1'>
+                        <span
+                          className={`text-xs transition-colors ${
+                            barcode.length >= BARCODE_MAX ? 'text-red-500 opacity-100' : 'text-gray-400 opacity-70'
+                          }`}
+                        >
+                          {barcode.length}/{BARCODE_MAX} dígitos
+                        </span>
+                      </div>
+                    )}
                     <div className='flex items-center'>
                       <input
                         type='text'
@@ -272,6 +283,7 @@ export default function CreateArticleModal({ isOpen, onClose, onSuccess, grupos,
                         onChange={handleBarcodeChange}
                         placeholder={barcodeAuto ? 'Se generará automáticamente' : 'Sin Código de Barra'}
                         disabled={barcodeAuto}
+                        maxLength={BARCODE_MAX}
                         className={`w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
                           barcodeAuto ? 'bg-gray-200 cursor-not-allowed text-gray-500' : ''
                         }`}

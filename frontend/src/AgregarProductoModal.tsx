@@ -11,7 +11,7 @@ import type {
   SUBGRUPOS_DE_VENTA,
 } from '../../backend/generated/prisma/client';
 import InlineFilterDropdown from './InlineFilterDropdown';
-import { resaltarCoincidencia } from './textUtils';
+import { normalizarBusqueda, resaltarCoincidencia } from './textUtils';
 
 const ALTO_LINEA = 18;
 const PADDING_VERTICAL_FILA = 16;
@@ -184,9 +184,9 @@ export default function AgregarProductoModal({
     }
 
     if (busqueda.trim() !== '') {
-      const termino = busqueda.trim().toLowerCase();
+      const termino = normalizarBusqueda(busqueda);
       resultado = resultado.filter((articulo) =>
-        COLUMNAS.some((columna) => String(columna.render(articulo) ?? '').toLowerCase().includes(termino))
+        COLUMNAS.some((columna) => normalizarBusqueda(String(columna.render(articulo) ?? '')).includes(termino))
       );
     }
 

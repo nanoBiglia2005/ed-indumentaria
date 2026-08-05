@@ -19,7 +19,11 @@ import type { CampoEditable } from '../EditFieldModal';
 import SelectListModal from '../SelectListModal';
 import CrearAgrupacionModal from '../CrearAgrupacionModal';
 import type { TipoAgrupacion } from '../CrearAgrupacionModal';
-import { resaltarCoincidencia } from '../textUtils';
+import { normalizarBusqueda, resaltarCoincidencia } from '../textUtils';
+import ColumnFilterModal from '../ColumnFilterModal';
+import type { FiltroColumna, OpcionFiltro } from '../ColumnFilterModal';
+
+const SIN_ASIGNAR_ID = -1;
 
 const CHIP_MAXIMO = 2;
 
@@ -46,6 +50,28 @@ function ListaDeChips({ nombres, vacioTexto }: { nombres: string[]; vacioTexto: 
   );
 }
 
+function IconoOrden({ direccion }: { direccion: 'asc' | 'desc' | null }) {
+  if (direccion === 'asc') {
+    return (
+      <svg className='h-3.5 w-3.5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2}>
+        <path strokeLinecap='round' strokeLinejoin='round' d='M12 19V5m0 0l-5 5m5-5l5 5' />
+      </svg>
+    );
+  }
+  if (direccion === 'desc') {
+    return (
+      <svg className='h-3.5 w-3.5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2}>
+        <path strokeLinecap='round' strokeLinejoin='round' d='M12 5v14m0 0l-5-5m5 5l5-5' />
+      </svg>
+    );
+  }
+  return (
+    <svg className='h-3.5 w-3.5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2}>
+      <path strokeLinecap='round' strokeLinejoin='round' d='M8 9l4-4 4 4M16 15l-4 4-4-4' />
+    </svg>
+  );
+}
+
 type Opcion = { id: number; nombre: string };
 
 const ALTO_LINEA = 20;
@@ -58,7 +84,6 @@ function FilterDropdown({
   label,
   opciones,
   selectedId,
-  textSize,
   onSelect,
   onClear,
   disabled = false,
@@ -66,7 +91,6 @@ function FilterDropdown({
   crearLabel,
 }: {
   label: string;
-  textSize: string;
   opciones: Opcion[];
   selectedId: number | null;
   onSelect: (id: number) => void;
@@ -83,13 +107,13 @@ function FilterDropdown({
       <button
         disabled={disabled}
         onClick={() => setAbierto(true)}
-        className={`flex items-center justify-between gap-2 px-4 py-1 rounded border min-w-[140px] font-semibold transition-color duration-100 ease-in ${
+        className={`flex items-center justify-between gap-1 sm:gap-1.5 lg:gap-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 rounded border min-w-0 lg:min-w-[140px] font-semibold whitespace-nowrap transition-color duration-100 ease-in ${
           disabled
             ? 'cursor-not-allowed border-gray-300 text-gray-400'
             : 'cursor-pointer text-violet-500 hover:bg-amber-400 hover:text-white'
         } ${seleccionada ? 'bg-violet-500 text-white' : ''}`}
       >
-        <span className={`text-${textSize}`}>{seleccionada ? seleccionada.nombre : label}</span>
+        <span className='text-sm sm:text-base lg:text-xl'>{seleccionada ? seleccionada.nombre : label}</span>
         {seleccionada && (
           <span
             role='button'
@@ -161,6 +185,18 @@ function ArticulosPage() {
   const [impresoId, setImpresoId] = useState<number | null>(null);
   const [actualizandoVigenciaId, setActualizandoVigenciaId] = useState<number | null>(null);
   const [crearModalTipo, setCrearModalTipo] = useState<TipoAgrupacion | null>(null);
+  const [filtrosColumna, setFiltrosColumna] = useState<Record<string, FiltroColumna>>({});
+  const [columnaFiltroAbierta, setColumnaFiltroAbierta] = useState<string | null>(null);
+  const [ordenColumna, setOrdenColumna] = useState<{ key: string; direccion: 'asc' | 'desc' } | null>(null);
+
+  type FiltroDefTexto = { tipo: 'texto' };
+  type FiltroDefRango = { tipo: 'rango'; getValor: (item: ARTICULOS) => number | null };
+  type FiltroDefSeleccion = {
+    tipo: 'seleccion';
+    getValores: (item: ARTICULOS) => OpcionFiltro[];
+    opcionesEstaticas?: OpcionFiltro[];
+  };
+  type FiltroDef = FiltroDefTexto | FiltroDefRango | FiltroDefSeleccion;
 
   type ColumnaArticulo = {
     header: string;
@@ -170,6 +206,12 @@ function ArticulosPage() {
     campo?: CampoEditable;
     onClick?: (item: ARTICULOS) => void;
     width: number;
+    filtroKey: string;
+    filtro: FiltroDef;
+    // Si se define, se usa para ordenar en lugar del criterio por defecto
+    // segun el tipo de filtro (util cuando el texto mostrado no ordena bien,
+    // p.ej. codigos numericos guardados como string).
+    ordenValor?: (item: ARTICULOS) => string | number | null;
   };
 
   const scrollParentRef = useRef<HTMLDivElement>(null);
@@ -322,43 +364,63 @@ function ArticulosPage() {
     []
   );
 
-  const gruposPorArticulo = useMemo(() => {
-    const mapa = new Map<number, string[]>();
+  const gruposDeArticulo = useMemo(() => {
+    const mapa = new Map<number, OpcionFiltro[]>();
     for (const registro of articulosXGrupo) {
       const grupo = grupos.find((g) => g.id_grupo === registro.id_grupo_venta);
       if (!grupo) continue;
-      const nombre = grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo}`;
+      const opcion = { id: grupo.id_grupo, nombre: grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo}` };
       const lista = mapa.get(registro.id_articulo) ?? [];
-      if (!lista.includes(nombre)) lista.push(nombre);
+      if (!lista.some((o) => o.id === opcion.id)) lista.push(opcion);
       mapa.set(registro.id_articulo, lista);
     }
     return mapa;
   }, [articulosXGrupo, grupos]);
 
-  const clientesPorArticulo = useMemo(() => {
-    const mapa = new Map<number, string[]>();
+  const clientesDeArticulo = useMemo(() => {
+    const mapa = new Map<number, OpcionFiltro[]>();
     for (const registro of articulosXCliente) {
       const cliente = clientes.find((c) => c.id_cliente === registro.id_cliente);
       if (!cliente) continue;
+      const opcion = { id: cliente.id_cliente, nombre: cliente.nombre };
       const lista = mapa.get(registro.id_articulo) ?? [];
-      if (!lista.includes(cliente.nombre)) lista.push(cliente.nombre);
+      if (!lista.some((o) => o.id === opcion.id)) lista.push(opcion);
       mapa.set(registro.id_articulo, lista);
     }
     return mapa;
   }, [articulosXCliente, clientes]);
 
-  const subgruposPorArticulo = useMemo(() => {
-    const mapa = new Map<number, string[]>();
+  const subgruposDeArticulo = useMemo(() => {
+    const mapa = new Map<number, OpcionFiltro[]>();
     for (const registro of articulosXGrupo) {
       if (registro.id_subgrupo === null) continue;
       const subgrupo = subgrupos.find((s) => s.id_subgrupo === registro.id_subgrupo);
       if (!subgrupo) continue;
+      const opcion = { id: subgrupo.id_subgrupo, nombre: subgrupo.nombre_subgrupo };
       const lista = mapa.get(registro.id_articulo) ?? [];
-      if (!lista.includes(subgrupo.nombre_subgrupo)) lista.push(subgrupo.nombre_subgrupo);
+      if (!lista.some((o) => o.id === opcion.id)) lista.push(opcion);
       mapa.set(registro.id_articulo, lista);
     }
     return mapa;
   }, [articulosXGrupo, subgrupos]);
+
+  const gruposPorArticulo = useMemo(() => {
+    const mapa = new Map<number, string[]>();
+    for (const [id, opciones] of gruposDeArticulo) mapa.set(id, opciones.map((o) => o.nombre));
+    return mapa;
+  }, [gruposDeArticulo]);
+
+  const clientesPorArticulo = useMemo(() => {
+    const mapa = new Map<number, string[]>();
+    for (const [id, opciones] of clientesDeArticulo) mapa.set(id, opciones.map((o) => o.nombre));
+    return mapa;
+  }, [clientesDeArticulo]);
+
+  const subgruposPorArticulo = useMemo(() => {
+    const mapa = new Map<number, string[]>();
+    for (const [id, opciones] of subgruposDeArticulo) mapa.set(id, opciones.map((o) => o.nombre));
+    return mapa;
+  }, [subgruposDeArticulo]);
 
   const formatearListaConLimite = (nombres: string[], maximo = 2) => {
     if (nombres.length === 0) return null;
@@ -369,25 +431,38 @@ function ArticulosPage() {
   const columnas: ColumnaArticulo[] = useMemo(() => [
     {
       header: 'Código',
-      render: (item) => (item.barcode_header ? (item.barcode_tail ? (item.barcode_header + item.barcode_tail) : item.barcode_header) 
+      render: (item) => (item.barcode_header ? (item.barcode_tail ? (item.barcode_header + item.barcode_tail) : item.barcode_header)
       : item.barcode_tail ? '779000' + item.barcode_tail : 'No Asignado'),
       extraClassName: (item) => (!item.barcode_tail && !item.barcode_header ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'barcode',
-      width: 90,
+      width: 120,
+      filtroKey: 'codigo',
+      filtro: { tipo: 'texto' },
+      // El codigo se guarda como string, pero es un numero: se ordena por su
+      // valor numerico para que 100 quede despues de 20 en vez de antes.
+      ordenValor: (item) => {
+        const codigo = item.barcode_header
+          ? item.barcode_tail
+            ? item.barcode_header + item.barcode_tail
+            : item.barcode_header
+          : item.barcode_tail
+          ? '779000' + item.barcode_tail
+          : null;
+        if (!codigo) return null;
+        const numero = Number(codigo);
+        return Number.isNaN(numero) ? codigo : numero;
+      },
     },
     {
-      header: 'Nombre',
-      render: (item) => item.descripcion ?? 'Sin Nombre',
-      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-sm flex justify-center' : ''),
-      campo: 'descripcion',
-      width: 190,
-    },
-    {
-      header: 'Detalle',
-      render: (item) => item.detalle ?? 'Sin Detalle',
-      extraClassName: (item) => (!item.detalle ? 'text-gray-400 text-sm flex justify-center' : ''),
-      campo: 'detalle',
-      width: 130,
+      header: 'Colegios/Clubes',
+      render: (item) => formatearListaConLimite(clientesPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Colegios/Clubes',
+      renderCell: (item) => (
+        <ListaDeChips nombres={clientesPorArticulo.get(item.id_articulo) ?? []} vacioTexto='Sin Colegios/Clubes' />
+      ),
+      onClick: (item) => abrirEdicionClientes(item),
+      width: 175,
+      filtroKey: 'colegios',
+      filtro: { tipo: 'seleccion', getValores: (item) => clientesDeArticulo.get(item.id_articulo) ?? [] },
     },
     {
       header: 'Grupos',
@@ -397,6 +472,8 @@ function ArticulosPage() {
       ),
       onClick: (item) => abrirEdicionGrupos(item),
       width: 120,
+      filtroKey: 'grupos',
+      filtro: { tipo: 'seleccion', getValores: (item) => gruposDeArticulo.get(item.id_articulo) ?? [] },
     },
     {
       header: 'Subgrupos',
@@ -406,34 +483,65 @@ function ArticulosPage() {
       ),
       onClick: (item) => abrirEdicionSubgrupos(item),
       width: 160,
+      filtroKey: 'subgrupos',
+      filtro: { tipo: 'seleccion', getValores: (item) => subgruposDeArticulo.get(item.id_articulo) ?? [] },
     },
     {
-      header: 'Colegios/Clubes',
-      render: (item) => formatearListaConLimite(clientesPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Colegios/Clubes',
-      renderCell: (item) => (
-        <ListaDeChips nombres={clientesPorArticulo.get(item.id_articulo) ?? []} vacioTexto='Sin Colegios/Clubes' />
-      ),
-      onClick: (item) => abrirEdicionClientes(item),
-      width: 150,
+      header: 'Color',
+      render: (item) => item.detalle ?? 'Sin Detalle',
+      extraClassName: (item) => (!item.detalle ? 'text-gray-400 text-sm flex justify-center' : ''),
+      campo: 'detalle',
+      width: 130,
+      filtroKey: 'detalle',
+      filtro: { tipo: 'texto' },
+    },
+    {
+      header: 'Detalle',
+      render: (item) => item.descripcion ?? 'Sin Nombre',
+      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-sm flex justify-center' : ''),
+      campo: 'descripcion',
+      width: 180,
+      filtroKey: 'nombre',
+      filtro: { tipo: 'texto' },
     },
     { header: 'Talle',
       render: (item) => item.talle ?? 'Sin Talle',
       extraClassName: (item) => (!item.talle ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'talle',
-      width: 90 },
-    { header: 'Cantidad', render: (item) => item.cant, campo: 'cant', width: 100 },
-    { header: 'Precio', render: (item) => `${item.precio}$`, campo: 'precio', width: 100 },
+      width: 105,
+      filtroKey: 'talle',
+      filtro: { tipo: 'texto' } },
+    {
+      header: 'Cantidad',
+      render: (item) => item.cant,
+      campo: 'cant',
+      width: 130,
+      filtroKey: 'cant',
+      filtro: { tipo: 'rango', getValor: (item) => item.cant },
+    },
+    {
+      header: 'Precio Unitario',
+      render: (item) => `${item.precio}$`,
+      campo: 'precio',
+      width: 170,
+      filtroKey: 'precio',
+      filtro: { tipo: 'rango', getValor: (item) => item.precio },
+    },
     {
       header: 'C. Reservada',
       render: (item) => item.cant_reservada,
       campo: 'cant_reservada',
-      width: 125,
+      width: 155,
+      filtroKey: 'cant_reservada',
+      filtro: { tipo: 'rango', getValor: (item) => item.cant_reservada ?? 0 },
     },
     {
       header: 'C. Minima',
       render: (item) => item.stock_minimo,
       campo: 'stock_minimo',
-      width: 105,
+      width: 140,
+      filtroKey: 'stock_minimo',
+      filtro: { tipo: 'rango', getValor: (item) => item.stock_minimo },
     },
       {
         header: 'Vigente',
@@ -443,14 +551,26 @@ function ArticulosPage() {
             : item.vigente
             ? 'Vigente'
             : 'No Vigente',
-        extraClassName: (item) => (item.vigente ? 'text-green-500' : 'text-red-500'),
+        extraClassName: (item) => ((item.vigente ? 'text-green-500' : 'text-red-500') + ' text-[15px] flex items-center justify-center'),
         onClick: (item) => handleToggleVigente(item),
-        width: 90,
+        width: 120,
+        filtroKey: 'vigente',
+        filtro: {
+          tipo: 'seleccion',
+          getValores: (item) => [{ id: item.vigente ? 1 : 0, nombre: item.vigente ? 'Vigente' : 'No Vigente' }],
+          opcionesEstaticas: [
+            { id: 1, nombre: 'Vigente' },
+            { id: 0, nombre: 'No Vigente' },
+          ],
+        },
       },
   ], [
     gruposPorArticulo,
     clientesPorArticulo,
     subgruposPorArticulo,
+    gruposDeArticulo,
+    clientesDeArticulo,
+    subgruposDeArticulo,
     actualizandoVigenciaId,
     abrirEdicionGrupos,
     abrirEdicionClientes,
@@ -469,8 +589,8 @@ function ArticulosPage() {
     fetchArticulosXCliente();
   }, []);
 
-  const articulosFiltrados = useMemo(() => {
-    let articulosFiltrados = datosBackend;
+  const articulosBase = useMemo(() => {
+    let resultado = datosBackend;
 
     if (grupoSeleccionado !== null) {
       const idsDelGrupo = new Set(
@@ -478,9 +598,7 @@ function ArticulosPage() {
           .filter((registro) => registro.id_grupo_venta === grupoSeleccionado)
           .map((registro) => registro.id_articulo)
       );
-      articulosFiltrados = articulosFiltrados.filter((articulo) =>
-        idsDelGrupo.has(articulo.id_articulo)
-      );
+      resultado = resultado.filter((articulo) => idsDelGrupo.has(articulo.id_articulo));
     }
 
     if (grupoSeleccionado !== null && subgrupoSeleccionado !== null) {
@@ -492,9 +610,7 @@ function ArticulosPage() {
           )
           .map((registro) => registro.id_articulo)
       );
-      articulosFiltrados = articulosFiltrados.filter((articulo) =>
-        idsDelSubgrupo.has(articulo.id_articulo)
-      );
+      resultado = resultado.filter((articulo) => idsDelSubgrupo.has(articulo.id_articulo));
     }
 
     if (clienteSeleccionado !== null) {
@@ -503,21 +619,17 @@ function ArticulosPage() {
           .filter((registro) => registro.id_cliente === clienteSeleccionado)
           .map((registro) => registro.id_articulo)
       );
-      articulosFiltrados = articulosFiltrados.filter((articulo) =>
-        idsDelCliente.has(articulo.id_articulo)
-      );
+      resultado = resultado.filter((articulo) => idsDelCliente.has(articulo.id_articulo));
     }
 
     if (busqueda !== '') {
-      const termino = busqueda.toLowerCase();
-      articulosFiltrados = articulosFiltrados.filter((articulo) =>
-        columnas.some((columna) => String(columna.render(articulo) ?? '').toLowerCase().includes(termino))
+      const termino = normalizarBusqueda(busqueda);
+      resultado = resultado.filter((articulo) =>
+        columnas.some((columna) => normalizarBusqueda(String(columna.render(articulo) ?? '')).includes(termino))
       );
     }
 
-    return [...articulosFiltrados].sort((a, b) =>
-      (a.talle ?? '').localeCompare(b.talle ?? '')
-    );
+    return resultado;
   }, [
     datosBackend,
     articulosXGrupo,
@@ -528,6 +640,153 @@ function ArticulosPage() {
     busqueda,
     columnas,
   ]);
+
+  const coincideFiltroColumna = (articulo: ARTICULOS, columna: ColumnaArticulo, filtro: FiltroColumna): boolean => {
+    if (columna.filtro.tipo === 'texto' && filtro.tipo === 'texto') {
+      const termino = normalizarBusqueda(filtro.valor.trim());
+      if (termino === '') return true;
+      return normalizarBusqueda(String(columna.render(articulo) ?? '')).includes(termino);
+    }
+
+    if (columna.filtro.tipo === 'rango' && filtro.tipo === 'rango') {
+      const valor = columna.filtro.getValor(articulo);
+      if (valor === null) return false;
+      if (filtro.desde !== null && valor < filtro.desde) return false;
+      if (filtro.hasta !== null && valor > filtro.hasta) return false;
+      return true;
+    }
+
+    if (columna.filtro.tipo === 'seleccion' && filtro.tipo === 'seleccion') {
+      const valores = columna.filtro.getValores(articulo);
+      if (valores.length === 0) return filtro.ids.includes(SIN_ASIGNAR_ID);
+      return valores.some((valor) => filtro.ids.includes(valor.id));
+    }
+
+    return true;
+  };
+
+  const aplicarFiltrosColumna = (lista: ARTICULOS[], excluirFiltroKey?: string) => {
+    const entradas = Object.entries(filtrosColumna).filter(([key]) => key !== excluirFiltroKey);
+    if (entradas.length === 0) return lista;
+
+    return lista.filter((articulo) =>
+      entradas.every(([key, filtro]) => {
+        const columna = columnas.find((c) => c.filtroKey === key);
+        if (!columna) return true;
+        return coincideFiltroColumna(articulo, columna, filtro);
+      })
+    );
+  };
+
+  const valorOrdenable = (
+    item: ARTICULOS,
+    columna: ColumnaArticulo
+  ): { vacio: boolean; valor: string | number } => {
+    if (columna.ordenValor) {
+      const valor = columna.ordenValor(item);
+      return valor === null || valor === '' ? { vacio: true, valor: 0 } : { vacio: false, valor };
+    }
+
+    if (columna.filtro.tipo === 'rango') {
+      const valor = columna.filtro.getValor(item);
+      return valor === null ? { vacio: true, valor: 0 } : { vacio: false, valor };
+    }
+
+    if (columna.filtro.tipo === 'seleccion') {
+      const nombre = columna.filtro.getValores(item)[0]?.nombre;
+      return nombre ? { vacio: false, valor: nombre } : { vacio: true, valor: '' };
+    }
+
+    const valor = String(columna.render(item) ?? '');
+    return { vacio: valor.trim() === '', valor };
+  };
+
+  const articulosFiltrados = useMemo(() => {
+    const resultado = aplicarFiltrosColumna(articulosBase);
+    const columnaOrden = ordenColumna ? columnas.find((c) => c.filtroKey === ordenColumna.key) ?? null : null;
+
+    return [...resultado].sort((a, b) => {
+      if (columnaOrden && ordenColumna) {
+        const { vacio: vacioA, valor: valorA } = valorOrdenable(a, columnaOrden);
+        const { vacio: vacioB, valor: valorB } = valorOrdenable(b, columnaOrden);
+        if (!vacioA || !vacioB) {
+          if (vacioA) return 1;
+          if (vacioB) return -1;
+          const comparacion =
+            typeof valorA === 'number' && typeof valorB === 'number'
+              ? valorA - valorB
+              : String(valorA).localeCompare(String(valorB));
+          if (comparacion !== 0) return ordenColumna.direccion === 'asc' ? comparacion : -comparacion;
+        }
+      }
+      return (a.talle ?? '').localeCompare(b.talle ?? '');
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [articulosBase, filtrosColumna, columnas, ordenColumna]);
+
+  const columnaConFiltroAbierto = columnas.find((c) => c.filtroKey === columnaFiltroAbierta) ?? null;
+
+  const opcionesFiltroAbierto = useMemo(() => {
+    if (!columnaConFiltroAbierto || columnaConFiltroAbierto.filtro.tipo !== 'seleccion') return [];
+    const filtroDef = columnaConFiltroAbierto.filtro;
+    if (filtroDef.opcionesEstaticas) return filtroDef.opcionesEstaticas;
+
+    const listaVisible = aplicarFiltrosColumna(articulosBase, columnaConFiltroAbierto.filtroKey);
+    const mapa = new Map<number, OpcionFiltro>();
+    let haySinAsignar = false;
+
+    for (const articulo of listaVisible) {
+      const valores = filtroDef.getValores(articulo);
+      if (valores.length === 0) {
+        haySinAsignar = true;
+        continue;
+      }
+      for (const valor of valores) {
+        if (!mapa.has(valor.id)) mapa.set(valor.id, valor);
+      }
+    }
+
+    const opciones = [...mapa.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
+    if (haySinAsignar) opciones.push({ id: SIN_ASIGNAR_ID, nombre: 'Sin asignar' });
+    return opciones;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [columnaConFiltroAbierto, articulosBase, filtrosColumna, columnas]);
+
+  const handleClickHeader = (columna: ColumnaArticulo) => {
+    if (filtrosColumna[columna.filtroKey]) {
+      setFiltrosColumna((prev) => {
+        const siguiente = { ...prev };
+        delete siguiente[columna.filtroKey];
+        return siguiente;
+      });
+      return;
+    }
+    setColumnaFiltroAbierta(columna.filtroKey);
+  };
+
+  // Alterna el orden de una columna: sin orden -> ascendente -> descendente ->
+  // sin orden. Elegir una columna nueva reemplaza el orden anterior.
+  const handleClickOrdenar = (columna: ColumnaArticulo) => {
+    setOrdenColumna((prev) => {
+      if (!prev || prev.key !== columna.filtroKey) return { key: columna.filtroKey, direccion: 'asc' };
+      if (prev.direccion === 'asc') return { key: columna.filtroKey, direccion: 'desc' };
+      return null;
+    });
+  };
+
+  const handleAplicarFiltroColumna = (filtro: FiltroColumna | null) => {
+    if (!columnaConFiltroAbierto) return;
+    const key = columnaConFiltroAbierto.filtroKey;
+    setFiltrosColumna((prev) => {
+      const siguiente = { ...prev };
+      if (filtro === null) {
+        delete siguiente[key];
+      } else {
+        siguiente[key] = filtro;
+      }
+      return siguiente;
+    });
+  };
 
   const rowVirtualizer = useVirtualizer({
     count: articulosFiltrados.length,
@@ -563,18 +822,18 @@ function ArticulosPage() {
     <>
       <div className='flex flex-col justify-center flex-1 min-w-0 px-10 py-6'>
         <div className='border px-3 rounded-xl border-violet-500 h-full min-w-0 flex flex-col shadow-xl'>
-        <div className='flex my-4 gap-4 shrink-0 select-none'>
+        <div className='flex flex-wrap gap-y-2 justify-between my-2'>
+          <div className='flex flex-wrap gap-1.5 sm:gap-2 lg:gap-4 select-none'>
           <button
             onClick={() => setIsModalOpen(true)}
-            className='rounded flex items-center py-2 px-3 text-white font-semibold text-lg border cursor-pointer bg-violet-500 transition-color
+            className='rounded flex items-center py-1 px-2 sm:py-1.5 sm:px-2.5 lg:py-2 lg:px-3 text-white font-semibold text-sm sm:text-base lg:text-lg border cursor-pointer bg-violet-500 whitespace-nowrap transition-color
             duration-100 ease-in'
           >
             <span>Nuevo Articulo</span>
           </button>
-          <div className='flex items-center gap-2'>
+          <div className='flex flex-wrap items-center gap-1.5 sm:gap-2'>
             <FilterDropdown
               label='Filtrar por Grupo'
-              textSize='xl'
               opciones={grupos.map((g) => ({
                 id: g.id_grupo,
                 nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
@@ -591,7 +850,6 @@ function ArticulosPage() {
 
             <FilterDropdown
                 label='Filtrar por Subgrupo'
-                textSize='xl'
                 opciones={subgruposFiltrados.map((s) => ({
                   id: s.id_subgrupo,
                   nombre: s.nombre_subgrupo,
@@ -604,8 +862,7 @@ function ArticulosPage() {
             />
 
             <FilterDropdown
-            textSize='xl'
-              label='Filtrar por Colegio'
+              label='Filtrar por Colegio/Club'
               opciones={clientes.map((c) => ({
                 id: c.id_cliente,
                 nombre: c.nombre,
@@ -617,8 +874,8 @@ function ArticulosPage() {
               crearLabel='Crear Colegio/Club'
             />
           </div>
-
-          <div className='relative ml-auto w-72 flex items-center'>
+          </div>     
+          <div className='relative w-72 flex items-center py-2'>
             <svg
               className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400'
               fill='none'
@@ -655,17 +912,68 @@ function ArticulosPage() {
             className='grid text-black sticky top-0 z-10 isolate will-change-transform'
             style={{ gridTemplateColumns, transform: 'translateZ(0)' }}
           >
-            {columnas.map((columna, i) => (
-              <span
-                key={columna.header}
-                className={`py-3 px-4 border-black/35 bg-stone-100 text-[15px] font-medium border-b ${
-                  i > 0 ? 'border-l' : ''
-                }`}
-              >
-                {columna.header}
-              </span>
-            ))}
-            <span className='py-3 border-black/35 bg-stone-100 border-b border-l'>
+            {columnas.map((columna, i) => {
+              const filtroActivo = filtrosColumna[columna.filtroKey];
+              const ordenActivo = ordenColumna?.key === columna.filtroKey ? ordenColumna.direccion : null;
+              return (
+                <div
+                  key={columna.header}
+                  className={`flex items-stretch border-black/35 text-[13px] font-medium border-b transition-colors duration-100 ease-in ${
+                    i > 0 ? 'border-l' : ''
+                  } ${filtroActivo ? 'bg-violet-500 text-white' : 'bg-stone-100'}`}
+                >
+                  <button
+                    type='button'
+                    onClick={() => handleClickHeader(columna)}
+                    title={filtroActivo ? `Quitar filtro de ${columna.header}` : `Filtrar por ${columna.header}`}
+                    className={`flex-1 min-w-0 py-3 pl-4 pr-1.5 flex items-center gap-1.5 cursor-pointer transition-colors duration-100 ease-in text-left ${
+                      filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-100'
+                    }`}
+                  >
+                    <span className='flex-1 truncate'>{columna.header}</span>
+                    <svg
+                      className={`h-3.5 w-3.5 shrink-0 ${filtroActivo ? 'text-white' : 'text-gray-400'}`}
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z'
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => handleClickOrdenar(columna)}
+                    title={
+                      ordenActivo === 'asc'
+                        ? 'Orden ascendente (click para invertir)'
+                        : ordenActivo === 'desc'
+                        ? 'Orden descendente (click para quitar)'
+                        : `Ordenar por ${columna.header}`
+                    }
+                    className={`shrink-0 py-3 pl-1 pr-3 cursor-pointer transition-colors duration-100 ease-in ${
+                      filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-100'
+                    } ${
+                      ordenActivo
+                        ? filtroActivo
+                          ? 'text-white'
+                          : 'text-violet-600'
+                        : filtroActivo
+                        ? 'text-white/70'
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    <IconoOrden direccion={ordenActivo} />
+                  </button>
+                </div>
+              );
+            })}
+            <span className='py-3 px-4 border-black/35 bg-stone-100 border-b border-l text-[13px] font-medium flex items-center justify-center'>
+              Acción
             </span>
           </div>
 
@@ -681,7 +989,7 @@ function ArticulosPage() {
               return (
                 <div
                   key={item.id_articulo}
-                  className='grid text-black text-[15px] group absolute top-0 left-0 w-full'
+                  className='grid text-black text-[13px] group absolute top-0 left-0 w-full'
                   style={{
                     gridTemplateColumns,
                     height: ROW_HEIGHT,
@@ -690,6 +998,11 @@ function ArticulosPage() {
                 >
                   {columnas.map((columna, i) => {
                     const valorTexto = String(columna.render(item) ?? '');
+                    const filtroTextoColumna = filtrosColumna[columna.filtroKey];
+                    const terminoResaltado =
+                      filtroTextoColumna?.tipo === 'texto' && filtroTextoColumna.valor.trim() !== ''
+                        ? filtroTextoColumna.valor.trim()
+                        : busqueda;
                     return (
                       <p
                         key={columna.header}
@@ -718,7 +1031,7 @@ function ArticulosPage() {
                               minWidth: 0,
                             }}
                           >
-                            {busqueda ? resaltarCoincidencia(valorTexto, busqueda) : valorTexto}
+                            {resaltarCoincidencia(valorTexto, terminoResaltado)}
                           </span>
                         )}
                       </p>
@@ -794,6 +1107,7 @@ function ArticulosPage() {
         onClose={() => setIsEditSubgruposOpen(false)}
         onSuccess={handleArticuloActualizado}
         articulo={articuloAEditar}
+        grupos={grupos}
         subgrupos={subgrupos}
         articulosXGrupo={articulosXGrupo}
       />
@@ -820,6 +1134,16 @@ function ArticulosPage() {
         tipo={crearModalTipo ?? 'grupo'}
         grupos={grupos}
         grupoPreseleccionado={grupoSeleccionado}
+      />
+
+      <ColumnFilterModal
+        isOpen={columnaConFiltroAbierto !== null}
+        onClose={() => setColumnaFiltroAbierta(null)}
+        titulo={columnaConFiltroAbierto?.header ?? ''}
+        tipo={columnaConFiltroAbierto?.filtro.tipo ?? null}
+        filtroActual={columnaConFiltroAbierto ? filtrosColumna[columnaConFiltroAbierto.filtroKey] : undefined}
+        opciones={opcionesFiltroAbierto}
+        onAplicar={handleAplicarFiltroColumna}
       />
     </>
   );

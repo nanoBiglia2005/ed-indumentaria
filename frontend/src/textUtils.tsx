@@ -1,5 +1,13 @@
 import type { ReactNode } from 'react';
 
+/**
+ * Normaliza texto para busquedas mas permisivas: minusculas y sin espacios,
+ * asi "camisa roja" y "CamisaRoja" se consideran la misma busqueda.
+ */
+export function normalizarBusqueda(texto: string): string {
+  return texto.toLowerCase().replace(/\s+/g, '');
+}
+
 export function resaltarCoincidencia(texto: string, termino: string): ReactNode {
   if (!termino) return texto;
 

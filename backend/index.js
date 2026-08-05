@@ -195,10 +195,11 @@ app.post('/api/articulos/:id_articulo/clientes', async (req, res) => {
   }
 });
 
-// Asignar un articulo a un SUBGRUPO: el subgrupo pertenece a un grupo de
-// venta puntual, asi que se marca una fila existente de ese grupo que no
-// tenga subgrupo; si no hay ninguna, se crea una fila nueva usando el grupo
-// del subgrupo (mismo patron que la asignacion de clientes).
+// Asignar un articulo a un SUBGRUPO: un articulo solo puede tener un
+// subgrupo por cada grupo al que pertenece, asi que esto siempre actualiza
+// la fila existente de ese grupo (sea cual sea su subgrupo actual) en vez de
+// crear una fila nueva; si el articulo todavia no esta en el grupo del
+// subgrupo, se crea la fila.
 app.post('/api/articulos/:id_articulo/subgrupos', async (req, res) => {
   try {
     const id_articulo = parseInt(req.params.id_articulo, 10);
@@ -213,12 +214,16 @@ app.post('/api/articulos/:id_articulo/subgrupos', async (req, res) => {
       return res.status(404).json({ message: 'El subgrupo no existe.' });
     }
 
-    const filasMarcadas = await prisma.ARTICULOS_X_GRUPO_VENTA.updateMany({
-      where: { id_articulo, id_grupo_venta: subgrupo.id_grupo, id_subgrupo: null },
-      data: { id_subgrupo },
+    const filaDelGrupo = await prisma.ARTICULOS_X_GRUPO_VENTA.findFirst({
+      where: { id_articulo, id_grupo_venta: subgrupo.id_grupo },
     });
 
-    if (filasMarcadas.count === 0) {
+    if (filaDelGrupo) {
+      await prisma.ARTICULOS_X_GRUPO_VENTA.update({
+        where: { id_reg: filaDelGrupo.id_reg },
+        data: { id_subgrupo },
+      });
+    } else {
       await prisma.ARTICULOS_X_GRUPO_VENTA.create({
         data: { id_articulo, id_grupo_venta: subgrupo.id_grupo, id_subgrupo },
       });

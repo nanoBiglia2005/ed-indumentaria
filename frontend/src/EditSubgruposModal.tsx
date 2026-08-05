@@ -1,7 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import type { ARTICULOS, SUBGRUPOS_DE_VENTA, ARTICULOS_X_GRUPO_VENTA } from '../../backend/generated/prisma/client';
+import type {
+  ARTICULOS,
+  GRUPOS_DE_VENTA,
+  SUBGRUPOS_DE_VENTA,
+  ARTICULOS_X_GRUPO_VENTA,
+} from '../../backend/generated/prisma/client';
 import InlineFilterDropdown from './InlineFilterDropdown';
 
 interface EditSubgruposModalProps {
@@ -9,6 +14,7 @@ interface EditSubgruposModalProps {
   onClose: () => void;
   onSuccess: () => void;
   articulo: ARTICULOS | null;
+  grupos: GRUPOS_DE_VENTA[];
   subgrupos: SUBGRUPOS_DE_VENTA[];
   articulosXGrupo: ARTICULOS_X_GRUPO_VENTA[];
 }
@@ -18,39 +24,49 @@ export default function EditSubgruposModal({
   onClose,
   onSuccess,
   articulo,
+  grupos,
   subgrupos,
   articulosXGrupo,
 }: EditSubgruposModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [subgruposOriginales, setSubgruposOriginales] = useState<SUBGRUPOS_DE_VENTA[]>([]);
-  const [subgruposSeleccionados, setSubgruposSeleccionados] = useState<SUBGRUPOS_DE_VENTA[]>([]);
-
-  // Solo se puede agregar un subgrupo de un grupo al que el articulo ya
-  // pertenezca (no cualquier subgrupo de la base).
-  const idsGruposDelArticulo = useMemo(() => {
-    if (!articulo) return new Set<number>();
-    return new Set(
+  // El articulo solo puede tener un subgrupo por cada grupo al que
+  // pertenece: un dropdown de reemplazo por grupo, no una lista libre.
+  const gruposDelArticulo = useMemo(() => {
+    if (!articulo) return [];
+    const idsDeGrupo = new Set(
       articulosXGrupo
         .filter((rel) => rel.id_articulo === articulo.id_articulo)
         .map((rel) => rel.id_grupo_venta)
     );
-  }, [articulo, articulosXGrupo]);
+    return grupos
+      .filter((grupo) => idsDeGrupo.has(grupo.id_grupo))
+      .sort((a, b) => (a.nombre_grupo ?? '').localeCompare(b.nombre_grupo ?? ''));
+  }, [articulo, grupos, articulosXGrupo]);
+
+  const [subgrupoOriginalPorGrupo, setSubgrupoOriginalPorGrupo] = useState<Record<number, number | null>>({});
+  const [subgrupoPorGrupo, setSubgrupoPorGrupo] = useState<Record<number, number | null>>({});
 
   useEffect(() => {
     if (!isOpen || !articulo) return;
 
     setError(null);
 
-    const subgruposDelArticulo = subgrupos.filter((subgrupo) =>
-      articulosXGrupo.some(
-        (rel) => rel.id_articulo === articulo.id_articulo && rel.id_subgrupo === subgrupo.id_subgrupo
-      )
-    );
+    // Si por alguna razon hay mas de una fila para el mismo grupo, se
+    // prioriza la que tenga un subgrupo asignado por sobre una vacia (evita
+    // que una fila duplicada en null tape el subgrupo real al reabrir).
+    const actual: Record<number, number | null> = {};
+    for (const rel of articulosXGrupo) {
+      if (rel.id_articulo !== articulo.id_articulo) continue;
+      const previo = actual[rel.id_grupo_venta];
+      if (previo === undefined || (previo === null && rel.id_subgrupo !== null)) {
+        actual[rel.id_grupo_venta] = rel.id_subgrupo;
+      }
+    }
 
-    setSubgruposOriginales(subgruposDelArticulo);
-    setSubgruposSeleccionados(subgruposDelArticulo);
+    setSubgrupoOriginalPorGrupo(actual);
+    setSubgrupoPorGrupo(actual);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, articulo]);
 
@@ -61,29 +77,27 @@ export default function EditSubgruposModal({
       setIsLoading(true);
       setError(null);
 
-      const subgruposOriginalesIds = new Set(subgruposOriginales.map((s) => s.id_subgrupo));
-      const subgruposSeleccionadosIds = new Set(subgruposSeleccionados.map((s) => s.id_subgrupo));
-      const subgruposAAgregar = subgruposSeleccionados.filter((s) => !subgruposOriginalesIds.has(s.id_subgrupo));
-      const subgruposAQuitar = subgruposOriginales.filter((s) => !subgruposSeleccionadosIds.has(s.id_subgrupo));
-
-      // Primero se quitan y despues se agregan: si el articulo no esta en el
-      // grupo del subgrupo, agregarlo crea una fila via ese grupo.
       const resultados: Response[] = [];
-      for (const subgrupo of subgruposAQuitar) {
-        resultados.push(
-          await fetch(`/api/articulos/${articulo.id_articulo}/subgrupos/${subgrupo.id_subgrupo}`, {
-            method: 'DELETE',
-          })
-        );
-      }
-      for (const subgrupo of subgruposAAgregar) {
-        resultados.push(
-          await fetch(`/api/articulos/${articulo.id_articulo}/subgrupos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_subgrupo: subgrupo.id_subgrupo }),
-          })
-        );
+      for (const grupo of gruposDelArticulo) {
+        const original = subgrupoOriginalPorGrupo[grupo.id_grupo] ?? null;
+        const nuevo = subgrupoPorGrupo[grupo.id_grupo] ?? null;
+        if (nuevo === original) continue;
+
+        if (nuevo !== null) {
+          resultados.push(
+            await fetch(`/api/articulos/${articulo.id_articulo}/subgrupos`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id_subgrupo: nuevo }),
+            })
+          );
+        } else if (original !== null) {
+          resultados.push(
+            await fetch(`/api/articulos/${articulo.id_articulo}/subgrupos/${original}`, {
+              method: 'DELETE',
+            })
+          );
+        }
       }
 
       if (resultados.some((r) => !r.ok)) {
@@ -138,52 +152,39 @@ export default function EditSubgruposModal({
                 )}
 
                 <div>
-                  <label className='block text-sm font-medium text-gray-700 mb-2'>Subgrupos</label>
-                  <div className='mb-3'>
-                    <InlineFilterDropdown
-                      label={idsGruposDelArticulo.size === 0 ? 'Asigná un grupo primero' : 'Agregar Subgrupo'}
-                      opciones={subgrupos
-                        .filter(
-                          (s) =>
-                            idsGruposDelArticulo.has(s.id_grupo) &&
-                            !subgruposSeleccionados.some((sel) => sel.id_subgrupo === s.id_subgrupo)
-                        )
-                        .map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo }))}
-                      selectedId={null}
-                      onSelect={(id) => {
-                        const subgrupo = subgrupos.find((s) => s.id_subgrupo === id);
-                        if (subgrupo) {
-                          setSubgruposSeleccionados((prev) => [...prev, subgrupo]);
-                        }
-                      }}
-                      onClear={() => {}}
-                      disabled={idsGruposDelArticulo.size === 0}
-                    />
-                  </div>
+                  <label className='block text-sm font-medium text-gray-700 mb-2'>
+                    Subgrupo por grupo (uno por grupo)
+                  </label>
 
-                  {subgruposSeleccionados.length === 0 ? (
-                    <p className='text-sm text-gray-400 italic'>No asignado a ningún subgrupo</p>
+                  {gruposDelArticulo.length === 0 ? (
+                    <p className='text-sm text-gray-400 italic'>Asigná el artículo a un grupo primero</p>
                   ) : (
-                    <ul className='flex flex-wrap gap-2'>
-                      {subgruposSeleccionados.map((subgrupo) => (
-                        <li
-                          key={subgrupo.id_subgrupo}
-                          className='flex items-center justify-between gap-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700'
-                        >
-                          <span>{subgrupo.nombre_subgrupo}</span>
-                          <button
-                            type='button'
-                            onClick={() =>
-                              setSubgruposSeleccionados((prev) =>
-                                prev.filter((s) => s.id_subgrupo !== subgrupo.id_subgrupo)
-                              )
-                            }
-                            className='font-bold text-gray-400 hover:text-red-600 cursor-pointer px-1'
-                          >
-                            X
-                          </button>
-                        </li>
-                      ))}
+                    <ul className='flex flex-col gap-2'>
+                      {gruposDelArticulo.map((grupo) => {
+                        const opcionesDelGrupo = subgrupos
+                          .filter((s) => s.id_grupo === grupo.id_grupo)
+                          .map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo }));
+
+                        return (
+                          <li key={grupo.id_grupo} className='flex items-center justify-between gap-3'>
+                            <span className='text-sm text-gray-700 truncate'>
+                              {grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo}`}
+                            </span>
+                            <InlineFilterDropdown
+                              label={opcionesDelGrupo.length === 0 ? 'Sin subgrupos' : 'Sin subgrupo'}
+                              opciones={opcionesDelGrupo}
+                              selectedId={subgrupoPorGrupo[grupo.id_grupo] ?? null}
+                              onSelect={(id) =>
+                                setSubgrupoPorGrupo((prev) => ({ ...prev, [grupo.id_grupo]: id }))
+                              }
+                              onClear={() =>
+                                setSubgrupoPorGrupo((prev) => ({ ...prev, [grupo.id_grupo]: null }))
+                              }
+                              disabled={opcionesDelGrupo.length === 0}
+                            />
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>

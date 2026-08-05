@@ -3,6 +3,7 @@ import type { GRUPOS_DE_VENTA } from '../../backend/generated/prisma/client';
 import CrearAgrupacionModal from './CrearAgrupacionModal';
 import type { TipoAgrupacion } from './CrearAgrupacionModal';
 import EliminarAgrupacionModal from './EliminarAgrupacionModal';
+import { normalizarBusqueda } from './textUtils';
 
 const CANTIDAD_INICIAL = 20;
 const CANTIDAD_INCREMENTO = 10;
@@ -54,7 +55,7 @@ export default function AgrupacionSection({
   const itemsFiltrados =
     busqueda.trim() === ''
       ? items
-      : items.filter((item) => item.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()));
+      : items.filter((item) => normalizarBusqueda(item.nombre).includes(normalizarBusqueda(busqueda)));
 
   const itemsVisibles = itemsFiltrados.slice(0, cantidadVisible);
   const hayMas = itemsFiltrados.length > cantidadVisible;
@@ -119,7 +120,7 @@ export default function AgrupacionSection({
                 key={item.id}
                 className='w-[200px] group relative h-fit hover:shadow-lg transition-all duration-100 ease-in px-4 py-4 border-violet-500 border flex flex-col rounded text-black'
               >
-                <span className='text-xl font-semibold truncate' title={item.nombre}>
+                <span className='text-xl font-semibold break-words'>
                   {item.nombre}
                 </span>
                 {item.subtitulo && <span className='text-md text-gray-600'>{item.subtitulo}</span>}

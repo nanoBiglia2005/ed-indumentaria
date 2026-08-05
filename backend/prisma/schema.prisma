@@ -11,7 +11,7 @@ model ARTICULOS {
   id_articulo              Int                        @id(map: "articulos_pk") @default(autoincrement())
   cant                     Int                        @default(0)
   precio                   Float                      @default(0)
-  barcode_tail             Int?                       @unique(map: "unique_codigo_barras")
+  barcode_tail             String?                    @unique(map: "unique_codigo_barras") @db.VarChar(20)
   stock_minimo             Int                        @default(0) @db.SmallInt
   vigente                  Boolean?                   @default(true)
   id_medida                Int                        @default(1)
@@ -20,7 +20,7 @@ model ARTICULOS {
   fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
   descripcion              String?                    @db.VarChar(70)
   detalle                  String?                    @db.VarChar(50)
-  barcode_header           Int?
+  barcode_header           String?                    @db.VarChar(6)
   talle                    String?                    @db.VarChar(30)
   PROVEEDORES              PROVEEDORES?               @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
   TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA            @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
