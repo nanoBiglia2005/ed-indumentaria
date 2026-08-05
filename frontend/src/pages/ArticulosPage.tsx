@@ -14,6 +14,7 @@ import CreateArticleModal from '../CreateArticleModal';
 import EditGruposModal from '../EditGruposModal';
 import EditClientesModal from '../EditClientesModal';
 import EditSubgruposModal from '../EditSubgruposModal';
+import EditLineaModal from '../EditLineaModal';
 import EliminarArticuloModal from '../EliminarArticuloModal';
 import EditFieldModal from '../EditFieldModal';
 import type { CampoEditable } from '../EditFieldModal';
@@ -193,7 +194,9 @@ function ArticulosPage() {
   const [crearModalTipo, setCrearModalTipo] = useState<TipoAgrupacion | null>(null);
   const [filtrosColumna, setFiltrosColumna] = useState<Record<string, FiltroColumna>>({});
   const [columnaFiltroAbierta, setColumnaFiltroAbierta] = useState<string | null>(null);
-  const [ordenColumna, setOrdenColumna] = useState<{ key: string; direccion: 'asc' | 'desc' } | null>(null);
+  // Lista de criterios de orden ordenada por prioridad: el primero es el
+  // criterio principal, los siguientes desempatan en orden.
+  const [ordenColumnas, setOrdenColumnas] = useState<{ key: string; direccion: 'asc' | 'desc' }[]>([]);
   const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set());
   const [accionMasiva, setAccionMasiva] = useState<AccionMasiva | null>(null);
   const [actualizandoMasivo, setActualizandoMasivo] = useState(false);
@@ -323,27 +326,6 @@ function ArticulosPage() {
     setArticuloAEditar(articulo);
     setIsEditLineaOpen(true);
   }, []);
-
-  // idLinea === SIN_ASIGNAR_ID representa la opcion "Sin Línea" del modal,
-  // que limpia la asignacion actual.
-  const handleSeleccionarLinea = async (idLinea: number) => {
-    if (!articuloAEditar) return;
-    try {
-      const respuesta = await fetch(`/api/articulos/${articuloAEditar.id_articulo}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_linea: idLinea === SIN_ASIGNAR_ID ? null : idLinea }),
-      });
-      if (!respuesta.ok) {
-        const errorData = await respuesta.json().catch(() => ({}));
-        throw new Error(errorData.details || errorData.message);
-      }
-      setIsEditLineaOpen(false);
-      fetchArticulos();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'No se pudo actualizar la línea del articulo.');
-    }
-  };
 
   const abrirEliminacion = useCallback((articulo: ARTICULOS) => {
     setArticuloAEditar(articulo);
@@ -758,26 +740,33 @@ function ArticulosPage() {
 
   const articulosFiltrados = useMemo(() => {
     const resultado = aplicarFiltrosColumna(articulosBase);
-    const columnaOrden = ordenColumna ? columnas.find((c) => c.filtroKey === ordenColumna.key) ?? null : null;
+
+    // Resuelve cada criterio de orden a su columna una sola vez, en el mismo
+    // orden de prioridad en que fueron agregados.
+    const criterios = ordenColumnas
+      .map((criterio) => {
+        const columna = columnas.find((c) => c.filtroKey === criterio.key);
+        return columna ? { columna, direccion: criterio.direccion } : null;
+      })
+      .filter((c): c is { columna: ColumnaArticulo; direccion: 'asc' | 'desc' } => c !== null);
 
     return [...resultado].sort((a, b) => {
-      if (columnaOrden && ordenColumna) {
-        const { vacio: vacioA, valor: valorA } = valorOrdenable(a, columnaOrden);
-        const { vacio: vacioB, valor: valorB } = valorOrdenable(b, columnaOrden);
-        if (!vacioA || !vacioB) {
-          if (vacioA) return 1;
-          if (vacioB) return -1;
-          const comparacion =
-            typeof valorA === 'number' && typeof valorB === 'number'
-              ? valorA - valorB
-              : String(valorA).localeCompare(String(valorB));
-          if (comparacion !== 0) return ordenColumna.direccion === 'asc' ? comparacion : -comparacion;
-        }
+      for (const { columna, direccion } of criterios) {
+        const { vacio: vacioA, valor: valorA } = valorOrdenable(a, columna);
+        const { vacio: vacioB, valor: valorB } = valorOrdenable(b, columna);
+        if (vacioA && vacioB) continue;
+        if (vacioA) return 1;
+        if (vacioB) return -1;
+        const comparacion =
+          typeof valorA === 'number' && typeof valorB === 'number'
+            ? valorA - valorB
+            : String(valorA).localeCompare(String(valorB));
+        if (comparacion !== 0) return direccion === 'asc' ? comparacion : -comparacion;
       }
       return (a.talle ?? '').localeCompare(b.talle ?? '');
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [articulosBase, filtrosColumna, columnas, ordenColumna]);
+  }, [articulosBase, filtrosColumna, columnas, ordenColumnas]);
 
   // El "estado de seleccion" existe mientras haya al menos un articulo
   // seleccionado; al deseleccionar el ultimo la tabla vuelve a su estado normal.
@@ -937,13 +926,26 @@ function ArticulosPage() {
     setColumnaFiltroAbierta(columna.filtroKey);
   };
 
-  // Alterna el orden de una columna: sin orden -> ascendente -> descendente ->
-  // sin orden. Elegir una columna nueva reemplaza el orden anterior.
-  const handleClickOrdenar = (columna: ColumnaArticulo) => {
-    setOrdenColumna((prev) => {
-      if (!prev || prev.key !== columna.filtroKey) return { key: columna.filtroKey, direccion: 'asc' };
-      if (prev.direccion === 'asc') return { key: columna.filtroKey, direccion: 'desc' };
-      return null;
+  // Click normal: apila la columna como un criterio mas de orden (o cicla su
+  // direccion / la quita si ya estaba). Shift+click: la vuelve el unico
+  // criterio de orden, descartando los demas.
+  const handleClickOrdenar = (columna: ColumnaArticulo, event: React.MouseEvent) => {
+    setOrdenColumnas((prev) => {
+      const indice = prev.findIndex((c) => c.key === columna.filtroKey);
+
+      if (event.shiftKey) {
+        if (indice === -1 || prev.length > 1) return [{ key: columna.filtroKey, direccion: 'asc' }];
+        if (prev[indice].direccion === 'asc') return [{ key: columna.filtroKey, direccion: 'desc' }];
+        return [];
+      }
+
+      if (indice === -1) return [...prev, { key: columna.filtroKey, direccion: 'asc' }];
+      if (prev[indice].direccion === 'asc') {
+        const siguiente = [...prev];
+        siguiente[indice] = { key: columna.filtroKey, direccion: 'desc' };
+        return siguiente;
+      }
+      return prev.filter((c) => c.key !== columna.filtroKey);
     });
   };
 
@@ -1149,7 +1151,8 @@ function ArticulosPage() {
               <>
             {columnas.map((columna) => {
               const filtroActivo = filtrosColumna[columna.filtroKey];
-              const ordenActivo = ordenColumna?.key === columna.filtroKey ? ordenColumna.direccion : null;
+              const prioridadOrden = ordenColumnas.findIndex((c) => c.key === columna.filtroKey);
+              const ordenActivo = prioridadOrden === -1 ? null : ordenColumnas[prioridadOrden].direccion;
               return (
                 <div
                   key={columna.header}
@@ -1182,15 +1185,15 @@ function ArticulosPage() {
                   </button>
                   <button
                     type='button'
-                    onClick={() => handleClickOrdenar(columna)}
+                    onClick={(e) => handleClickOrdenar(columna, e)}
                     title={
                       ordenActivo === 'asc'
-                        ? 'Orden ascendente (click para invertir)'
+                        ? 'Orden ascendente. Click: invertir. Shift+click: usar solo esta columna.'
                         : ordenActivo === 'desc'
-                        ? 'Orden descendente (click para quitar)'
-                        : `Ordenar por ${columna.header}`
+                        ? 'Orden descendente. Click: quitar. Shift+click: usar solo esta columna.'
+                        : `Ordenar por ${columna.header}. Shift+click: usar solo esta columna.`
                     }
-                    className={`shrink-0 py-3 px-2 cursor-pointer transition-colors duration-100 ease-in ${
+                    className={`shrink-0 py-3 pl-2 pr-1 flex items-center gap-0.5 cursor-pointer transition-colors duration-100 ease-in ${
                       filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-100'
                     } ${
                       ordenActivo
@@ -1203,6 +1206,11 @@ function ArticulosPage() {
                     }`}
                   >
                     <IconoOrden direccion={ordenActivo} />
+                    {ordenColumnas.length > 1 && prioridadOrden !== -1 && (
+                      <span className='text-[10px] font-bold leading-none w-3 text-center'>
+                        {prioridadOrden + 1}
+                      </span>
+                    )}
                   </button>
                 </div>
               );
@@ -1363,15 +1371,12 @@ function ArticulosPage() {
         articulosXGrupo={articulosXGrupo}
       />
 
-      <SelectListModal
+      <EditLineaModal
         isOpen={isEditLineaOpen}
         onClose={() => setIsEditLineaOpen(false)}
-        title='Editar Línea'
-        opciones={[
-          { id: SIN_ASIGNAR_ID, nombre: 'Sin Línea' },
-          ...lineas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea })),
-        ]}
-        onSelect={(opcion) => handleSeleccionarLinea(opcion.id)}
+        onSuccess={handleArticuloActualizado}
+        articulo={articuloAEditar}
+        lineas={lineas}
       />
 
       <EliminarArticuloModal

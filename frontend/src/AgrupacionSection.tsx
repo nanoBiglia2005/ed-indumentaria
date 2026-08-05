@@ -5,8 +5,11 @@ import type { TipoAgrupacion } from './CrearAgrupacionModal';
 import EliminarAgrupacionModal from './EliminarAgrupacionModal';
 import { normalizarBusqueda } from './textUtils';
 
-const CANTIDAD_INICIAL = 20;
-const CANTIDAD_INCREMENTO = 10;
+// Alto de fila (85px: dos botones apilados + padding) x 5 filas visibles;
+// con mas registros que eso la lista se scrollea en vez de crecer.
+const ALTO_LISTA = 425;
+
+type Orden = 'asc' | 'desc';
 
 export interface ItemAgrupacion {
   id: number;
@@ -39,31 +42,22 @@ export default function AgrupacionSection({
   onRefrescar,
 }: AgrupacionSectionProps) {
   const [busqueda, setBusqueda] = useState('');
-  const [busquedaAnterior, setBusquedaAnterior] = useState('');
-  const [cantidadVisible, setCantidadVisible] = useState(CANTIDAD_INICIAL);
+  const [orden, setOrden] = useState<Orden>('asc');
   const [crearAbierto, setCrearAbierto] = useState(false);
   const [itemAEditar, setItemAEditar] = useState<ItemAgrupacion | null>(null);
   const [itemAEliminar, setItemAEliminar] = useState<ItemAgrupacion | null>(null);
 
-  // Al cambiar la busqueda se reinicia la paginacion. Se ajusta durante el
-  // render (en vez de en un efecto) para no disparar un re-render extra.
-  if (busqueda !== busquedaAnterior) {
-    setBusquedaAnterior(busqueda);
-    setCantidadVisible(CANTIDAD_INICIAL);
-  }
-
-  const itemsFiltrados =
+  const itemsFiltrados = (
     busqueda.trim() === ''
       ? items
-      : items.filter((item) => normalizarBusqueda(item.nombre).includes(normalizarBusqueda(busqueda)));
-
-  const itemsVisibles = itemsFiltrados.slice(0, cantidadVisible);
-  const hayMas = itemsFiltrados.length > cantidadVisible;
-  const seExpandio = cantidadVisible > CANTIDAD_INICIAL;
+      : items.filter((item) => normalizarBusqueda(item.nombre).includes(normalizarBusqueda(busqueda)))
+  )
+    .slice()
+    .sort((a, b) => (orden === 'asc' ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre)));
 
   return (
     <div className='mb-10'>
-      <div className='flex items-center gap-3 mb-5 flex-wrap'>
+      <div className='flex items-center gap-3 mb-3 flex-wrap'>
         <span className='text-2xl font-semibold text-black'>{titulo}</span>
         <button
           type='button'
@@ -72,8 +66,10 @@ export default function AgrupacionSection({
         >
           + {crearLabel}
         </button>
+      </div>
 
-        <div className='relative ml-auto w-64 flex items-center'>
+      <div className='flex items-center gap-2 mb-5'>
+        <div className='relative flex-1 flex items-center'>
           <svg
             className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400'
             fill='none'
@@ -104,6 +100,24 @@ export default function AgrupacionSection({
             </button>
           )}
         </div>
+
+        <button
+          type='button'
+          onClick={() => setOrden((actual) => (actual === 'asc' ? 'desc' : 'asc'))}
+          title={orden === 'asc' ? 'Orden alfabético ascendente (A-Z)' : 'Orden alfabético descendente (Z-A)'}
+          className='shrink-0 flex items-center gap-1 px-3 py-1.5 rounded border border-gray-300 text-sm font-medium text-gray-600 hover:border-violet-400 hover:text-violet-600 transition-colors duration-100 ease-in cursor-pointer'
+        >
+          {orden === 'asc' ? 'A-Z' : 'Z-A'}
+          <svg
+            className={`h-3.5 w-3.5 transition-transform duration-150 ease-in ${orden === 'desc' ? 'rotate-180' : ''}`}
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            strokeWidth={2}
+          >
+            <path strokeLinecap='round' strokeLinejoin='round' d='M19 9l-7 7-7-7' />
+          </svg>
+        </button>
       </div>
 
       {items.length === 0 && <span className='text-gray-400'>{emptyMessage}</span>}
@@ -112,62 +126,40 @@ export default function AgrupacionSection({
         <span className='text-gray-400 italic'>Sin resultados.</span>
       )}
 
-      {itemsVisibles.length > 0 && (
-        <>
-          <div className='w-full flex flex-wrap gap-4'>
-            {itemsVisibles.map((item) => (
-              <div
-                key={item.id}
-                className='w-[200px] group relative h-fit hover:shadow-lg transition-all duration-100 ease-in px-4 py-4 border-violet-500 border flex flex-col rounded text-black'
-              >
-                <span className='text-xl font-semibold break-words'>
-                  {item.nombre}
-                </span>
-                {item.subtitulo && <span className='text-md text-gray-600'>{item.subtitulo}</span>}
-
-                <div className='px-1 overflow-hidden max-h-0 opacity-0 -translate-y-1 group-hover:max-h-12 group-hover:opacity-100 group-hover:translate-y-0 group-hover:mt-3 transition-all duration-200 ease-in-out flex gap-2'>
-                  <button
-                    type='button'
-                    onClick={() => setItemAEditar(item)}
-                    className='flex-1 border transition-color duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded py-1 text-sm text-center cursor-pointer'
-                  >
-                    Editar
-                  </button>
-                  <button
-                    type='button'
-                    onClick={() => setItemAEliminar(item)}
-                    className='flex-1 border transition-color duration-100 ease-in bg-red-500 hover:bg-red-600 text-white rounded py-1 text-sm text-center cursor-pointer'
-                  >
-                    Eliminar
-                  </button>
-                </div>
+      {itemsFiltrados.length > 0 && (
+        <ul
+          className='w-full border border-gray-200 rounded-md divide-y divide-gray-100 overflow-y-auto'
+          style={{ maxHeight: ALTO_LISTA }}
+        >
+          {itemsFiltrados.map((item) => (
+            <li
+              key={item.id}
+              className='group flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-amber-50 transition-colors duration-100 ease-in text-black'
+            >
+              <div className='min-w-0'>
+                <div className='font-semibold break-words'>{item.nombre}</div>
+                {item.subtitulo && <div className='text-sm text-gray-600'>{item.subtitulo}</div>}
               </div>
-            ))}
-          </div>
 
-          {(hayMas || seExpandio) && (
-            <div className='mt-4 flex gap-3'>
-              {hayMas && (
+              <div className='shrink-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 ease-in'>
                 <button
                   type='button'
-                  onClick={() => setCantidadVisible((actual) => actual + CANTIDAD_INCREMENTO)}
-                  className='px-4 py-1.5 text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 transition-colors cursor-pointer'
+                  onClick={() => setItemAEditar(item)}
+                  className='px-3 py-1 border transition-color duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded text-sm text-center cursor-pointer'
                 >
-                  Ver más
+                  Editar
                 </button>
-              )}
-              {seExpandio && (
                 <button
                   type='button'
-                  onClick={() => setCantidadVisible(CANTIDAD_INICIAL)}
-                  className='px-4 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer'
+                  onClick={() => setItemAEliminar(item)}
+                  className='px-3 py-1 border transition-color duration-100 ease-in bg-red-500 hover:bg-red-600 text-white rounded text-sm text-center cursor-pointer'
                 >
-                  Ver menos
+                  Eliminar
                 </button>
-              )}
-            </div>
-          )}
-        </>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
 
       <CrearAgrupacionModal

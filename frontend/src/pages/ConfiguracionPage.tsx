@@ -4,6 +4,7 @@ import type {
   GRUPOS_DE_VENTA,
   SUBGRUPOS_DE_VENTA,
   CLIENTES,
+  LINEAS,
 } from '../../../backend/generated/prisma/client';
 import EditRecargoModal from '../EditRecargoModal';
 import SectionWrapper from '../SectionWrapper';
@@ -21,6 +22,7 @@ function ConfiguracionPage() {
   const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
   const [clientes, setClientes] = useState<CLIENTES[]>([]);
+  const [lineas, setLineas] = useState<LINEAS[]>([]);
 
   const fetchTiposDePago = () => {
     setCargando(true);
@@ -58,11 +60,19 @@ function ConfiguracionPage() {
       .catch((error) => console.error('Error al obtener los colegios/clubes:', error));
   };
 
+  const fetchLineas = () => {
+    fetch('/api/lineas')
+      .then((respuesta) => respuesta.json())
+      .then((data) => setLineas(data))
+      .catch((error) => console.error('Error al obtener las líneas:', error));
+  };
+
   useEffect(() => {
     fetchTiposDePago();
     fetchGrupos();
     fetchSubgrupos();
     fetchClientes();
+    fetchLineas();
   }, []);
 
   const abrirEdicionRecargo = (tipoDePago: TIPOS_DE_PAGO) => {
@@ -102,6 +112,11 @@ function ConfiguracionPage() {
         tipoCliente: c.grupo_venta_exclusivo === 2 ? 2 : 1,
       })),
     [clientes]
+  );
+
+  const itemsLineas: ItemAgrupacion[] = useMemo(
+    () => lineas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea })),
+    [lineas]
   );
 
   return (
@@ -147,35 +162,55 @@ function ConfiguracionPage() {
           </div>
         )}
 
-        <AgrupacionSection
-          titulo='Grupos'
-          tipo='grupo'
-          crearLabel='Crear Grupo'
-          emptyMessage='No hay grupos registrados.'
-          items={itemsGrupos}
-          grupos={grupos}
-          onRefrescar={fetchGrupos}
-        />
+        <div className='flex flex-col lg:flex-row lg:flex-wrap gap-8 w-full items-start'>
+          <div className='flex-1 min-w-[260px] w-full'>
+            <AgrupacionSection
+              titulo='Líneas'
+              tipo='linea'
+              crearLabel='Crear Línea'
+              emptyMessage='No hay líneas registradas.'
+              items={itemsLineas}
+              grupos={grupos}
+              onRefrescar={fetchLineas}
+            />
+          </div>
 
-        <AgrupacionSection
-          titulo='Subgrupos'
-          tipo='subgrupo'
-          crearLabel='Crear Subgrupo'
-          emptyMessage='No hay subgrupos registrados.'
-          items={itemsSubgrupos}
-          grupos={grupos}
-          onRefrescar={fetchSubgrupos}
-        />
+          <div className='flex-1 min-w-[260px] w-full'>
+            <AgrupacionSection
+              titulo='Grupos'
+              tipo='grupo'
+              crearLabel='Crear Grupo'
+              emptyMessage='No hay grupos registrados.'
+              items={itemsGrupos}
+              grupos={grupos}
+              onRefrescar={fetchGrupos}
+            />
+          </div>
 
-        <AgrupacionSection
-          titulo='Colegios/Clubes'
-          tipo='colegio'
-          crearLabel='Crear Colegio/Club'
-          emptyMessage='No hay colegios/clubes registrados.'
-          items={itemsColegios}
-          grupos={grupos}
-          onRefrescar={fetchClientes}
-        />
+          <div className='flex-1 min-w-[260px] w-full'>
+            <AgrupacionSection
+              titulo='Subgrupos'
+              tipo='subgrupo'
+              crearLabel='Crear Subgrupo'
+              emptyMessage='No hay subgrupos registrados.'
+              items={itemsSubgrupos}
+              grupos={grupos}
+              onRefrescar={fetchSubgrupos}
+            />
+          </div>
+
+          <div className='flex-1 min-w-[260px] w-full'>
+            <AgrupacionSection
+              titulo='Colegios/Clubes'
+              tipo='colegio'
+              crearLabel='Crear Colegio/Club'
+              emptyMessage='No hay colegios/clubes registrados.'
+              items={itemsColegios}
+              grupos={grupos}
+              onRefrescar={fetchClientes}
+            />
+          </div>
+        </div>
       </div>
 
       <EditRecargoModal

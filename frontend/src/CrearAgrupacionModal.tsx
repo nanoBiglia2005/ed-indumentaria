@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import type { GRUPOS_DE_VENTA } from '../../backend/generated/prisma/client';
 import InlineFilterDropdown from './InlineFilterDropdown';
 
-export type TipoAgrupacion = 'grupo' | 'subgrupo' | 'colegio';
+export type TipoAgrupacion = 'grupo' | 'subgrupo' | 'colegio' | 'linea';
 
 interface OpcionCreada {
   id: number;
@@ -33,18 +33,21 @@ const TITULOS: Record<TipoAgrupacion, string> = {
   grupo: 'Crear Grupo',
   subgrupo: 'Crear Subgrupo',
   colegio: 'Crear Colegio/Club',
+  linea: 'Crear Línea',
 };
 
 const TITULOS_EDICION: Record<TipoAgrupacion, string> = {
   grupo: 'Editar Grupo',
   subgrupo: 'Editar Subgrupo',
   colegio: 'Editar Colegio/Club',
+  linea: 'Editar Línea',
 };
 
 const NOMBRE_MAX: Record<TipoAgrupacion, number> = {
   grupo: 50,
   subgrupo: 30,
   colegio: 30,
+  linea: 20,
 };
 
 export default function CrearAgrupacionModal({
@@ -111,12 +114,19 @@ export default function CrearAgrupacionModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nombre_subgrupo: nombreTrimeado, id_grupo: grupoSeleccionado }),
         });
-      } else {
+      } else if (tipo === 'colegio') {
         const url = modoEdicion ? `/api/clientes/${edicion!.id}` : '/api/clientes';
         respuesta = await fetch(url, {
           method: metodo,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ nombre: nombreTrimeado, grupo_venta_exclusivo: tipoCliente }),
+        });
+      } else {
+        const url = modoEdicion ? `/api/lineas/${edicion!.id}` : '/api/lineas';
+        respuesta = await fetch(url, {
+          method: metodo,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre_linea: nombreTrimeado }),
         });
       }
 
@@ -130,7 +140,9 @@ export default function CrearAgrupacionModal({
           ? { id: data.id_grupo, nombre: data.nombre_grupo }
           : tipo === 'subgrupo'
           ? { id: data.id_subgrupo, nombre: data.nombre_subgrupo }
-          : { id: data.id_cliente, nombre: data.nombre };
+          : tipo === 'colegio'
+          ? { id: data.id_cliente, nombre: data.nombre }
+          : { id: data.id_linea, nombre: data.nombre_linea };
 
       onGuardado(opcionGuardada);
       onClose();

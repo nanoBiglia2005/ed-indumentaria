@@ -647,6 +647,86 @@ app.get('/api/lineas', async (req, res) => {
   }
 });
 
+// Crear una nueva linea. El nombre no puede repetirse (sin distinguir
+// mayusculas/minusculas ni espacios al principio/final).
+app.post('/api/lineas', async (req, res) => {
+  try {
+    const nombre_linea = typeof req.body.nombre_linea === 'string' ? req.body.nombre_linea.trim() : '';
+    if (!nombre_linea) {
+      return res.status(400).json({ message: 'El nombre de la línea es obligatorio.' });
+    }
+
+    const existente = await prisma.LINEAS.findFirst({
+      where: { nombre_linea: { equals: nombre_linea, mode: 'insensitive' } },
+    });
+    if (existente) {
+      return res.status(409).json({ message: 'Ya existe una línea con ese nombre.' });
+    }
+
+    const nuevaLinea = await prisma.LINEAS.create({ data: { nombre_linea } });
+    res.status(201).json(nuevaLinea);
+  } catch (error) {
+    console.error('Error al crear la linea:', error);
+    res.status(500).json({ message: 'Error al crear la línea.', details: error.message });
+  }
+});
+
+// Editar el nombre de una linea. Mismo chequeo de nombre unico que al crear,
+// excluyendose a si misma de la comparacion.
+app.put('/api/lineas/:id_linea', async (req, res) => {
+  try {
+    const id_linea = parseInt(req.params.id_linea, 10);
+    if (Number.isNaN(id_linea)) {
+      return res.status(400).json({ message: 'El id de la línea debe ser un numero.' });
+    }
+
+    const nombre_linea = typeof req.body.nombre_linea === 'string' ? req.body.nombre_linea.trim() : '';
+    if (!nombre_linea) {
+      return res.status(400).json({ message: 'El nombre de la línea es obligatorio.' });
+    }
+
+    const existente = await prisma.LINEAS.findFirst({
+      where: { nombre_linea: { equals: nombre_linea, mode: 'insensitive' }, id_linea: { not: id_linea } },
+    });
+    if (existente) {
+      return res.status(409).json({ message: 'Ya existe una línea con ese nombre.' });
+    }
+
+    const lineaActualizada = await prisma.LINEAS.update({
+      where: { id_linea },
+      data: { nombre_linea },
+    });
+    res.status(200).json(lineaActualizada);
+  } catch (error) {
+    console.error('Error al actualizar la linea:', error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'La línea no existe.', details: error.message });
+    }
+    res.status(500).json({ message: 'Error al actualizar la línea.', details: error.message });
+  }
+});
+
+// Eliminar una linea. Falla si hay articulos que todavia la tienen asignada.
+app.delete('/api/lineas/:id_linea', async (req, res) => {
+  try {
+    const id_linea = parseInt(req.params.id_linea, 10);
+    if (Number.isNaN(id_linea)) {
+      return res.status(400).json({ message: 'El id de la línea debe ser un numero.' });
+    }
+
+    // El FK de ARTICULOS a LINEAS es ON DELETE SET NULL, asi que esto no
+    // falla por articulos en uso: simplemente quedan sin linea.
+    await prisma.LINEAS.delete({ where: { id_linea } });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error al eliminar la linea:', error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ message: 'La línea no existe.', details: error.message });
+    }
+    res.status(500).json({ message: 'Error al eliminar la línea.', details: error.message });
+  }
+});
+
 app.get('/api/tipos-de-pago', async (req, res) => {
   try {
     const tiposDePago = await prisma.TIPOS_DE_PAGO.findMany();
