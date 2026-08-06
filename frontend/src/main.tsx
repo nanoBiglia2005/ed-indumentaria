@@ -6,6 +6,7 @@ import Layout from './Layout.tsx'
 import ArticulosPage from './pages/ArticulosPage.tsx'
 import VentasPage from './pages/VentasPage.tsx'
 import ConfiguracionPage from './pages/ConfiguracionPage.tsx'
+import HistorialPage from './pages/HistorialPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path='articulos' element={<ArticulosPage />} />
           <Route path='ventas' element={<VentasPage />} />
           <Route path='configuracion' element={<ConfiguracionPage />} />
+          <Route path='historial' element={<HistorialPage />} />
           <Route path='*' element={<Navigate to='/articulos' replace />} />
         </Route>
       </Routes>

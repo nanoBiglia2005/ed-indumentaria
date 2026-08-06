@@ -1,0 +1,61 @@
+2026-08-06 12:00:03,169 INFO Conectado al servidor de impresión
+2026-08-06 12:00:27,222 ERROR Error al imprimir el trabajo 4ca71489-45a9-4765-a3b9-dedd32775443
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 59, in run
+    handle_print_job(message["payload"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 37, in handle_print_job
+    imprimir_remito(payload, printer_name=PRINTER_NAME, columnas=PRINTER_COLUMNS)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\imprimir_barcode.py", line 202, in imprimir_remito
+    data += _texto(_centrar("Presupuesto\n\n\n"))
+                   ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+TypeError: _centrar() missing 1 required positional argument: 'ancho'
+2026-08-06 12:01:18,120 ERROR Error al imprimir el trabajo 162ea596-c3c8-4c1a-8d2b-3ead0dc31ef9
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 59, in run
+    handle_print_job(message["payload"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 37, in handle_print_job
+    imprimir_remito(payload, printer_name=PRINTER_NAME, columnas=PRINTER_COLUMNS)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\imprimir_barcode.py", line 202, in imprimir_remito
+    data += _texto(_centrar("Presupuesto", columnas + "\n\n"))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: _centrar() missing 1 required positional argument: 'ancho'
+Traceback (most recent call last):
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 52, in run
+    async for raw_message in websocket:
+    ...<19 lines>...
+        await websocket.send(json.dumps(ack))
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\connection.py", line 242, in __aiter__
+    yield await self.recv()
+          ^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\connection.py", line 294, in recv
+    return await self.recv_messages.get(decode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\messages.py", line 150, in get
+    frame = await self.frames.get(not self.closed)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\messages.py", line 51, in get
+    await self.get_waiter
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 83, in <module>
+    asyncio.run(run())
+    ~~~~~~~~~~~^^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
-type ItemId = 'articulos' | 'ventas' | 'configuracion';
+type ItemId = 'articulos' | 'ventas' | 'configuracion' | 'historial';
 
 const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
   {
@@ -23,6 +23,21 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
         <path strokeLinecap='round' strokeLinejoin='round' d='M2.25 12l3-9 3 9m-6 0h6m-6 0l1.5 6h3l1.5-6M15 3v13.5m0 0a2.25 2.25 0 102.25 2.25M15 16.5a2.25 2.25 0 11-2.25 2.25' />
+      </svg>
+    ),
+  },
+  {
+    id: 'historial',
+    ruta: '/historial',
+    nombre: 'Historial',
+    icon: (
+      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
+        <path strokeLinecap='round' strokeLinejoin='round' d='M12 8v4l3 3' />
+        <path
+          strokeLinecap='round'
+          strokeLinejoin='round'
+          d='M3.5 12a8.5 8.5 0 1 0 2.6-6.13M3.5 4v4.5h4.5'
+        />
       </svg>
     ),
   },
