@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import type { GRUPOS_DE_VENTA } from '../../backend/generated/prisma/client';
+import type { GRUPOS_DE_VENTA, LINEAS, GRUPOS_X_LINEAS } from '../../backend/generated/prisma/client';
 import InlineFilterDropdown from './InlineFilterDropdown';
 
 export type TipoAgrupacion = 'grupo' | 'subgrupo' | 'colegio' | 'linea';
@@ -27,6 +27,9 @@ interface CrearAgrupacionModalProps {
   /** Grupo activo al abrir el modal (si el usuario ya tenia uno filtrado). */
   grupoPreseleccionado?: number | null;
   edicion?: EdicionAgrupacion | null;
+  /** Solo tipo 'grupo' en edicion: para el editor de líneas asociadas. */
+  lineasDisponibles?: LINEAS[];
+  gruposXLineas?: GRUPOS_X_LINEAS[];
 }
 
 const TITULOS: Record<TipoAgrupacion, string> = {
@@ -58,6 +61,8 @@ export default function CrearAgrupacionModal({
   grupos,
   grupoPreseleccionado = null,
   edicion = null,
+  lineasDisponibles = [],
+  gruposXLineas = [],
 }: CrearAgrupacionModalProps) {
   const [nombre, setNombre] = useState('');
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
@@ -65,7 +70,11 @@ export default function CrearAgrupacionModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [lineasOriginales, setLineasOriginales] = useState<LINEAS[]>([]);
+  const [lineasSeleccionadas, setLineasSeleccionadas] = useState<LINEAS[]>([]);
+
   const modoEdicion = edicion !== null;
+  const editaLineas = tipo === 'grupo' && modoEdicion;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -73,6 +82,17 @@ export default function CrearAgrupacionModal({
     setGrupoSeleccionado(edicion?.idGrupo ?? grupoPreseleccionado);
     setTipoCliente(edicion?.tipoCliente ?? 1);
     setError(null);
+
+    if (tipo === 'grupo' && edicion) {
+      const lineasDelGrupo = lineasDisponibles.filter((linea) =>
+        gruposXLineas.some((rel) => rel.id_grupo === edicion.id && rel.id_linea === linea.id_linea)
+      );
+      setLineasOriginales(lineasDelGrupo);
+      setLineasSeleccionadas(lineasDelGrupo);
+    } else {
+      setLineasOriginales([]);
+      setLineasSeleccionadas([]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, tipo, edicion]);
 
@@ -133,6 +153,30 @@ export default function CrearAgrupacionModal({
       const data = await respuesta.json();
       if (!respuesta.ok) {
         throw new Error(data.message || data.details || 'No se pudo guardar el registro.');
+      }
+
+      if (editaLineas) {
+        const idsOriginales = new Set(lineasOriginales.map((l) => l.id_linea));
+        const idsSeleccionadas = new Set(lineasSeleccionadas.map((l) => l.id_linea));
+        const lineasAAgregar = lineasSeleccionadas.filter((l) => !idsOriginales.has(l.id_linea));
+        const lineasAQuitar = lineasOriginales.filter((l) => !idsSeleccionadas.has(l.id_linea));
+
+        const resultadosLineas = await Promise.all([
+          ...lineasAAgregar.map((linea) =>
+            fetch(`/api/grupos/${edicion!.id}/lineas`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id_linea: linea.id_linea }),
+            })
+          ),
+          ...lineasAQuitar.map((linea) =>
+            fetch(`/api/grupos/${edicion!.id}/lineas/${linea.id_linea}`, { method: 'DELETE' })
+          ),
+        ]);
+
+        if (resultadosLineas.some((r) => !r.ok)) {
+          throw new Error('Hubo un error al actualizar las líneas asociadas.');
+        }
       }
 
       const opcionGuardada: OpcionCreada =
@@ -247,6 +291,54 @@ export default function CrearAgrupacionModal({
                           Club
                         </button>
                       </div>
+                    </div>
+                  )}
+
+                  {editaLineas && (
+                    <div>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>Líneas asociadas</label>
+                      <div className='mb-3'>
+                        <InlineFilterDropdown
+                          label='Agregar Línea'
+                          opciones={lineasDisponibles
+                            .filter((l) => !lineasSeleccionadas.some((sel) => sel.id_linea === l.id_linea))
+                            .map((l) => ({ id: l.id_linea, nombre: l.nombre_linea }))}
+                          selectedId={null}
+                          onSelect={(id) => {
+                            const linea = lineasDisponibles.find((l) => l.id_linea === id);
+                            if (linea) {
+                              setLineasSeleccionadas((prev) => [...prev, linea]);
+                            }
+                          }}
+                          onClear={() => {}}
+                        />
+                      </div>
+
+                      {lineasSeleccionadas.length === 0 ? (
+                        <p className='text-sm text-gray-400 italic'>No asociado a ninguna línea</p>
+                      ) : (
+                        <ul className='flex flex-wrap gap-2'>
+                          {lineasSeleccionadas.map((linea) => (
+                            <li
+                              key={linea.id_linea}
+                              className='flex items-center gap-1 justify-between px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700 w-fit'
+                            >
+                              <span>{linea.nombre_linea}</span>
+                              <button
+                                type='button'
+                                onClick={() =>
+                                  setLineasSeleccionadas((prev) =>
+                                    prev.filter((l) => l.id_linea !== linea.id_linea)
+                                  )
+                                }
+                                className='font-bold text-gray-400 hover:text-red-600 cursor-pointer px-1'
+                              >
+                                X
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
                 </div>

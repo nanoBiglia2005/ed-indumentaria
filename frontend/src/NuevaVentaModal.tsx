@@ -1,7 +1,7 @@
 import { useMemo, useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import type { ARTICULOS } from '../../backend/generated/prisma/client';
-import type { VentaImpresa } from '../../backend/types';
+import type { RemitoCreado } from '../../backend/types';
 import AgregarProductoModal from './AgregarProductoModal';
 
 const MAX_LINEAS_DESCRIPCION = 3;
@@ -14,11 +14,11 @@ interface ProductoSeleccionado {
 interface NuevaVentaModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Se imprimio el ticket; todavia no se registro nada. Sigue el paso de pago. */
-  onVentaImpresa: (venta: VentaImpresa) => void;
+  /** El remito ya quedo guardado como pendiente de cobro (y se imprimio). */
+  onVentaRegistrada: (remito: RemitoCreado) => void;
 }
 
-export default function NuevaVentaModal({ isOpen, onClose, onVentaImpresa }: NuevaVentaModalProps) {
+export default function NuevaVentaModal({ isOpen, onClose, onVentaRegistrada }: NuevaVentaModalProps) {
   const [productos, setProductos] = useState<ProductoSeleccionado[]>([]);
   const [isAgregarOpen, setIsAgregarOpen] = useState(false);
   // Cual de los dos botones de confirmar esta en curso (null = ninguno).
@@ -49,8 +49,14 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaImpresa }: Nue
     [productos]
   );
 
-  const handleAgregarProducto = (articulo: ARTICULOS) => {
-    setProductos((prev) => [...prev, { articulo, cantidad: 1 }]);
+  // El modal de agregar productos ya deja elegir la cantidad (via su modal de
+  // confirmacion o, en masa, siempre 1), asi que se respeta la que llega.
+  const handleAgregarProducto = (articulo: ARTICULOS, cantidad: number) => {
+    setProductos((prev) => {
+      const yaEsta = prev.some((p) => p.articulo.id_articulo === articulo.id_articulo);
+      if (yaEsta) return prev;
+      return [...prev, { articulo, cantidad }];
+    });
     setError(null);
   };
 
@@ -85,9 +91,10 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaImpresa }: Nue
       setAccionEnCurso(imprimir ? 'con-impresion' : 'sin-impresion');
       setError(null);
 
-      // Calcula los precios y, si corresponde, imprime el ticket con los dos
-      // valores. La venta se registra recien en el paso del metodo de pago.
-      const response = await fetch('/api/remitos/preparar', {
+      // Registra el remito como pendiente de cobro (con los precios en efectivo)
+      // y, si corresponde, imprime el ticket con los dos precios. El metodo de
+      // pago se elige despues.
+      const response = await fetch('/api/remitos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -104,11 +111,11 @@ export default function NuevaVentaModal({ isOpen, onClose, onVentaImpresa }: Nue
         throw new Error(errorData.details || errorData.message);
       }
 
-      const ventaImpresa: VentaImpresa = await response.json();
+      const remitoCreado: RemitoCreado = await response.json();
       resetForm();
-      onVentaImpresa(ventaImpresa);
+      onVentaRegistrada(remitoCreado);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo preparar la venta.');
+      setError(err instanceof Error ? err.message : 'No se pudo registrar la venta.');
     } finally {
       setAccionEnCurso(null);
     }

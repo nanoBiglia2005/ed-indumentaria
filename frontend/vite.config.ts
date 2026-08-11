@@ -16,6 +16,10 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/auth': {
+        target: 'http://localhost:5000',
+        secure: false,
+      },
       '/print-api': {
         target: 'http://localhost:8001',
         changeOrigin: true,

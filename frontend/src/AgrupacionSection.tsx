@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { GRUPOS_DE_VENTA } from '../../backend/generated/prisma/client';
+import type { GRUPOS_DE_VENTA, LINEAS, GRUPOS_X_LINEAS } from '../../backend/generated/prisma/client';
 import CrearAgrupacionModal from './CrearAgrupacionModal';
 import type { TipoAgrupacion } from './CrearAgrupacionModal';
 import EliminarAgrupacionModal from './EliminarAgrupacionModal';
@@ -30,6 +30,9 @@ interface AgrupacionSectionProps {
   items: ItemAgrupacion[];
   grupos: GRUPOS_DE_VENTA[];
   onRefrescar: () => void;
+  /** Solo tipo 'grupo': para el editor de líneas asociadas. */
+  lineasDisponibles?: LINEAS[];
+  gruposXLineas?: GRUPOS_X_LINEAS[];
 }
 
 export default function AgrupacionSection({
@@ -40,6 +43,8 @@ export default function AgrupacionSection({
   items,
   grupos,
   onRefrescar,
+  lineasDisponibles,
+  gruposXLineas,
 }: AgrupacionSectionProps) {
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState<Orden>('asc');
@@ -134,7 +139,8 @@ export default function AgrupacionSection({
           {itemsFiltrados.map((item) => (
             <li
               key={item.id}
-              className='group flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-amber-50 transition-colors duration-100 ease-in text-black'
+              onClick={() => setItemAEditar(item)}
+              className='group flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-amber-50 transition-colors duration-100 ease-in text-black cursor-pointer'
             >
               <div className='min-w-0'>
                 <div className='font-semibold break-words'>{item.nombre}</div>
@@ -144,14 +150,20 @@ export default function AgrupacionSection({
               <div className='shrink-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 ease-in'>
                 <button
                   type='button'
-                  onClick={() => setItemAEditar(item)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setItemAEditar(item);
+                  }}
                   className='px-3 py-1 border transition-color duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded text-sm text-center cursor-pointer'
                 >
                   Editar
                 </button>
                 <button
                   type='button'
-                  onClick={() => setItemAEliminar(item)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setItemAEliminar(item);
+                  }}
                   className='px-3 py-1 border transition-color duration-100 ease-in bg-red-500 hover:bg-red-600 text-white rounded text-sm text-center cursor-pointer'
                 >
                   Eliminar
@@ -175,6 +187,8 @@ export default function AgrupacionSection({
         }}
         tipo={tipo}
         grupos={grupos}
+        lineasDisponibles={lineasDisponibles}
+        gruposXLineas={gruposXLineas}
         edicion={
           itemAEditar
             ? {

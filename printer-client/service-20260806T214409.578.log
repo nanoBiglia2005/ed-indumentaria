@@ -1,4 +1,4 @@
-2026-08-05 18:05:31,222 INFO Conectado al servidor de impresión
+2026-08-06 18:39:11,261 INFO Conectado al servidor de impresión
 Traceback (most recent call last):
   File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
     return self._loop.run_until_complete(task)
@@ -6,7 +6,7 @@ Traceback (most recent call last):
   File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
     return future.result()
            ~~~~~~~~~~~~~^^
-  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 52, in run
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 53, in run
     async for raw_message in websocket:
     ...<19 lines>...
         await websocket.send(json.dumps(ack))
@@ -26,7 +26,7 @@ asyncio.exceptions.CancelledError
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 83, in <module>
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 84, in <module>
     asyncio.run(run())
     ~~~~~~~~~~~^^^^^^^
   File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run

@@ -3,7 +3,10 @@ const cors = require('cors');
 const prisma = require('./db');
 require('dotenv').config();
 
+const authModule = import('./auth.mjs');
+
 const app = express();
+app.set('trust proxy', true); // necesario para que Auth.js detecte https detrás de ngrok/un proxy
 const PORT = process.env.PORT || 5000;
 const PRINT_SERVICE_URL = process.env.PRINT_SERVICE_URL || 'http://localhost:8001';
 
@@ -13,7 +16,7 @@ app.use(express.json());
 app.get('/api/health', async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    
+
     res.status(200).json({
       status: 'OK',
       message: 'Conexión a la base de datos PostgreSQL exitosa'
@@ -28,6 +31,8 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+app.use('/auth', async (req, res, next) => (await authModule).authHandler(req, res, next));
+app.use('/api', async (req, res, next) => (await authModule).requireAuth(req, res, next));
 
 
 // ============================================================
@@ -715,7 +720,8 @@ app.delete('/api/lineas/:id_linea', async (req, res) => {
     }
 
     // El FK de ARTICULOS a LINEAS es ON DELETE SET NULL, asi que esto no
-    // falla por articulos en uso: simplemente quedan sin linea.
+    // falla por articulos en uso: simplemente quedan sin linea. Las
+    // asociaciones en GRUPOS_X_LINEAS son ON DELETE CASCADE.
     await prisma.LINEAS.delete({ where: { id_linea } });
     res.status(204).send();
   } catch (error) {
@@ -724,6 +730,173 @@ app.delete('/api/lineas/:id_linea', async (req, res) => {
       return res.status(404).json({ message: 'La línea no existe.', details: error.message });
     }
     res.status(500).json({ message: 'Error al eliminar la línea.', details: error.message });
+  }
+});
+
+app.get('/api/grupos-x-lineas', async (req, res) => {
+  try {
+    const registros = await prisma.GRUPOS_X_LINEAS.findMany();
+    res.status(200).json(registros);
+  } catch (error) {
+    console.error('Error al obtener GRUPOS_X_LINEAS:', error);
+    res.status(500).json({ message: 'Error al obtener GRUPOS_X_LINEAS.', details: error.message });
+  }
+});
+
+// Asociar un grupo a una linea.
+app.post('/api/grupos/:id_grupo/lineas', async (req, res) => {
+  try {
+    const id_grupo = parseInt(req.params.id_grupo, 10);
+    const id_linea = parseInt(req.body.id_linea, 10);
+    if (Number.isNaN(id_grupo) || Number.isNaN(id_linea)) {
+      return res.status(400).json({ message: 'El id del grupo y de la línea deben ser numeros.' });
+    }
+
+    const asociacion = await prisma.GRUPOS_X_LINEAS.create({
+      data: { id_grupo, id_linea },
+    });
+    res.status(201).json(asociacion);
+  } catch (error) {
+    console.error('Error al asociar el grupo a la línea:', error);
+    if (error.code === 'P2003') {
+      return res.status(404).json({ message: 'El grupo o la línea no existen.', details: error.message });
+    }
+    res.status(500).json({ message: 'Error al asociar el grupo a la línea.', details: error.message });
+  }
+});
+
+// Quitar la asociacion entre un grupo y una linea.
+app.delete('/api/grupos/:id_grupo/lineas/:id_linea', async (req, res) => {
+  try {
+    const id_grupo = parseInt(req.params.id_grupo, 10);
+    const id_linea = parseInt(req.params.id_linea, 10);
+    if (Number.isNaN(id_grupo) || Number.isNaN(id_linea)) {
+      return res.status(400).json({ message: 'El id del grupo y de la línea deben ser numeros.' });
+    }
+
+    await prisma.GRUPOS_X_LINEAS.deleteMany({ where: { id_grupo, id_linea } });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error al quitar la asociacion entre el grupo y la línea:', error);
+    res.status(500).json({ message: 'Error al quitar la asociacion entre el grupo y la línea.', details: error.message });
+  }
+});
+
+// ============================================================
+//  VENTA (seleccion de articulos, paso a paso)
+// ============================================================
+// El flujo es cliente -> grupo -> articulos. Cada paso acota el siguiente y
+// el filtrado se hace en la base, asi el frontend nunca se trae la tabla
+// ARTICULOS completa.
+
+// Clientes agrupados por su grupo de venta exclusivo (Colegios, Clubes, ...).
+// No se hardcodea cuales son: se arma con lo que haya en la base, asi que si
+// mañana aparece una agrupacion nueva sale sola.
+app.get('/api/venta/agrupaciones', async (req, res) => {
+  try {
+    const clientes = await prisma.CLIENTES.findMany({
+      where: { grupo_venta_exclusivo: { not: null } },
+      include: { GRUPOS_DE_VENTA: true },
+      orderBy: { nombre: 'asc' },
+    });
+
+    const porGrupo = new Map();
+    for (const cliente of clientes) {
+      const grupo = cliente.GRUPOS_DE_VENTA;
+      if (!grupo) continue;
+
+      if (!porGrupo.has(grupo.id_grupo)) {
+        porGrupo.set(grupo.id_grupo, {
+          id_grupo: grupo.id_grupo,
+          nombre_grupo: grupo.nombre_grupo,
+          clientes: [],
+        });
+      }
+      porGrupo.get(grupo.id_grupo).clientes.push({
+        id_cliente: cliente.id_cliente,
+        nombre: cliente.nombre,
+      });
+    }
+
+    res.status(200).json([...porGrupo.values()].sort((a, b) => a.id_grupo - b.id_grupo));
+  } catch (error) {
+    console.error('Error al obtener las agrupaciones de clientes:', error);
+    res.status(500).json({ message: 'Error al obtener las agrupaciones.', details: error.message });
+  }
+});
+
+// Grupos con al menos un articulo vigente asociado al cliente elegido.
+app.get('/api/venta/grupos', async (req, res) => {
+  try {
+    const id_cliente = parseInt(req.query.id_cliente, 10);
+    if (Number.isNaN(id_cliente)) {
+      return res.status(400).json({ message: 'El id del cliente debe ser un numero.' });
+    }
+
+    const grupos = await prisma.GRUPOS_DE_VENTA.findMany({
+      where: {
+        ARTICULOS_X_GRUPO_VENTA: {
+          some: {
+            ARTICULOS: {
+              vigente: true,
+              ARTICULOS_X_CLIENTE: { some: { id_cliente } },
+            },
+          },
+        },
+      },
+      orderBy: { nombre_grupo: 'asc' },
+    });
+
+    res.status(200).json(grupos);
+  } catch (error) {
+    console.error('Error al obtener los grupos del cliente:', error);
+    res.status(500).json({ message: 'Error al obtener los grupos del cliente.', details: error.message });
+  }
+});
+
+// Articulos vigentes que estan a la vez en el cliente y en el grupo elegidos.
+// La interseccion la resuelve la base; se devuelve tambien el subgrupo de cada
+// articulo DENTRO de ese grupo, y los subgrupos disponibles para el dropdown.
+app.get('/api/venta/articulos', async (req, res) => {
+  try {
+    const id_cliente = parseInt(req.query.id_cliente, 10);
+    const id_grupo = parseInt(req.query.id_grupo, 10);
+    if (Number.isNaN(id_cliente) || Number.isNaN(id_grupo)) {
+      return res.status(400).json({ message: 'El id del cliente y del grupo deben ser numeros.' });
+    }
+
+    const relaciones = await prisma.ARTICULOS_X_GRUPO_VENTA.findMany({
+      where: {
+        id_grupo_venta: id_grupo,
+        ARTICULOS: {
+          vigente: true,
+          ARTICULOS_X_CLIENTE: { some: { id_cliente } },
+        },
+      },
+      include: { ARTICULOS: true, SUBGRUPOS_DE_VENTA: true },
+    });
+
+    // Un articulo deberia tener una sola fila por grupo, pero se deduplica por
+    // las dudas para no repetir filas en la tabla.
+    const porArticulo = new Map();
+    for (const relacion of relaciones) {
+      if (porArticulo.has(relacion.id_articulo)) continue;
+      porArticulo.set(relacion.id_articulo, {
+        ...relacion.ARTICULOS,
+        id_subgrupo: relacion.id_subgrupo,
+        nombre_subgrupo: relacion.SUBGRUPOS_DE_VENTA?.nombre_subgrupo ?? null,
+      });
+    }
+
+    const subgrupos = await prisma.SUBGRUPOS_DE_VENTA.findMany({
+      where: { id_grupo },
+      orderBy: { nombre_subgrupo: 'asc' },
+    });
+
+    res.status(200).json({ articulos: [...porArticulo.values()], subgrupos });
+  } catch (error) {
+    console.error('Error al obtener los articulos de la venta:', error);
+    res.status(500).json({ message: 'Error al obtener los articulos.', details: error.message });
   }
 });
 
@@ -780,6 +953,25 @@ const formatearFecha = (fecha) => {
 
 const METODOS_DE_PAGO = ['efectivo', 'tarjeta'];
 
+// Estados de la tabla ESTADOS_REMITOS.
+const ESTADO_CONFIRMADO = 1;
+const ESTADO_FACTURADO = 2;
+const ESTADO_ANULADO = 3;
+
+// El recargo sale de TIPOS_DE_PAGO (configurable desde la app).
+const obtenerRecargoTarjeta = async () => {
+  const tiposDePago = await prisma.TIPOS_DE_PAGO.findMany();
+  const tarjeta = tiposDePago.find((tipo) =>
+    (tipo.nombre_tipo_de_pago ?? '').toLowerCase().includes('tarjeta')
+  );
+
+  if (!tarjeta) {
+    console.warn('No se encontro un tipo de pago "Tarjeta": la venta se calcula sin recargo.');
+  }
+
+  return tarjeta?.recargo ?? 0;
+};
+
 const resolverItemsVenta = async (detalles) => {
   if (!Array.isArray(detalles) || detalles.length === 0) {
     return { error: { status: 400, message: 'La venta debe tener al menos un articulo.' } };
@@ -828,16 +1020,7 @@ const resolverItemsVenta = async (detalles) => {
     };
   }
 
-  const tiposDePago = await prisma.TIPOS_DE_PAGO.findMany();
-  const tarjeta = tiposDePago.find((tipo) =>
-    (tipo.nombre_tipo_de_pago ?? '').toLowerCase().includes('tarjeta')
-  );
-
-  if (!tarjeta) {
-    console.warn('No se encontro un tipo de pago "Tarjeta": la venta se calcula sin recargo.');
-  }
-
-  const recargoTarjeta = tarjeta?.recargo ?? 0;
+  const recargoTarjeta = await obtenerRecargoTarjeta();
   const multiplicador = 1 + recargoTarjeta / 100;
 
   const items = articulos.map((articulo) => {
@@ -878,9 +1061,11 @@ const construirPayloadTicket = (items, recargoTarjeta, { id_remito = null, fecha
   };
 };
 
+// Historial: todo MENOS los pendientes de cobro, que viven en la pagina de Ventas.
 app.get('/api/remitos', async (req, res) => {
   try {
     const remitos = await prisma.REMITOS.findMany({
+      where: { NOT: { id_estado: ESTADO_CONFIRMADO } },
       include: remitosInclude,
       orderBy: { id_remito: 'desc' },
     });
@@ -891,52 +1076,34 @@ app.get('/api/remitos', async (req, res) => {
   }
 });
 
-app.post('/api/remitos/preparar', async (req, res) => {
+// Remitos confirmados que todavia no se cobraron.
+app.get('/api/remitos/pendientes', async (req, res) => {
+  try {
+    const remitos = await prisma.REMITOS.findMany({
+      where: { id_estado: ESTADO_CONFIRMADO },
+      include: remitosInclude,
+      orderBy: { id_remito: 'desc' },
+    });
+    res.status(200).json(remitos);
+  } catch (error) {
+    console.error('Error al obtener los remitos pendientes:', error);
+    res.status(500).json({ message: 'Error al obtener los remitos pendientes.', details: error.message });
+  }
+});
+
+// Registra la venta como CONFIRMADA (pendiente de cobro) con los precios en
+// efectivo, e imprime el ticket salvo que se pida `imprimir: false`.
+// El metodo de pago se elige despues, al facturar.
+app.post('/api/remitos', async (req, res) => {
   try {
     const { error, items, recargoTarjeta } = await resolverItemsVenta(req.body.detalles);
     if (error) {
       return res.status(error.status).json({ message: error.message });
     }
 
-    if (req.body.imprimir === false) {
-      return res.status(200).json({
-        items,
-        recargo_tarjeta: recargoTarjeta,
-        impresion: { status: 'omitida' },
-      });
-    }
-
-    let impresion = { status: 'ok' };
-    try {
-      const { respuesta, resultado } = await enviarTrabajoDeImpresion(
-        construirPayloadTicket(items, recargoTarjeta)
-      );
-
-      if (!respuesta.ok || resultado.status === 'error') {
-        throw new Error(resultado.message ?? resultado.detail ?? 'No se pudo imprimir el remito.');
-      }
-    } catch (errorImpresion) {
-      console.error('Error al imprimir el remito:', errorImpresion);
-      impresion = { status: 'error', message: errorImpresion.message };
-    }
-
-    res.status(200).json({ items, recargo_tarjeta: recargoTarjeta, impresion });
-  } catch (error) {
-    console.error('Error al preparar la venta:', error);
-    res.status(500).json({ message: 'Error al preparar la venta.', details: error.message });
-  }
-});
-
-app.post('/api/remitos', async (req, res) => {
-  try {
-    const { error, items } = await resolverItemsVenta(req.body.detalles);
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
     const detallesData = items.map((item) => ({
       id_articulo: item.id_articulo,
-      precio: item.metodo_pago === 'tarjeta' ? item.precio_tarjeta : item.precio_efectivo,
+      precio: item.precio_efectivo,
       cantidad: item.cantidad,
     }));
 
@@ -947,6 +1114,7 @@ app.post('/api/remitos', async (req, res) => {
       data: {
         fecha_de_emision: ahora,
         fecha_de_creacion: ahora,
+        id_estado: ESTADO_CONFIRMADO,
         total_bruto: totalVenta,
         total_neto: totalVenta,
         DETALLES_REMITO: {
@@ -956,10 +1124,188 @@ app.post('/api/remitos', async (req, res) => {
       include: remitosInclude,
     });
 
-    res.status(201).json(nuevoRemito);
+    // La venta ya quedo guardada: si falla la impresion no se revierte, se avisa
+    // en la respuesta. Ahora el ticket si lleva el numero de remito.
+    let impresion = { status: 'omitida' };
+    if (req.body.imprimir !== false) {
+      impresion = { status: 'ok' };
+      try {
+        const { respuesta, resultado } = await enviarTrabajoDeImpresion(
+          construirPayloadTicket(items, recargoTarjeta, {
+            id_remito: nuevoRemito.id_remito,
+            fecha: nuevoRemito.fecha_de_emision,
+          })
+        );
+
+        if (!respuesta.ok || resultado.status === 'error') {
+          throw new Error(resultado.message ?? resultado.detail ?? 'No se pudo imprimir el remito.');
+        }
+      } catch (errorImpresion) {
+        console.error('Error al imprimir el remito:', errorImpresion);
+        impresion = { status: 'error', message: errorImpresion.message };
+      }
+    }
+
+    res.status(201).json({ ...nuevoRemito, impresion });
   } catch (error) {
     console.error('Error al crear la venta:', error);
     res.status(500).json({ message: 'Error al crear la venta.', details: error.message });
+  }
+});
+
+// Busca un remito y valida que siga pendiente de cobro.
+const buscarRemitoPendiente = async (idParam) => {
+  const id_remito = parseInt(idParam, 10);
+  if (Number.isNaN(id_remito)) {
+    return { error: { status: 400, message: 'El id del remito debe ser un numero.' } };
+  }
+
+  const remito = await prisma.REMITOS.findUnique({
+    where: { id_remito },
+    include: remitosInclude,
+  });
+
+  if (!remito) {
+    return { error: { status: 404, message: 'El remito no existe.' } };
+  }
+  if (remito.id_estado !== ESTADO_CONFIRMADO) {
+    return {
+      error: { status: 409, message: 'El remito ya no esta pendiente: no se puede modificar.' },
+    };
+  }
+
+  return { remito };
+};
+
+// Precios en efectivo (los guardados) y en tarjeta para cada linea del remito.
+// La base es el precio YA GUARDADO, no el del catalogo: el remito se confirmo a
+// ese precio aunque el articulo haya cambiado despues.
+const opcionesDePagoDeRemito = async (remito) => {
+  const recargoTarjeta = await obtenerRecargoTarjeta();
+  const multiplicador = 1 + recargoTarjeta / 100;
+
+  const items = remito.DETALLES_REMITO.map((detalle) => {
+    const precioEfectivo = detalle.precio ?? 0;
+
+    return {
+      id_detalle: detalle.id_detalle,
+      descripcion: detalle.ARTICULOS?.descripcion ?? `Articulo ${detalle.id_articulo}`,
+      cantidad: detalle.cantidad ?? 0,
+      precio_efectivo: precioEfectivo,
+      precio_tarjeta: redondearPrecio(precioEfectivo * multiplicador),
+    };
+  });
+
+  return { items, recargo_tarjeta: recargoTarjeta };
+};
+
+// Opciones de pago de un remito pendiente, para poblar el modal de cobro.
+app.get('/api/remitos/:id_remito/opciones-pago', async (req, res) => {
+  try {
+    const { error, remito } = await buscarRemitoPendiente(req.params.id_remito);
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    res.status(200).json(await opcionesDePagoDeRemito(remito));
+  } catch (error) {
+    console.error('Error al obtener las opciones de pago:', error);
+    res.status(500).json({ message: 'Error al obtener las opciones de pago.', details: error.message });
+  }
+});
+
+// Cobra un remito pendiente: fija el precio de cada linea segun su metodo de
+// pago, recalcula el total y lo pasa a FACTURADO.
+app.put('/api/remitos/:id_remito/facturar', async (req, res) => {
+  try {
+    const { error, remito } = await buscarRemitoPendiente(req.params.id_remito);
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    const { pagos } = req.body;
+    if (!Array.isArray(pagos)) {
+      return res.status(400).json({ message: 'Falta el detalle de como se paga cada articulo.' });
+    }
+
+    const metodosPorDetalle = new Map();
+    for (const pago of pagos) {
+      const id_detalle = parseInt(pago.id_detalle, 10);
+      const metodo = pago.metodo_pago ?? 'efectivo';
+
+      if (Number.isNaN(id_detalle)) {
+        return res.status(400).json({ message: 'Los detalles del pago son invalidos.' });
+      }
+      if (!METODOS_DE_PAGO.includes(metodo)) {
+        return res.status(400).json({ message: `Metodo de pago invalido: "${metodo}".` });
+      }
+
+      metodosPorDetalle.set(id_detalle, metodo);
+    }
+
+    const { items } = await opcionesDePagoDeRemito(remito);
+
+    const preciosFinales = items.map((item) => ({
+      id_detalle: item.id_detalle,
+      precio:
+        metodosPorDetalle.get(item.id_detalle) === 'tarjeta'
+          ? item.precio_tarjeta
+          : item.precio_efectivo,
+      cantidad: item.cantidad,
+    }));
+
+    const totalVenta = preciosFinales.reduce(
+      (acumulado, linea) => acumulado + linea.precio * linea.cantidad,
+      0
+    );
+
+    // Todo junto: si algo falla no queda un remito a medio cobrar.
+    const remitoFacturado = await prisma.$transaction(async (tx) => {
+      await Promise.all(
+        preciosFinales.map((linea) =>
+          tx.DETALLES_REMITO.update({
+            where: { id_detalle: linea.id_detalle },
+            data: { precio: linea.precio },
+          })
+        )
+      );
+
+      return tx.REMITOS.update({
+        where: { id_remito: remito.id_remito },
+        data: {
+          id_estado: ESTADO_FACTURADO,
+          total_bruto: totalVenta,
+          total_neto: totalVenta,
+        },
+        include: remitosInclude,
+      });
+    });
+
+    res.status(200).json(remitoFacturado);
+  } catch (error) {
+    console.error('Error al facturar el remito:', error);
+    res.status(500).json({ message: 'Error al facturar el remito.', details: error.message });
+  }
+});
+
+// Anula un remito pendiente (no se borra: queda registrado como ANULADO).
+app.put('/api/remitos/:id_remito/anular', async (req, res) => {
+  try {
+    const { error, remito } = await buscarRemitoPendiente(req.params.id_remito);
+    if (error) {
+      return res.status(error.status).json({ message: error.message });
+    }
+
+    const remitoAnulado = await prisma.REMITOS.update({
+      where: { id_remito: remito.id_remito },
+      data: { id_estado: ESTADO_ANULADO },
+      include: remitosInclude,
+    });
+
+    res.status(200).json(remitoAnulado);
+  } catch (error) {
+    console.error('Error al anular el remito:', error);
+    res.status(500).json({ message: 'Error al anular el remito.', details: error.message });
   }
 });
 
@@ -990,7 +1336,8 @@ app.post('/api/print', async (req, res) => {
     const { respuesta: printResponse, resultado: printResult } = await enviarTrabajoDeImpresion({
       tipo: 'barcode',
       id_articulo: articulo.id_articulo,
-      barcode: articulo.barcode_tail,
+      barcode_header: articulo.barcode_header,
+      barcode_tail: articulo.barcode_tail,
       descripcion: articulo.descripcion,
       precio: articulo.precio,
       talle: articulo.talle,

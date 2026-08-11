@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { RemitoConDetalles, VentaImpresa } from '../../../backend/types';
+import type { RemitoConDetalles } from '../../../backend/types';
 import RemitoCard from '../RemitoCard';
 import SectionWrapper from '../SectionWrapper';
 

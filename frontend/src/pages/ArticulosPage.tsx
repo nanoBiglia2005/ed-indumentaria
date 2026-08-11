@@ -526,11 +526,11 @@ function ArticulosPage() {
       filtro: { tipo: 'seleccion', getValores: (item) => subgruposDeArticulo.get(item.id_articulo) ?? [] },
     },
     {
-      header: 'Color',
+      header: 'Color/Modelo',
       render: (item) => item.detalle ?? 'Sin Detalle',
       extraClassName: (item) => (!item.detalle ? 'text-gray-400 text-sm flex justify-center' : ''),
       campo: 'detalle',
-      width: 130,
+      width: 160,
       filtroKey: 'detalle',
       filtro: { tipo: 'texto' },
     },

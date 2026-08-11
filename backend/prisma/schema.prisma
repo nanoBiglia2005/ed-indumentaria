@@ -192,8 +192,8 @@ model USUARIOS {
   id_usuario        Int                 @id(map: "usuarios_pk") @default(autoincrement())
   nombre            String?             @db.VarChar(20)
   apellido          String?             @db.VarChar(20)
-  email             String?             @db.VarChar(20)
-  contrase_a        String?             @map("contraseña") @db.VarChar(32)
+  email             String?             @unique(map: "usuarios_email_key") @db.VarChar(255)
+  rol               rol_usuario?
   REGISTRO_USUARIOS REGISTRO_USUARIOS[]
 }
 
@@ -203,6 +203,7 @@ model GRUPOS_DE_VENTA {
   tipo_grupo              tipo_operacion?
   ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
   CLIENTES                CLIENTES[]
+  GRUPOS_X_LINEAS         GRUPOS_X_LINEAS[]
   SUBGRUPOS_DE_VENTA      SUBGRUPOS_DE_VENTA[]
 }
 
@@ -233,13 +234,28 @@ model ARTICULOS_X_CLIENTE {
 }
 
 model LINEAS {
-  id_linea     Int         @id(map: "lineas_pk") @default(autoincrement())
-  nombre_linea String      @db.VarChar(20)
-  ARTICULOS    ARTICULOS[]
+  id_linea        Int               @id(map: "lineas_pk") @default(autoincrement())
+  nombre_linea    String            @db.VarChar(20)
+  ARTICULOS       ARTICULOS[]
+  GRUPOS_X_LINEAS GRUPOS_X_LINEAS[]
+}
+
+model GRUPOS_X_LINEAS {
+  id_registro     Int             @id(map: "grupos_x_lineas_pk") @default(autoincrement())
+  id_grupo        Int
+  id_linea        Int
+  GRUPOS_DE_VENTA GRUPOS_DE_VENTA @relation(fields: [id_grupo], references: [id_grupo], onDelete: Cascade, map: "grupos_x_lineas_grupos_de_venta_fk")
+  LINEAS          LINEAS          @relation(fields: [id_linea], references: [id_linea], onDelete: Cascade, map: "grupos_x_lineas_lineas_fk")
 }
 
 enum tipo_operacion {
   compra
   venta
   X
+}
+
+enum rol_usuario {
+  empleado
+  admin
+  superadmin
 }

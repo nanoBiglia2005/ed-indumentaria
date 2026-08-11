@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useCsrfToken, useSession } from './SessionContext';
 
 type ItemId = 'articulos' | 'ventas' | 'configuracion' | 'historial';
 
 const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
   {
     id: 'articulos',
-    ruta: '/articulos',
+    ruta: '/gestion/articulos',
     nombre: 'Articulos',
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
@@ -18,7 +19,7 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
   },
   {
     id: 'ventas',
-    ruta: '/ventas',
+    ruta: '/gestion/ventas',
     nombre: 'Ventas',
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
@@ -28,7 +29,7 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
   },
   {
     id: 'historial',
-    ruta: '/historial',
+    ruta: '/gestion/historial',
     nombre: 'Historial',
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
@@ -43,7 +44,7 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
   },
   {
     id: 'configuracion',
-    ruta: '/configuracion',
+    ruta: '/gestion/configuracion',
     nombre: 'Configuración',
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
@@ -58,6 +59,8 @@ function Sidebar() {
   const [presionado, setPresionado] = useState<ItemId | null>(null);
   const [expandido, setExpandido] = useState(false);
   const asideRef = useRef<HTMLElement>(null);
+  const { user } = useSession();
+  const csrfToken = useCsrfToken();
 
   // Fuera de md la sidebar queda compacta (solo iconos); un click en
   // cualquier parte de ella la expande, y un click afuera la vuelve a cerrar.
@@ -94,6 +97,7 @@ function Sidebar() {
           expandido ? 'w-56 shadow-xl' : 'w-16'
         } md:w-56`}
       >
+        <img src='/img/ED Indumentaria Deportiva.png'></img>
         <nav className='flex flex-col gap-1'>
           {ITEMS.map((item) => {
             const clickeado = presionado === item.id;
@@ -139,6 +143,43 @@ function Sidebar() {
             );
           })}
         </nav>
+
+        {user && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`mt-auto flex flex-col gap-3 border-t border-black/10 pt-4 ${
+              expandido ? 'items-start' : 'items-center md:items-start'
+            }`}
+          >
+            <span
+              className={`whitespace-nowrap overflow-hidden text-sm font-semibold text-gray-700 ${
+                expandido ? 'inline' : 'hidden md:inline'
+              }`}
+            >
+              {user.nombre} {user.apellido}
+            </span>
+            <form method='POST' action='/auth/signout'>
+              <input type='hidden' name='csrfToken' value={csrfToken ?? ''} />
+              <input type='hidden' name='callbackUrl' value='/' />
+              <button
+                type='submit'
+                disabled={!csrfToken}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg font-semibold text-sm cursor-pointer text-gray-600 transition-all duration-150 ease-in hover:bg-amber-100 hover:text-amber-600 disabled:opacity-50 ${
+                  expandido ? 'justify-start' : 'justify-center md:justify-start'
+                }`}
+              >
+                <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5 shrink-0'>
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    d='M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M18 12H8.25m9.75 0l-3-3m3 3l-3 3'
+                  />
+                </svg>
+                <span className={`whitespace-nowrap ${expandido ? 'inline' : 'hidden md:inline'}`}>Cerrar sesión</span>
+              </button>
+            </form>
+          </div>
+        )}
       </aside>
     </>
   );

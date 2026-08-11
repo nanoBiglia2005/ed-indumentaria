@@ -2,3 +2,4 @@ websockets==14.1
 python-dotenv==1.0.1
 pywin32>=308
 certifi==2025.1.31
+Pillow==11.1.0

@@ -32,7 +32,8 @@ def handle_print_job(payload: dict) -> None:
     tipo = payload.get("tipo") or "barcode"
 
     if tipo == "barcode":
-        imprimir_barcode(payload["barcode"], printer_name=PRINTER_NAME)
+        codigo = (payload["barcode_header"] or "779000") + payload["barcode_tail"]
+        imprimir_barcode(codigo, descripcion=payload.get("descripcion"), printer_name=PRINTER_NAME)
     elif tipo == "remito":
         imprimir_remito(payload, printer_name=PRINTER_NAME, columnas=PRINTER_COLUMNS)
     else:

@@ -1,7 +1,9 @@
 import textwrap
 import unicodedata
+from pathlib import Path
 
 import win32print
+from PIL import Image
 
 # La "ñ" no tiene un equivalente ASCII de una sola letra al separar el acento
 # (unicodedata la deja en "n"), asi que se reemplaza a mano antes de normalizar.
@@ -15,6 +17,17 @@ GS = b'\x1D'
 
 # Ancho del papel en caracteres con la fuente A (80mm ~ 48, 58mm ~ 32).
 ANCHO_TICKET_POR_DEFECTO = 48
+
+# Ancho del papel en puntos (dots) a 203dpi: 48 caracteres * ~12 dots/caracter
+# de Fuente A. Se usa para redimensionar imagenes al ancho imprimible.
+ANCHO_PAPEL_DOTS = ANCHO_TICKET_POR_DEFECTO * 12
+
+# El logo se imprime mas chico que el ancho del papel, centrado.
+ANCHO_LOGO_DOTS = round(ANCHO_PAPEL_DOTS * 0.40)
+
+# El logo viaja junto a este script (no se referencia frontend/public, que no
+# existe en la PC del cliente donde se instala este servicio por separado).
+RUTA_LOGO = Path(__file__).resolve().parent / "assets" / "logo.png"
 
 # Tickets identicos por venta: uno para el cliente y otro para el local.
 COPIAS_REMITO = 2
@@ -50,6 +63,57 @@ def _texto(valor) -> bytes:
         texto = texto.replace(original, reemplazo)
     texto = unicodedata.normalize("NFKD", texto)
     return texto.encode("ascii", errors="ignore")
+
+
+def _imagen_raster(
+    ruta: Path, ancho_dots: int, ancho_imagen_dots: int | None = None, alineacion: str = "centro"
+) -> bytes:
+    """Convierte una imagen a los bytes que espera GS v 0 (impresion raster
+    ESC/POS): la redimensiona preservando la relacion de aspecto, aplana la
+    transparencia sobre fondo blanco (la impresora no tiene canal alfa), la
+    pasa a blanco y negro puro (con dithering para que los grises no queden
+    en bloques duros) y empaqueta los pixeles a 1 bit por punto, 8 puntos
+    por byte.
+
+    Si `ancho_imagen_dots` es mas chico que `ancho_dots`, la imagen se dibuja
+    a ese tamaño reducido dentro de un lienzo del ancho total del papel (con
+    margen blanco), ubicada segun `alineacion` ("centro" o "izquierda"): GS
+    v 0 no respeta el comando de justificacion de texto (ESC a), asi que la
+    posicion se arma a mano en los propios pixeles en vez de confiar en eso.
+    """
+    ancho_imagen_dots = ancho_imagen_dots or ancho_dots
+    imagen = Image.open(ruta)
+
+    if imagen.mode in ("RGBA", "LA") or (imagen.mode == "P" and "transparency" in imagen.info):
+        imagen = imagen.convert("RGBA")
+        fondo = Image.new("RGB", imagen.size, "white")
+        fondo.paste(imagen, mask=imagen.split()[-1])
+        imagen = fondo
+
+    ancho_original, alto_original = imagen.size
+    alto_dots = round(alto_original * (ancho_imagen_dots / ancho_original))
+    imagen = imagen.convert("L").resize((ancho_imagen_dots, alto_dots))
+    imagen = imagen.convert("1")  # blanco y negro puro (dithering Floyd-Steinberg por defecto)
+
+    if ancho_imagen_dots < ancho_dots:
+        margen = (ancho_dots - ancho_imagen_dots) // 2 if alineacion == "centro" else 0
+        lienzo = Image.new("1", (ancho_dots, alto_dots), 1)  # 1 = blanco en modo "1"
+        lienzo.paste(imagen, (margen, 0))
+        imagen = lienzo
+
+    ancho_bytes = (ancho_dots + 7) // 8
+    pixeles = imagen.load()
+    datos = bytearray(ancho_bytes * alto_dots)
+    for y in range(alto_dots):
+        fila = y * ancho_bytes
+        for x in range(ancho_dots):
+            # En modo "1" de Pillow 0 = negro, 255 = blanco: se invierte
+            # porque GS v 0 espera bit=1 para "imprimir" (negro).
+            if pixeles[x, y] == 0:
+                datos[fila + x // 8] |= 0x80 >> (x % 8)
+
+    encabezado = bytes([ancho_bytes % 256, ancho_bytes // 256, alto_dots % 256, alto_dots // 256])
+    return GS + b'v0\x00' + encabezado + bytes(datos)
 
 
 def _formato_numero(numero: float, decimales: int) -> str:
@@ -164,23 +228,39 @@ def _fila_articulo(
     ]
 
 
-def imprimir_barcode(codigo, printer_name: str | None = None) -> None:
+def imprimir_barcode(codigo, descripcion: str | None = None, printer_name: str | None = None) -> None:
     data = bytearray()
+
+    data += ESC + b'@'  # inicializar
+
+    # Logo arriba a la izquierda
+    data += ESC + b'a\x00'
+    data += _imagen_raster(RUTA_LOGO, ANCHO_PAPEL_DOTS, ancho_imagen_dots=ANCHO_LOGO_DOTS, alineacion="izquierda")
+    data += b'\n'
 
     data += ESC + b'a\x01'
 
+    if descripcion:
+        data += ESC + b'E\x01'
+        data += _texto(f"{descripcion}\n")
+        data += ESC + b'E\x00'
+
     data += GS + b'h' + bytes([160])  # alto
-    data += GS + b'w' + bytes([4])    # ancho de barra
+    # Ancho de barra angosto (2, no 4): con header+tail el codigo puede tener
+    # hasta 26 caracteres (Code Set B ocupa un simbolo completo por caracter,
+    # a diferencia de Set C que empaqueta 2 digitos por simbolo), y a un
+    # modulo mas ancho el codigo no entra en el papel y la impresora lo
+    # descarta en silencio (sin tirar ningun error).
+    data += GS + b'w' + bytes([2])
     data += GS + b'H' + bytes([0])    # sin HRI automatico: el texto de abajo lo imprimimos nosotros con el prefijo
     data += GS + b'f' + bytes([0])    # fuente del HRI
 
-    barcode_texto = f"{codigo}"
-    barcode_contenido = b'{B' + barcode_texto.encode("ascii")
+    barcode_contenido = b'{B' + codigo.encode("ascii")
 
     data += GS + b'k' + bytes([73, len(barcode_contenido)]) + barcode_contenido
 
-    # Texto legible con el prefijo completo, debajo del codigo
-    data += _texto(f"77900000{codigo}\n")
+    # Texto legible debajo del codigo
+    data += _texto(f"{codigo}\n")
 
     # Izquierda de nuevo
     data += ESC + b'a\x00'
