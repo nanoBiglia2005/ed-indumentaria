@@ -1,17 +1,18 @@
-/** Cantidad maxima de digitos que puede tener un codigo de barra completo
- * (header + tail), en linea con los limites `@db.VarChar(6)` / `@db.VarChar(20)`
- * de la base. */
-export const BARCODE_HEADER_MAX = 6;
-export const BARCODE_TAIL_MAX = 20;
+// El prefijo generico y los limites de digitos tienen una unica fuente,
+// shared/barcode.json: el backend arma el MISMO codigo completo en SQL para
+// filtrar y ordenar la columna Codigo, asi que si aca se duplicaran los valores
+// y uno de los dos cambiara, buscar por codigo dejaria de encontrar.
+import { BARCODE_HEADER_GENERICO, BARCODE_HEADER_MAX, BARCODE_TAIL_MAX } from '@backend/types';
+
+export { BARCODE_HEADER_GENERICO, BARCODE_HEADER_MAX, BARCODE_TAIL_MAX };
+
+/** Cantidad maxima de digitos que puede tener un codigo de barra completo. */
 export const BARCODE_MAX = BARCODE_HEADER_MAX + BARCODE_TAIL_MAX;
 
-/** Prefijo generico que asume la base cuando un articulo no tiene header propio. */
-export const BARCODE_HEADER_GENERICO = '779000';
-
 /**
- * Divide un codigo de barra ingresado a mano en header (primeros 6 digitos)
- * y tail (el resto). Si el campo esta vacio ambos quedan en null; si tiene
- * 6 digitos o menos, tail queda en null.
+ * Divide un codigo de barra ingresado a mano en header (los primeros
+ * BARCODE_HEADER_MAX digitos) y tail (el resto). Si el campo esta vacio ambos
+ * quedan en null; si no supera el largo del header, tail queda en null.
  */
 export function dividirBarcodeManual(digitos: string): {
   barcode_header: string | null;
@@ -45,8 +46,10 @@ export function combinarBarcode(
 
 /**
  * Codigo de barras completo para MOSTRAR: si el articulo no tiene header
- * propio se antepone el prefijo generico 779000 (igual que hace la base al
+ * propio se antepone BARCODE_HEADER_GENERICO (igual que hace la base al
  * imprimir). Devuelve null si no hay ningun dato de barcode.
+ * El backend replica esta misma logica en SQL (lib/articulosConsulta.js) para
+ * que el filtro y el orden por Codigo coincidan con lo que se ve.
  */
 export function codigoBarcodeCompleto(
   header: string | null | undefined,

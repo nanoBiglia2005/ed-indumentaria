@@ -20,8 +20,9 @@
   se descartó un factory genérico porque los cuatro desvían en validaciones reales
   (filtros, campos extra, chequeos de padre). No introducir un factory con flags.
 - Lógica de negocio (precios, remitos, impresión) va en `services/`, nunca en el handler.
-- Constantes compartidas con el frontend: `shared/ventas.json` (única fuente). CJS las lee
-  vía `constants/ventas.js`; el frontend vía `types.ts`.
+- Constantes compartidas con el frontend: un JSON por dominio en `shared/`
+  (`ventas.json`, `agrupaciones.json`, `barcode.json`) es la única fuente. CJS las lee vía
+  `constants/<dominio>.js`; el frontend vía `types.ts`. Nunca duplicar el valor literal.
 
 ## Frontend
 - El frontend importa del backend SOLO `@backend/types`. Prohibido importar
@@ -48,6 +49,20 @@
   en tailwind). Utilizar estos colores para botones, hovers, borders, etc.
 - El desarrollo debe ser enfocado en uso en resoluciones de pantalla altas (PC) pero los
   elementos de la página deben adaptarse a resoluciones más pequeñas (Celular).
+
+## Flujo de trabajo
+- ¡IMPORTANTE! La aplicación está EN USO mientras se desarrolla: modificar un módulo en uso
+  interrumpe el trabajo de otro usuario. Nunca editar directamente un módulo en producción:
+  crear una COPIA DE PRUEBA con sufijo `Prueba` (`<Pagina>Prueba.tsx`,
+  `routes/<dominio>Prueba.js`) y trabajar sobre ella.
+- Los módulos genuinamente nuevos (que no sombrean nada en uso) van con su nombre definitivo.
+- El ambiente de prueba vive en rutas paralelas (`/api/<dominio>-prueba`,
+  `/gestion/<pagina>-prueba`), de forma que la página original siga funcionando idéntica.
+- De los archivos originales solo se toca el cableado mínimo y ADITIVO que hace alcanzable la
+  copia: montar el router en `index.js`, agregar la `<Route>` en `main.tsx`. Nada más.
+- El reemplazo de los originales por las copias lo indica el usuario EXPLÍCITAMENTE. Hasta
+  entonces no se borran ni se sobrescriben los originales.
+  -Las páginas de prueba deberán ser accesibles solo por usuarios con rol de "superadmin"
 
 ## General
 - ¡IMPORTANTE! La aplicación será hosteada en una máquina de Ubuntu en la nube (DonWeb), realizar el desarrollo teniendo en cuenta que vaya a funcionar al migrar. 

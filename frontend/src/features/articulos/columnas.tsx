@@ -1,6 +1,7 @@
-import type { ARTICULOS, LINEAS } from '@backend/types';
+import type { LINEAS } from '@backend/types';
 import type { ColumnaTabla, OpcionFiltro } from '@/components/tabla/tipos';
 import type { CampoEditable } from '@/features/articulos/modales/EditFieldModal';
+import type { ArticuloListado } from '@/api/articulos';
 import { codigoBarcodeCompleto } from '@/utils/barcode';
 
 // Medidas historicas de la tabla de articulos.
@@ -47,17 +48,15 @@ const formatearListaConLimite = (nombres: string[], maximo = 2) => {
 interface DepsColumnas {
   lineas: LINEAS[];
   /** Grupo del articulo: siempre hay uno (a lo sumo "No Asignado"). */
-  grupoDeArticulo: (articulo: ARTICULOS) => OpcionFiltro | null;
+  grupoDeArticulo: (articulo: ArticuloListado) => OpcionFiltro | null;
   /** Subgrupo del articulo: uno o ninguno. */
-  subgrupoDeArticulo: (articulo: ARTICULOS) => OpcionFiltro | null;
-  clientesDeArticulo: Map<number, OpcionFiltro[]>;
-  clientesPorArticulo: Map<number, string[]>;
-  abrirEdicionGrupo: (articulo: ARTICULOS) => void;
-  abrirEdicionClientes: (articulo: ARTICULOS) => void;
-  abrirEdicionSubgrupo: (articulo: ARTICULOS) => void;
-  abrirEdicionLinea: (articulo: ARTICULOS) => void;
-  abrirEdicionCampo: (articulo: ARTICULOS, campo: CampoEditable) => void;
-  onToggleVigente: (articulo: ARTICULOS) => void;
+  subgrupoDeArticulo: (articulo: ArticuloListado) => OpcionFiltro | null;
+  abrirEdicionGrupo: (articulo: ArticuloListado) => void;
+  abrirEdicionClientes: (articulo: ArticuloListado) => void;
+  abrirEdicionSubgrupo: (articulo: ArticuloListado) => void;
+  abrirEdicionLinea: (articulo: ArticuloListado) => void;
+  abrirEdicionCampo: (articulo: ArticuloListado, campo: CampoEditable) => void;
+  onToggleVigente: (articulo: ArticuloListado) => void;
 }
 
 /** Envuelve un valor unico (o su ausencia) en la lista que espera el filtro. */
@@ -67,20 +66,26 @@ const comoValores = (opcion: OpcionFiltro | null): OpcionFiltro[] => (opcion ? [
  * Las 13 columnas de la tabla de articulos. Las columnas editables abren su
  * modal correspondiente via onClick (editor de campo, o el modal de la
  * asociacion). Para agregar una columna nueva: agregar una entrada aca.
+ *
+ * El filtrado y el orden NO corren en memoria: los resuelve la base. `filtro` y
+ * `ordenValor` se conservan igual porque son la definicion que el backend
+ * traduce a SQL a partir del `filtroKey` de cada columna (ver
+ * backend/lib/articulosConsulta.js): una columna nueva necesita su entrada alla
+ * para poder filtrarse y ordenarse.
  */
 export function crearColumnasArticulos({
   lineas,
   grupoDeArticulo,
   subgrupoDeArticulo,
-  clientesDeArticulo,
-  clientesPorArticulo,
   abrirEdicionGrupo,
   abrirEdicionClientes,
   abrirEdicionSubgrupo,
   abrirEdicionLinea,
   abrirEdicionCampo,
   onToggleVigente,
-}: DepsColumnas): ColumnaTabla<ARTICULOS>[] {
+}: DepsColumnas): ColumnaTabla<ArticuloListado>[] {
+  const nombresDeClientes = (item: ArticuloListado) => item.clientes.map((c) => c.nombre);
+
   return [
     {
       header: 'Código',
@@ -102,15 +107,14 @@ export function crearColumnasArticulos({
     },
     {
       header: 'Colegios/Clubes',
-      render: (item) =>
-        formatearListaConLimite(clientesPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Colegios/Clubes',
+      render: (item) => formatearListaConLimite(nombresDeClientes(item)) ?? 'Sin Colegios/Clubes',
       renderCell: (item) => (
-        <ListaDeChips nombres={clientesPorArticulo.get(item.id_articulo) ?? []} vacioTexto='Sin Colegios/Clubes' />
+        <ListaDeChips nombres={nombresDeClientes(item)} vacioTexto='Sin Colegios/Clubes' />
       ),
       onClick: (item) => abrirEdicionClientes(item),
       width: 175,
       filtroKey: 'colegios',
-      filtro: { tipo: 'seleccion', getValores: (item) => clientesDeArticulo.get(item.id_articulo) ?? [] },
+      filtro: { tipo: 'seleccion', getValores: (item) => item.clientes },
     },
     {
       header: 'Línea',

@@ -1,35 +1,30 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import type {
-  ARTICULOS,
-  GRUPOS_DE_VENTA,
-  CLIENTES,
-  ARTICULOS_X_CLIENTE,
-  SUBGRUPOS_DE_VENTA,
-  LINEAS,
-} from '@backend/types';
+// Tabla de articulos, paginada EN LA BASE: la tabla no se carga entera. Los
+// filtros de pagina, la busqueda, los filtros por columna, el orden y la
+// paginacion viajan al backend como parametros y vuelven 30 filas + el total
+// que coincide (ver api/articulos.ts y backend/lib/articulosConsulta.js).
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import type { GRUPOS_DE_VENTA, CLIENTES, SUBGRUPOS_DE_VENTA, LINEAS } from '@backend/types';
 import DataGrid from '@/components/tabla/DataGrid';
-import { useTablaFiltrable } from '@/components/tabla/useTablaFiltrable';
+import Paginador from '@/components/tabla/Paginador';
+import { useTablaServidor } from '@/components/tabla/useTablaServidor';
+import { SIN_ASIGNAR_ID } from '@/components/tabla/tipos';
 import type { OpcionFiltro } from '@/components/tabla/tipos';
 import SearchInput from '@/components/ui/SearchInput';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToggleSet } from '@/hooks/useToggleSet';
-import { normalizarBusqueda } from '@/utils/texto';
 import { ApiError, mensajeDetallesPrimero } from '@/api/cliente';
 import {
-  listarArticulos,
-  listarArticulosXCliente,
+  listarArticulosPagina,
+  listarIdsArticulos,
+  listarOpcionesColumna,
   actualizarArticulo,
   eliminarArticulo,
   asignarCliente,
   quitarCliente,
   imprimirBarcode,
 } from '@/api/articulos';
-import {
-  listarGrupos,
-  listarSubgrupos,
-  listarClientes,
-  listarLineas,
-} from '@/api/agrupaciones';
+import type { ArticuloListado, ParamsArticulos } from '@/api/articulos';
+import { listarGrupos, listarSubgrupos, listarClientes, listarLineas } from '@/api/agrupaciones';
 import CreateArticleModal from '@/features/articulos/modales/CreateArticleModal';
 import EditRelacionesModal from '@/features/articulos/modales/EditRelacionesModal';
 import type { TextosRelacion } from '@/features/articulos/modales/EditRelacionesModal';
@@ -54,6 +49,15 @@ import {
 import FilterDropdown from './FilterDropdown';
 import ToolbarSeleccionArticulos from './ToolbarSeleccionArticulos';
 
+const TAMANO_PAGINA = 30;
+
+/** Opciones de un filtro de seleccion, con la consulta que las produjo. */
+interface OpcionesCargadas {
+  columna: string;
+  params: ParamsArticulos;
+  valores: OpcionFiltro[];
+}
+
 const TEXTOS_EDITAR_CLIENTES: TextosRelacion = {
   titulo: 'Editar Colegios/Clubes',
   label: 'Colegios/Clubes',
@@ -61,10 +65,6 @@ const TEXTOS_EDITAR_CLIENTES: TextosRelacion = {
   textoVacio: 'No asignado a ningún cliente',
   errorSync: 'Hubo un error al actualizar los colegios/clubes asociados.',
 };
-
-// Desempate final del orden (esta tabla ordena talles alfabeticamente; la del
-// modal de venta los ordena numericamente cuando puede).
-const desempateTalle = (a: ARTICULOS, b: ARTICULOS) => (a.talle ?? '').localeCompare(b.talle ?? '');
 
 // Mensaje de error de impresion: el print-service responde a veces con
 // { message } y a veces con { detail } (FastAPI).
@@ -77,25 +77,37 @@ const mensajeErrorImpresion = (err: unknown) => {
 };
 
 function ArticulosPage() {
-  const [datosBackend, setDatosBackend] = useState<ARTICULOS[]>([]);
+  // --- Pagina actual de articulos (lo unico que se trae de la tabla) ---
+  const [articulos, setArticulos] = useState<ArticuloListado[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [cargando, setCargando] = useState(true);
+  // Se incrementa para volver a pedir la pagina actual tras una edicion.
+  const [recarga, setRecarga] = useState(0);
 
+  // --- Catalogos completos (tablas chicas, se cargan una vez) ---
   const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
   const [clientes, setClientes] = useState<CLIENTES[]>([]);
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
   const [lineas, setLineas] = useState<LINEAS[]>([]);
-
-  const [articulosXCliente, setArticulosXCliente] = useState<ARTICULOS_X_CLIENTE[]>([]);
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<number | null>(null);
   const [subgrupoSeleccionado, setSubgrupoSeleccionado] = useState<number | null>(null);
 
   const [busquedaInput, setBusquedaInput] = useState('');
-  const busqueda = useDebounce(busquedaInput, 150).trim();
+  // Un poco mas largo que en la original: cada tecleo es una consulta a la base.
+  const busqueda = useDebounce(busquedaInput, 300).trim();
+
+  // Opciones del filtro de seleccion abierto (las resuelve la base). Se guardan
+  // junto con la columna y los parametros con los que se calcularon: mientras
+  // esa marca no coincida con el filtro que se acaba de abrir, las opciones que
+  // hay en memoria son de otra consulta y no se muestran.
+  const [opciones, setOpciones] = useState<OpcionesCargadas | null>(null);
 
   // --- Modales (booleans separados + el articulo activo) ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [articuloAEditar, setArticuloAEditar] = useState<ARTICULOS | null>(null);
+  const [articuloAEditar, setArticuloAEditar] = useState<ArticuloListado | null>(null);
   const [isEditGrupoOpen, setIsEditGrupoOpen] = useState(false);
   const [isEditClientesOpen, setIsEditClientesOpen] = useState(false);
   const [isEditSubgrupoOpen, setIsEditSubgrupoOpen] = useState(false);
@@ -110,22 +122,13 @@ function ArticulosPage() {
   const [imprimiendoId, setImprimiendoId] = useState<number | null>(null);
   const [impresoId, setImpresoId] = useState<number | null>(null);
   const [actualizandoMasivo, setActualizandoMasivo] = useState(false);
+  const [seleccionandoTodos, setSeleccionandoTodos] = useState(false);
 
   const { seleccionados, toggle: toggleSeleccion, setSeleccionados } = useToggleSet<number>();
 
-  // --- Carga de datos (si algo falla solo se loguea, como siempre) ---
-  const fetchArticulos = () => {
-    listarArticulos()
-      .then(setDatosBackend)
-      .catch((error) => console.error('Error al conectar con el backend:', error));
-  };
+  const recargarPagina = useCallback(() => setRecarga((n) => n + 1), []);
 
-  const fetchArticulosXCliente = () => {
-    listarArticulosXCliente()
-      .then(setArticulosXCliente)
-      .catch((error) => console.error('Error al obtener ARTICULOS_X_CLIENTE:', error));
-  };
-
+  // --- Carga de los catalogos (si algo falla solo se loguea, como siempre) ---
   const fetchGrupos = () => {
     listarGrupos()
       .then(setGrupos)
@@ -151,12 +154,10 @@ function ArticulosPage() {
   };
 
   useEffect(() => {
-    fetchArticulos();
     fetchGrupos();
     fetchClientes();
     fetchSubgrupos();
     fetchLineas();
-    fetchArticulosXCliente();
   }, []);
 
   const handleAgrupacionCreada = (opcion: { id: number; nombre: string }) => {
@@ -173,45 +174,56 @@ function ArticulosPage() {
     setCrearModalTipo(null);
   };
 
-  const handleArticuloActualizado = () => {
-    fetchArticulos();
-    fetchArticulosXCliente();
+  // Tras editar/crear un articulo alcanza con volver a pedir la pagina actual.
+  const handleArticuloActualizado = recargarPagina;
+
+  const handleArticuloEliminado = () => {
+    if (articuloAEditar) {
+      const id = articuloAEditar.id_articulo;
+      setSeleccionados((prev) => {
+        if (!prev.has(id)) return prev;
+        const siguiente = new Set(prev);
+        siguiente.delete(id);
+        return siguiente;
+      });
+    }
+    recargarPagina();
   };
 
   // --- Apertura de modales de edicion ---
-  const abrirEdicionGrupo = useCallback((articulo: ARTICULOS) => {
+  const abrirEdicionGrupo = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
     setIsEditGrupoOpen(true);
   }, []);
 
-  const abrirEdicionClientes = useCallback((articulo: ARTICULOS) => {
+  const abrirEdicionClientes = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
     setIsEditClientesOpen(true);
   }, []);
 
-  const abrirEdicionSubgrupo = useCallback((articulo: ARTICULOS) => {
+  const abrirEdicionSubgrupo = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
     setIsEditSubgrupoOpen(true);
   }, []);
 
-  const abrirEdicionLinea = useCallback((articulo: ARTICULOS) => {
+  const abrirEdicionLinea = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
     setIsEditLineaOpen(true);
   }, []);
 
-  const abrirEliminacion = useCallback((articulo: ARTICULOS) => {
+  const abrirEliminacion = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
     setIsEliminarModalOpen(true);
   }, []);
 
-  const abrirEdicionCampo = useCallback((articulo: ARTICULOS, campo: CampoEditable) => {
+  const abrirEdicionCampo = useCallback((articulo: ArticuloListado, campo: CampoEditable) => {
     setArticuloAEditar(articulo);
     setCampoAEditar(campo);
     setIsFieldModalOpen(true);
   }, []);
 
   // --- Acciones por fila ---
-  const handleImprimir = async (articulo: ARTICULOS) => {
+  const handleImprimir = async (articulo: ArticuloListado) => {
     setImprimiendoId(articulo.id_articulo);
     try {
       const resultado = (await imprimirBarcode(articulo.id_articulo, 1)) as {
@@ -233,17 +245,20 @@ function ArticulosPage() {
     }
   };
 
-  const handleToggleVigente = useCallback(async (articulo: ARTICULOS) => {
-    try {
-      await actualizarArticulo(articulo.id_articulo, { vigente: !articulo.vigente });
-      fetchArticulos();
-    } catch (error) {
-      alert(mensajeDetallesPrimero(error, 'No se pudo actualizar la vigencia del articulo.'));
-    }
-  }, []);
+  const handleToggleVigente = useCallback(
+    async (articulo: ArticuloListado) => {
+      try {
+        await actualizarArticulo(articulo.id_articulo, { vigente: !articulo.vigente });
+        recargarPagina();
+      } catch (error) {
+        alert(mensajeDetallesPrimero(error, 'No se pudo actualizar la vigencia del articulo.'));
+      }
+    },
+    [recargarPagina]
+  );
 
   // --- Grupo y subgrupo: campos propios del articulo (relacion uno-a-muchos),
-  // se resuelven contra las listas ya cargadas ---
+  // se resuelven contra los catalogos ya cargados ---
   const grupoPorId = useMemo(
     () =>
       new Map(
@@ -258,34 +273,15 @@ function ArticulosPage() {
   );
 
   const grupoDeArticulo = useCallback(
-    (articulo: ARTICULOS): OpcionFiltro | null => grupoPorId.get(articulo.id_grupo) ?? null,
+    (articulo: ArticuloListado): OpcionFiltro | null => grupoPorId.get(articulo.id_grupo) ?? null,
     [grupoPorId]
   );
 
   const subgrupoDeArticulo = useCallback(
-    (articulo: ARTICULOS): OpcionFiltro | null =>
+    (articulo: ArticuloListado): OpcionFiltro | null =>
       articulo.id_subgrupo === null ? null : subgrupoPorId.get(articulo.id_subgrupo) ?? null,
     [subgrupoPorId]
   );
-
-  const clientesDeArticulo = useMemo(() => {
-    const mapa = new Map<number, OpcionFiltro[]>();
-    for (const registro of articulosXCliente) {
-      const cliente = clientes.find((c) => c.id_cliente === registro.id_cliente);
-      if (!cliente) continue;
-      const opcion = { id: cliente.id_cliente, nombre: cliente.nombre };
-      const lista = mapa.get(registro.id_articulo) ?? [];
-      if (!lista.some((o) => o.id === opcion.id)) lista.push(opcion);
-      mapa.set(registro.id_articulo, lista);
-    }
-    return mapa;
-  }, [articulosXCliente, clientes]);
-
-  const clientesPorArticulo = useMemo(() => {
-    const mapa = new Map<number, string[]>();
-    for (const [id, opciones] of clientesDeArticulo) mapa.set(id, opciones.map((o) => o.nombre));
-    return mapa;
-  }, [clientesDeArticulo]);
 
   const columnas = useMemo(
     () =>
@@ -293,8 +289,6 @@ function ArticulosPage() {
         lineas,
         grupoDeArticulo,
         subgrupoDeArticulo,
-        clientesDeArticulo,
-        clientesPorArticulo,
         abrirEdicionGrupo,
         abrirEdicionClientes,
         abrirEdicionSubgrupo,
@@ -306,8 +300,6 @@ function ArticulosPage() {
       lineas,
       grupoDeArticulo,
       subgrupoDeArticulo,
-      clientesDeArticulo,
-      clientesPorArticulo,
       abrirEdicionGrupo,
       abrirEdicionClientes,
       abrirEdicionSubgrupo,
@@ -317,79 +309,138 @@ function ArticulosPage() {
     ]
   );
 
-  // --- Filtros de pagina (dropdowns + busqueda global) ---
-  const articulosBase = useMemo(() => {
-    let resultado = datosBackend;
+  // --- Estado de filtros por columna + multi-orden (sin filtrar en memoria) ---
+  const tabla = useTablaServidor({ columnas, opciones: opciones?.valores ?? [] });
 
-    if (grupoSeleccionado !== null) {
-      resultado = resultado.filter((articulo) => articulo.id_grupo === grupoSeleccionado);
-    }
+  // Todo lo que define QUE filas pide la tabla. Cambia de identidad solo cuando
+  // cambia algun filtro, la busqueda o el orden: la pagina no entra aca.
+  const params = useMemo<ParamsArticulos>(
+    () => ({
+      busqueda,
+      idGrupo: grupoSeleccionado,
+      idSubgrupo: subgrupoSeleccionado,
+      idCliente: clienteSeleccionado,
+      filtros: tabla.filtrosColumna,
+      orden: tabla.ordenColumnas,
+    }),
+    [
+      busqueda,
+      grupoSeleccionado,
+      subgrupoSeleccionado,
+      clienteSeleccionado,
+      tabla.filtrosColumna,
+      tabla.ordenColumnas,
+    ]
+  );
 
-    if (grupoSeleccionado !== null && subgrupoSeleccionado !== null) {
-      resultado = resultado.filter((articulo) => articulo.id_subgrupo === subgrupoSeleccionado);
-    }
+  // Cualquier cambio de filtro/busqueda/orden vuelve a la primera pagina. Se
+  // ajusta durante el render (no en un efecto) para que la consulta salga una
+  // sola vez, ya con la pagina 1.
+  const [paramsPrevios, setParamsPrevios] = useState(params);
+  if (paramsPrevios !== params) {
+    setParamsPrevios(params);
+    setPagina(1);
+  }
 
-    if (clienteSeleccionado !== null) {
-      const idsDelCliente = new Set(
-        articulosXCliente
-          .filter((registro) => registro.id_cliente === clienteSeleccionado)
-          .map((registro) => registro.id_articulo)
-      );
-      resultado = resultado.filter((articulo) => idsDelCliente.has(articulo.id_articulo));
-    }
+  // Las respuestas pueden llegar desordenadas (una consulta lenta despues de
+  // una rapida): solo se acepta la de la ultima peticion disparada.
+  const secuenciaPagina = useRef(0);
 
-    if (busqueda !== '') {
-      const termino = normalizarBusqueda(busqueda);
-      resultado = resultado.filter((articulo) =>
-        columnas.some((columna) => normalizarBusqueda(String(columna.render(articulo) ?? '')).includes(termino))
-      );
-    }
-
-    return resultado;
-  }, [
-    datosBackend,
-    articulosXCliente,
-    grupoSeleccionado,
-    subgrupoSeleccionado,
-    clienteSeleccionado,
-    busqueda,
-    columnas,
-  ]);
-
-  // --- Motor de filtros por columna + multi-orden ---
-  const tabla = useTablaFiltrable({
-    filas: articulosBase,
-    columnas,
-    desempate: desempateTalle,
-  });
-  const articulosFiltrados = tabla.filasVisibles;
-
-  // Si un articulo seleccionado deja de existir (p.ej. fue eliminado),
-  // se lo quita de la seleccion.
   useEffect(() => {
-    setSeleccionados((prev) => {
-      if (prev.size === 0) return prev;
-      const idsExistentes = new Set(datosBackend.map((a) => a.id_articulo));
-      const siguiente = new Set([...prev].filter((id) => idsExistentes.has(id)));
-      return siguiente.size === prev.size ? prev : siguiente;
-    });
-  }, [datosBackend, setSeleccionados]);
+    const peticion = ++secuenciaPagina.current;
+    setCargando(true);
 
+    listarArticulosPagina(params, pagina, TAMANO_PAGINA)
+      .then((respuesta) => {
+        if (peticion !== secuenciaPagina.current) return;
+        setArticulos(respuesta.articulos);
+        setTotal(respuesta.total);
+        // La pagina puede quedar fuera de rango si se borraron articulos.
+        const ultima = Math.max(1, Math.ceil(respuesta.total / TAMANO_PAGINA));
+        if (pagina > ultima) setPagina(ultima);
+      })
+      .catch((error) => {
+        if (peticion !== secuenciaPagina.current) return;
+        console.error('Error al conectar con el backend:', error);
+      })
+      .finally(() => {
+        if (peticion === secuenciaPagina.current) setCargando(false);
+      });
+  }, [params, pagina, recarga]);
+
+  // Opciones del filtro de seleccion recien abierto. El backend las calcula
+  // sobre las filas que pasan todos los DEMAS filtros (igual que la tabla
+  // original, que las derivaba de las filas visibles excluyendo este filtro).
+  const columnaAbierta = tabla.columnaAbierta;
+
+  // Columna cuyas opciones hay que pedir, o null si el filtro abierto no las
+  // necesita (los de texto y rango, y "Vigente", que tiene opciones fijas).
+  const columnaQueNecesitaOpciones =
+    columnaAbierta && columnaAbierta.filtro.tipo === 'seleccion' && !columnaAbierta.filtro.opcionesEstaticas
+      ? columnaAbierta.filtroKey
+      : null;
+
+  // Hasta que las opciones sean las de ESTA columna con ESTOS filtros, el modal
+  // no se abre: si no, mostraria por un instante las de la consulta anterior.
+  const opcionesListas =
+    columnaQueNecesitaOpciones === null ||
+    (opciones !== null && opciones.columna === columnaQueNecesitaOpciones && opciones.params === params);
+
+  const secuenciaOpciones = useRef(0);
+
+  useEffect(() => {
+    if (columnaQueNecesitaOpciones === null || opcionesListas) return;
+
+    const peticion = ++secuenciaOpciones.current;
+
+    listarOpcionesColumna(params, columnaQueNecesitaOpciones)
+      .then(({ opciones: valores, haySinAsignar }) => {
+        if (peticion !== secuenciaOpciones.current) return;
+        setOpciones({
+          columna: columnaQueNecesitaOpciones,
+          params,
+          valores: haySinAsignar ? [...valores, { id: SIN_ASIGNAR_ID, nombre: 'Sin asignar' }] : valores,
+        });
+      })
+      .catch((error) => {
+        if (peticion !== secuenciaOpciones.current) return;
+        console.error('Error al obtener las opciones del filtro:', error);
+        // Se guarda vacio bajo la misma marca para que el modal abra igual en
+        // vez de quedarse esperando para siempre.
+        setOpciones({ columna: columnaQueNecesitaOpciones, params, valores: [] });
+      });
+  }, [columnaQueNecesitaOpciones, opcionesListas, params]);
+
+  // --- Seleccion: el checkbox del header opera sobre la pagina visible ---
   const todosSeleccionados =
-    articulosFiltrados.length > 0 && articulosFiltrados.every((a) => seleccionados.has(a.id_articulo));
+    articulos.length > 0 && articulos.every((a) => seleccionados.has(a.id_articulo));
 
-  // Checkbox del header: selecciona todos los articulos visibles en la lista
-  // actual; si ya estan todos seleccionados, los deselecciona.
   const handleSeleccionarTodos = () => {
     setSeleccionados((prev) => {
       const siguiente = new Set(prev);
       if (todosSeleccionados) {
-        for (const articulo of articulosFiltrados) siguiente.delete(articulo.id_articulo);
+        for (const articulo of articulos) siguiente.delete(articulo.id_articulo);
       } else {
-        for (const articulo of articulosFiltrados) siguiente.add(articulo.id_articulo);
+        for (const articulo of articulos) siguiente.add(articulo.id_articulo);
       }
       return siguiente;
     });
+  };
+
+  // Con la pagina entera marcada se ofrece extender la seleccion a todos los
+  // articulos que coinciden con los filtros (el backend devuelve solo los ids).
+  const puedeSeleccionarLosQueCoinciden = todosSeleccionados && seleccionados.size < total;
+
+  const handleSeleccionarLosQueCoinciden = async () => {
+    setSeleccionandoTodos(true);
+    try {
+      const { ids } = await listarIdsArticulos(params);
+      setSeleccionados(new Set(ids));
+    } catch (error) {
+      alert(mensajeDetallesPrimero(error, 'No se pudieron seleccionar todos los articulos.'));
+    } finally {
+      setSeleccionandoTodos(false);
+    }
   };
 
   const handleVigenciaMasiva = async (vigente: boolean) => {
@@ -403,7 +454,7 @@ function ArticulosPage() {
       if (fallidos > 0) {
         alert(`No se pudo actualizar la vigencia de ${fallidos} de ${resultados.length} articulos.`);
       }
-      fetchArticulos();
+      recargarPagina();
     } finally {
       setActualizandoMasivo(false);
     }
@@ -416,7 +467,9 @@ function ArticulosPage() {
 
     if (accionMasiva === 'eliminar') {
       const resultados = await Promise.allSettled(ids.map((id) => eliminarArticulo(id)));
-      handleArticuloActualizado();
+      // Los articulos borrados ya no existen: la seleccion arranca de cero.
+      setSeleccionados(new Set());
+      recargarPagina();
       const fallidos = resultados.filter((r) => r.status === 'rejected').length;
       if (fallidos > 0) {
         throw new Error(`No se pudieron eliminar ${fallidos} de ${ids.length} articulos.`);
@@ -465,11 +518,7 @@ function ArticulosPage() {
     }
   }, [subgruposFiltrados, subgrupoSeleccionado]);
 
-  const idsClientesDelArticulo = articuloAEditar
-    ? articulosXCliente
-        .filter((rel) => rel.id_articulo === articuloAEditar.id_articulo)
-        .map((rel) => rel.id_cliente)
-    : [];
+  const idsClientesDelArticulo = articuloAEditar ? articuloAEditar.clientes.map((c) => c.id) : [];
 
   return (
     <>
@@ -536,14 +585,14 @@ function ArticulosPage() {
             />
           </div>
 
-          <DataGrid<ARTICULOS>
-            filas={articulosFiltrados}
+          <DataGrid<ArticuloListado>
+            filas={articulos}
             columnas={columnas}
             keyDe={(item) => item.id_articulo}
             altoFila={ROW_HEIGHT}
             anchoColSeleccion={ANCHO_COL_SELECCION}
             anchoUltimaColumna='minmax(110px, 1fr)'
-            claseContenedor='flex-1 min-h-0 w-full min-w-0 overflow-auto border rounded-xl border-black/30 mb-5 select-none shadow'
+            claseContenedor='flex-1 min-h-0 w-full min-w-0 overflow-auto border rounded-xl border-black/30 select-none shadow'
             estiloCeldaTexto={{
               display: '-webkit-box',
               WebkitLineClamp: MAX_LINEAS_CELDA,
@@ -563,14 +612,28 @@ function ArticulosPage() {
             onToggleTodos={handleSeleccionarTodos}
             resaltarFilaSeleccionada
             toolbarSeleccion={
-              <ToolbarSeleccionArticulos
-                cantidad={seleccionados.size}
-                actualizando={actualizandoMasivo}
-                onDeseleccionar={() => setSeleccionados(new Set())}
-                onVigenciaMasiva={handleVigenciaMasiva}
-                onImprimir={() => setAccionMasiva('imprimir')}
-                onEliminar={() => setAccionMasiva('eliminar')}
-              />
+              <>
+                <ToolbarSeleccionArticulos
+                  cantidad={seleccionados.size}
+                  actualizando={actualizandoMasivo}
+                  onDeseleccionar={() => setSeleccionados(new Set())}
+                  onVigenciaMasiva={handleVigenciaMasiva}
+                  onImprimir={() => setAccionMasiva('imprimir')}
+                  onEliminar={() => setAccionMasiva('eliminar')}
+                />
+                {puedeSeleccionarLosQueCoinciden && (
+                  <button
+                    type='button'
+                    onClick={handleSeleccionarLosQueCoinciden}
+                    disabled={seleccionandoTodos || actualizandoMasivo}
+                    className='rounded border border-amber-300 px-3 py-1 text-[13px] font-semibold text-amber-200 cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+                  >
+                    {seleccionandoTodos
+                      ? 'Seleccionando...'
+                      : `Seleccionar los ${total.toLocaleString('es-AR')} que coinciden`}
+                  </button>
+                )}
+              </>
             }
             renderAccion={(item) => (
               <>
@@ -608,11 +671,26 @@ function ArticulosPage() {
                 seleccionados.has(item.id_articulo) ? 'bg-violet-50' : ''
               }`
             }
+            // Solo se vacia la tabla en la primera carga: al cambiar de pagina o
+            // de filtro se dejan las filas anteriores hasta que llegan las nuevas
+            // (el aviso de "Cargando..." lo da el paginador), asi no parpadea.
+            cargando={cargando && articulos.length === 0}
+            estadoCargando={
+              <p className='px-4 py-6 text-gray-400 italic text-center'>Cargando articulos...</p>
+            }
             estadoVacio={
               <p className='px-4 py-6 text-gray-400 italic text-center'>
                 No hay articulos que coincidan con la busqueda
               </p>
             }
+          />
+
+          <Paginador
+            pagina={pagina}
+            tamano={TAMANO_PAGINA}
+            total={total}
+            cargando={cargando}
+            onCambiarPagina={setPagina}
           />
         </div>
       </div>
@@ -666,7 +744,7 @@ function ArticulosPage() {
       <EliminarArticuloModal
         abierto={isEliminarModalOpen}
         onCerrar={() => setIsEliminarModalOpen(false)}
-        onExito={handleArticuloActualizado}
+        onExito={handleArticuloEliminado}
         articulo={articuloAEditar}
       />
 
@@ -696,7 +774,7 @@ function ArticulosPage() {
       />
 
       <ColumnFilterModal
-        abierto={tabla.columnaAbierta !== null}
+        abierto={tabla.columnaAbierta !== null && opcionesListas}
         onCerrar={() => tabla.setColumnaFiltroAbierta(null)}
         titulo={tabla.columnaAbierta?.header ?? ''}
         tipo={tabla.columnaAbierta?.filtro.tipo ?? null}

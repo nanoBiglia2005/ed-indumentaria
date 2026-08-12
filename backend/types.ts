@@ -1,6 +1,7 @@
 import type { Prisma } from './generated/prisma/client';
 import ventas from './shared/ventas.json';
 import agrupaciones from './shared/agrupaciones.json';
+import barcode from './shared/barcode.json';
 
 /**
  * FACHADA de tipos del backend para el frontend.
@@ -29,6 +30,18 @@ export type {
  * constants/agrupaciones.js).
  */
 export const ID_GRUPO_NO_ASIGNADO = agrupaciones.ID_GRUPO_NO_ASIGNADO;
+
+/**
+ * Limites y prefijo generico del codigo de barra. El prefijo es el que la base
+ * antepone cuando el articulo no tiene header propio, y con el se arma el
+ * codigo completo en los dos lados: el frontend para mostrarlo, el backend para
+ * filtrarlo y ordenarlo en SQL. Si dejan de coincidir, buscar por codigo deja
+ * de encontrar. Fuente unica: shared/barcode.json (el backend CommonJS lo lee
+ * via constants/barcode.js).
+ */
+export const BARCODE_HEADER_GENERICO = barcode.BARCODE_HEADER_GENERICO;
+export const BARCODE_HEADER_MAX = barcode.BARCODE_HEADER_MAX;
+export const BARCODE_TAIL_MAX = barcode.BARCODE_TAIL_MAX;
 
 /**
  * Relaciones que se incluyen al consultar REMITOS.

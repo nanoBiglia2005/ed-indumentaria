@@ -3,6 +3,12 @@ const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId, parseIds } = require('../lib/validaciones');
 const { ID_GRUPO_NO_ASIGNADO } = require('../constants/agrupaciones');
+const {
+  parsearConsultaArticulos,
+  parseColumnaDeOpciones,
+  construirWhere,
+  construirOrderBy,
+} = require('../lib/articulosConsulta');
 
 const router = express.Router();
 
@@ -88,13 +94,106 @@ async function resolverGrupoYSubgrupo({ id_grupo, id_subgrupo }, actual = null) 
   return datos;
 }
 
-// Obtener TODOS los articulos
+// ============================================================
+//  LISTADO PAGINADO
+// ============================================================
+// El filtrado, la busqueda, el orden y la paginacion se resuelven en la base
+// (ver lib/articulosConsulta.js): el frontend nunca se trae la tabla completa.
+
+// Los clientes de cada articulo viajan con la fila, asi la tabla no necesita el
+// dump entero de ARTICULOS_X_CLIENTE.
+const clientesInclude = { ARTICULOS_X_CLIENTE: { include: { CLIENTES: true } } };
+
+const aplanarClientes = ({ ARTICULOS_X_CLIENTE, ...articulo }) => ({
+  ...articulo,
+  clientes: ARTICULOS_X_CLIENTE.map(({ CLIENTES }) => ({
+    id: CLIENTES.id_cliente,
+    nombre: CLIENTES.nombre,
+  })),
+});
+
+/**
+ * Una pagina de articulos + el total que coincide con los filtros.
+ * El total sale de un count() con el MISMO where, asi el contador nunca se
+ * desincroniza de lo que se ve.
+ */
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const articulos = await prisma.ARTICULOS.findMany();
-    res.status(200).json(articulos);
+    const consulta = parsearConsultaArticulos(req.query);
+    const where = construirWhere(consulta);
+    const orderBy = construirOrderBy(consulta.orden);
+    const offset = (consulta.pagina - 1) * consulta.tamano;
+
+    // Primero solo los ids de la pagina (y el total): traer las filas enteras
+    // ordenadas seria mover mucho mas dato por una pagina de 30.
+    const [filas, [{ total }]] = await prisma.$transaction([
+      prisma.$queryRaw`
+        SELECT a.id_articulo FROM "ARTICULOS" a
+          WHERE ${where}
+          ORDER BY ${orderBy}
+          LIMIT ${consulta.tamano}::int OFFSET ${offset}::int`,
+      prisma.$queryRaw`SELECT count(*)::int AS total FROM "ARTICULOS" a WHERE ${where}`,
+    ]);
+
+    const ids = filas.map((fila) => fila.id_articulo);
+    const articulos = await prisma.ARTICULOS.findMany({
+      where: { id_articulo: { in: ids } },
+      include: clientesInclude,
+    });
+
+    // findMany con `in` no respeta el orden pedido: se reordena por los ids.
+    const porId = new Map(articulos.map((articulo) => [articulo.id_articulo, articulo]));
+
+    res.status(200).json({
+      articulos: ids.map((id) => aplanarClientes(porId.get(id))),
+      total,
+    });
   }, 'Error al obtener los articulos.')
+);
+
+/**
+ * Todos los ids que coinciden con los filtros actuales, sin paginar. Es lo que
+ * usa el "seleccionar los N articulos que coinciden" de la tabla: una sola
+ * columna, asi que sigue siendo una respuesta liviana.
+ */
+router.get(
+  '/ids',
+  asyncHandler(async (req, res) => {
+    const consulta = parsearConsultaArticulos(req.query);
+    const where = construirWhere(consulta);
+    const orderBy = construirOrderBy(consulta.orden);
+
+    const filas = await prisma.$queryRaw`
+      SELECT a.id_articulo FROM "ARTICULOS" a WHERE ${where} ORDER BY ${orderBy}`;
+
+    res.status(200).json({ ids: filas.map((fila) => fila.id_articulo) });
+  }, 'Error al obtener los ids de los articulos.')
+);
+
+/**
+ * Opciones de un filtro de seleccion: los valores presentes en el conjunto ya
+ * filtrado, EXCLUYENDO el filtro de esa misma columna (si no, al abrir un
+ * filtro ya aplicado solo se verian las opciones que uno mismo dejo pasar).
+ */
+router.get(
+  '/opciones',
+  asyncHandler(async (req, res) => {
+    const columna = req.query.columna;
+    const definicion = parseColumnaDeOpciones(columna);
+    const consulta = parsearConsultaArticulos(req.query);
+    const where = construirWhere(consulta, { excluirFiltro: columna });
+
+    const [opciones, [{ existe }]] = await prisma.$transaction([
+      prisma.$queryRaw(definicion.opciones(where)),
+      prisma.$queryRaw`
+        SELECT EXISTS (
+          SELECT 1 FROM "ARTICULOS" a WHERE ${where} AND ${definicion.sinAsignar}
+        ) AS existe`,
+    ]);
+
+    res.status(200).json({ opciones, haySinAsignar: existe });
+  }, 'Error al obtener las opciones del filtro.')
 );
 
 // Crear un nuevo articulo (tabla ARTICULOS)

@@ -20,7 +20,7 @@ model ARTICULOS {
   fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
   descripcion              String?                    @db.VarChar(70)
   detalle                  String?                    @db.VarChar(50)
-  barcode_header           String?                    @db.VarChar(6)
+  barcode_header           String?                    @db.VarChar(5)
   talle                    String?                    @db.VarChar(30)
   id_linea                 Int?
   id_subgrupo              Int?

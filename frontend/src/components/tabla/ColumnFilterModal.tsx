@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import BaseModal from '@/components/ui/BaseModal';
+import SearchInput from '@/components/ui/SearchInput';
 import { useToggleSet } from '@/hooks/useToggleSet';
+import { normalizarBusqueda } from '@/utils/texto';
 
 import type { FiltroColumna, OpcionFiltro } from '@/components/tabla/tipos';
 
@@ -31,11 +33,20 @@ export default function ColumnFilterModal({
   const [hasta, setHasta] = useState('');
   const { seleccionados: idsSeleccionados, toggle: toggleId, setSeleccionados: setIdsSeleccionados } =
     useToggleSet<number>();
+  const [busqueda, setBusqueda] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // La busqueda solo filtra lo que se ve: no toca los ids seleccionados.
+  const opcionesVisibles = useMemo(() => {
+    const termino = normalizarBusqueda(busqueda);
+    if (termino === '') return opciones;
+    return opciones.filter((opcion) => normalizarBusqueda(opcion.nombre).includes(termino));
+  }, [opciones, busqueda]);
 
   useEffect(() => {
     if (!abierto) return;
     setError(null);
+    setBusqueda('');
 
     if (tipo === 'texto') {
       setValorTexto(filtroActual?.tipo === 'texto' ? filtroActual.valor : '');
@@ -160,6 +171,13 @@ export default function ColumnFilterModal({
 
       {tipo === 'seleccion' && (
         <div>
+          <SearchInput
+            valor={busqueda}
+            onCambio={setBusqueda}
+            placeholder={`Buscar en ${titulo}...`}
+            claseContenedor='relative flex items-center mb-2'
+          />
+
           <button
             type='button'
             onClick={() => setIdsSeleccionados(new Set(opciones.map((o) => o.id)))}
@@ -170,11 +188,20 @@ export default function ColumnFilterModal({
 
           {opciones.length === 0 ? (
             <p className='text-sm text-gray-400 italic'>No hay opciones disponibles.</p>
+          ) : opcionesVisibles.length === 0 ? (
+            <p className='text-sm text-gray-400 italic'>Sin resultados para "{busqueda}".</p>
           ) : (
+            <div className='h-60'>
             <ul className='max-h-60 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-md'>
-              {opciones.map((opcion) => (
+              {opcionesVisibles.map((opcion) => (
                 <li key={opcion.id}>
-                  <label className='flex items-center gap-2 px-3 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50'>
+                  <label
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setIdsSeleccionados(new Set([opcion.id]));
+                    }}
+                    className='flex items-center gap-2 px-3 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
+                  >
                     <input
                       type='checkbox'
                       checked={idsSeleccionados.has(opcion.id)}
@@ -186,6 +213,7 @@ export default function ColumnFilterModal({
                 </li>
               ))}
             </ul>
+            </div>
           )}
         </div>
       )}
