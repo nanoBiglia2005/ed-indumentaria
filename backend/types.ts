@@ -2,6 +2,8 @@ import type { Prisma } from './generated/prisma/client';
 import ventas from './shared/ventas.json';
 import agrupaciones from './shared/agrupaciones.json';
 import barcode from './shared/barcode.json';
+import roles from './shared/roles.json';
+import precios from './shared/precios.json';
 
 /**
  * FACHADA de tipos del backend para el frontend.
@@ -13,7 +15,7 @@ import barcode from './shared/barcode.json';
  */
 export type {
   ARTICULOS,
-  CLIENTES,
+  CLIENTES_MAYORISTAS,
   GRUPOS_DE_VENTA,
   SUBGRUPOS_DE_VENTA,
   LINEAS,
@@ -42,6 +44,22 @@ export const ID_GRUPO_NO_ASIGNADO = agrupaciones.ID_GRUPO_NO_ASIGNADO;
 export const BARCODE_HEADER_GENERICO = barcode.BARCODE_HEADER_GENERICO;
 export const BARCODE_HEADER_MAX = barcode.BARCODE_HEADER_MAX;
 export const BARCODE_TAIL_MAX = barcode.BARCODE_TAIL_MAX;
+
+/**
+ * Roles que pueden entrar a la pagina de Precios y ejecutar la actualizacion
+ * masiva. El frontend la usa para esconder la seccion; QUIEN DECIDE de verdad
+ * es el backend (lib/roles.js sobre la sesion). Fuente unica:
+ * shared/roles.json (el backend CommonJS lo lee via constants/roles.js).
+ */
+export const ROLES_PRECIOS: readonly string[] = roles.ROLES_PRECIOS;
+
+/**
+ * Limites de la actualizacion masiva de precios: el input de la pagina y la
+ * validacion de routes/precios.js aceptan exactamente lo mismo. Fuente unica:
+ * shared/precios.json (el backend CommonJS los lee via constants/precios.js).
+ */
+export const PRECIO_MAX = precios.PRECIO_MAX;
+export const MAX_ARTICULOS_POR_ACTUALIZACION = precios.MAX_ARTICULOS_POR_ACTUALIZACION;
 
 /**
  * Relaciones que se incluyen al consultar REMITOS.

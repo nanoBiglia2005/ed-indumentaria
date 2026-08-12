@@ -2,6 +2,7 @@ import type { LINEAS } from '@backend/types';
 import type { ArticuloDeVenta } from '@/types/ventas';
 import type { ColumnaTabla } from '@/components/tabla/tipos';
 import { codigoBarcodeCompleto } from '@/utils/barcode';
+import { compararTalles, valorOrdenTalle } from '@/utils/talles';
 
 // Medidas historicas de la tabla del modal de venta (mas compacta que la de
 // ArticulosPage).
@@ -12,30 +13,10 @@ export const MAX_LINEAS_CELDA = 3;
 export const ROW_HEIGHT = MAX_LINEAS_CELDA * ALTO_LINEA + PADDING_VERTICAL_FILA + BORDE_FILA;
 export const ANCHO_COL_SELECCION = 44;
 
-/**
- * Convierte un talle a numero cuando se puede: "1" < "2" < "22" en vez del
- * orden alfabetico ("10" < "2" para un string). No todos los talles son
- * numericos (S, M, L, ...), asi que se conserva el string cuando no se puede.
- */
-export function valorOrdenTalle(talle: string | null): string | number | null {
-  if (!talle) return null;
-  const recortado = talle.trim();
-  if (recortado === '') return null;
-  const numero = Number(recortado);
-  return Number.isNaN(numero) ? recortado : numero;
-}
-
 /** Desempate del sort: talles numericos cuando se puede (a diferencia de
  *  ArticulosPage, que los ordena alfabeticamente). */
-export const desempateTalleVenta = (a: ArticuloDeVenta, b: ArticuloDeVenta) => {
-  const talleA = valorOrdenTalle(a.talle);
-  const talleB = valorOrdenTalle(b.talle);
-  if (talleA === null && talleB === null) return 0;
-  if (talleA === null || talleB === null) return talleA === null ? 1 : -1;
-  return typeof talleA === 'number' && typeof talleB === 'number'
-    ? talleA - talleB
-    : String(talleA).localeCompare(String(talleB));
-};
+export const desempateTalleVenta = (a: ArticuloDeVenta, b: ArticuloDeVenta) =>
+  compararTalles(a.talle, b.talle);
 
 /** Las 8 columnas (solo lectura) de la tabla de articulos del wizard de venta. */
 export function crearColumnasVenta(lineas: LINEAS[]): ColumnaTabla<ArticuloDeVenta>[] {

@@ -15,7 +15,7 @@ const router = express.Router();
 router.get(
   '/agrupaciones',
   asyncHandler(async (req, res) => {
-    const clientes = await prisma.CLIENTES.findMany({
+    const clientes = await prisma.CLIENTES_MAYORISTAS.findMany({
       where: { grupo_venta_exclusivo: { not: null } },
       include: { GRUPOS_DE_VENTA: true },
       orderBy: { nombre: 'asc' },

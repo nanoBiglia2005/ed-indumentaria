@@ -78,7 +78,8 @@ export default function SelectListModal({
       ) : opcionesFiltradas.length === 0 ? (
         <p className='text-sm text-gray-400 italic'>Sin resultados</p>
       ) : (
-        <ul className='max-h-60 overflow-y-auto min-h-[600px] overflow-x-hidden divide-y divide-gray-100 border border-gray-200 rounded-md'>
+        <div className='h-80'>
+        <ul className='max-h-80 overflow-y-auto overflow-x-hidden divide-y divide-gray-100 border border-gray-200 rounded-md'>
           {opcionesFiltradas.map((opcion) => (
             <li
               key={opcion.id}
@@ -89,6 +90,7 @@ export default function SelectListModal({
             </li>
           ))}
         </ul>
+        </div>
       )}
     </BaseModal>
   );

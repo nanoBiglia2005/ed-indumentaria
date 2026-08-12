@@ -50,19 +50,6 @@ model BONIFICACIONES_ARTICULOS {
   @@ignore
 }
 
-model CLIENTES {
-  nombre                String                @db.VarChar(30)
-  dni                   String?               @db.VarChar(10)
-  telefono              String?               @db.VarChar(11)
-  email                 String?               @db.VarChar(30)
-  razon_social          String?               @db.VarChar(20)
-  grupo_venta_exclusivo Int?
-  id_cliente            Int                   @id(map: "clientes_alt_pk") @default(autoincrement())
-  ARTICULOS_X_CLIENTE   ARTICULOS_X_CLIENTE[]
-  GRUPOS_DE_VENTA       GRUPOS_DE_VENTA?      @relation(fields: [grupo_venta_exclusivo], references: [id_grupo], map: "clientes_grupos_de_venta_fk")
-  REMITOS               REMITOS[]
-}
-
 model DETALLES_REMITO {
   id_detalle         Int        @id(map: "_detalles_remito__pk") @default(autoincrement())
   id_remito          Int?
@@ -82,12 +69,6 @@ model ESTADOS_REMITOS {
   id_estado     Int       @id(map: "_estados_remitos__pk") @default(autoincrement())
   nombre_estado String?   @db.VarChar(20)
   REMITOS       REMITOS[]
-}
-
-model GRUPOS_DE_CLIENTES {
-  id_grupo_cliente Int     @id(map: "_grupos_de_clientes__pk") @default(autoincrement())
-  nombre           String  @db.VarChar(20)
-  descripcion      String? @db.VarChar(80)
 }
 
 model MONEDA {
@@ -142,13 +123,13 @@ model REGISTRO_USUARIOS {
 }
 
 model REMITOS {
-  id_remito            Int               @id(map: "_remitos__pk") @default(autoincrement())
+  id_remito            Int                  @id(map: "_remitos__pk") @default(autoincrement())
   id_sucursal          Int?
-  fecha_de_emision     DateTime?         @db.Date
-  fecha_de_creacion    DateTime?         @db.Date
+  fecha_de_emision     DateTime?            @db.Date
+  fecha_de_creacion    DateTime?            @db.Date
   id_estado            Int?
   id_cliente           Int?
-  tipo_comprobante     String?           @default("\"remito\"") @db.VarChar(20)
+  tipo_comprobante     String?              @default("\"remito\"") @db.VarChar(20)
   num_remito_final     Int?
   id_moneda            Int?
   total_bruto          Float?
@@ -163,11 +144,11 @@ model REMITOS {
   id_tipo_de_pago_3    Int?
   monto_tipo_de_pago_3 Float?
   DETALLES_REMITO      DETALLES_REMITO[]
-  ESTADOS_REMITOS      ESTADOS_REMITOS?  @relation(fields: [id_estado], references: [id_estado], map: "_remitos__estados_remitos_fk")
-  CLIENTES             CLIENTES?         @relation(fields: [id_cliente], references: [id_cliente], map: "remitos_clientes_fk")
-  MONEDA               MONEDA?           @relation(fields: [id_moneda], references: [id_moneda], map: "remitos_moneda_fk")
-  SUCURSAL             SUCURSAL?         @relation(fields: [id_sucursal], references: [id_sucursal], map: "remitos_sucursal_fk")
-  TIPOS_DE_PAGO        TIPOS_DE_PAGO?    @relation(fields: [id_tipo_de_pago_1], references: [id_tipos_de_pago], map: "remitos_tipos_de_pago_fk")
+  ESTADOS_REMITOS      ESTADOS_REMITOS?     @relation(fields: [id_estado], references: [id_estado], map: "_remitos__estados_remitos_fk")
+  CLIENTES             CLIENTES_MAYORISTAS? @relation(fields: [id_cliente], references: [id_cliente], map: "remitos_clientes_fk")
+  MONEDA               MONEDA?              @relation(fields: [id_moneda], references: [id_moneda], map: "remitos_moneda_fk")
+  SUCURSAL             SUCURSAL?            @relation(fields: [id_sucursal], references: [id_sucursal], map: "remitos_sucursal_fk")
+  TIPOS_DE_PAGO        TIPOS_DE_PAGO?       @relation(fields: [id_tipo_de_pago_1], references: [id_tipos_de_pago], map: "remitos_tipos_de_pago_fk")
 }
 
 model SUCURSAL {
@@ -207,7 +188,7 @@ model GRUPOS_DE_VENTA {
   tipo_grupo              tipo_operacion?
   ARTICULOS               ARTICULOS[]
   ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
-  CLIENTES                CLIENTES[]
+  CLIENTES_MAYORISTAS     CLIENTES_MAYORISTAS[]
   SUBGRUPOS_DE_VENTA      SUBGRUPOS_DE_VENTA[]
 }
 
@@ -231,17 +212,29 @@ model SUBGRUPOS_DE_VENTA {
 }
 
 model ARTICULOS_X_CLIENTE {
-  id_registro Int       @id(map: "articulos_x_cliente_pk") @default(autoincrement())
+  id_registro Int                 @id(map: "articulos_x_cliente_pk") @default(autoincrement())
   id_articulo Int
   id_cliente  Int
-  ARTICULOS   ARTICULOS @relation(fields: [id_articulo], references: [id_articulo], onDelete: Cascade, map: "articulos_x_cliente_articulos_fk")
-  CLIENTES    CLIENTES  @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "articulos_x_cliente_clientes_fk")
+  ARTICULOS   ARTICULOS           @relation(fields: [id_articulo], references: [id_articulo], onDelete: Cascade, map: "articulos_x_cliente_articulos_fk")
+  CLIENTES    CLIENTES_MAYORISTAS @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "articulos_x_cliente_clientes_fk")
 }
 
 model LINEAS {
   id_linea     Int         @id(map: "lineas_pk") @default(autoincrement())
   nombre_linea String      @db.VarChar(20)
   ARTICULOS    ARTICULOS[]
+}
+
+model CLIENTES_MAYORISTAS {
+  nombre                String                @db.VarChar(30)
+  telefono              String?               @db.VarChar(11)
+  email                 String?               @db.VarChar(30)
+  razon_social          String?               @db.VarChar(20)
+  grupo_venta_exclusivo Int?
+  id_cliente            Int                   @id(map: "clientes_alt_pk") @default(autoincrement())
+  ARTICULOS_X_CLIENTE   ARTICULOS_X_CLIENTE[]
+  GRUPOS_DE_VENTA       GRUPOS_DE_VENTA?      @relation(fields: [grupo_venta_exclusivo], references: [id_grupo], map: "clientes_grupos_de_venta_fk")
+  REMITOS               REMITOS[]
 }
 
 enum tipo_operacion {

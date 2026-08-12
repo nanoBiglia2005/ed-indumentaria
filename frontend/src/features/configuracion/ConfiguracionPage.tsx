@@ -3,7 +3,7 @@ import type {
   TIPOS_DE_PAGO,
   GRUPOS_DE_VENTA,
   SUBGRUPOS_DE_VENTA,
-  CLIENTES,
+  CLIENTES_MAYORISTAS,
   LINEAS,
 } from '@backend/types';
 import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
@@ -37,7 +37,7 @@ function ConfiguracionPage() {
 
   const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
-  const [clientes, setClientes] = useState<CLIENTES[]>([]);
+  const [clientes, setClientes] = useState<CLIENTES_MAYORISTAS[]>([]);
   const [lineas, setLineas] = useState<LINEAS[]>([]);
 
   // Listas de apoyo: si fallan solo se loguea (la pagina sigue usable).

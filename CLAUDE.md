@@ -45,10 +45,13 @@
   de la feature. Ante la duda, dejarlo en la feature (extraer recién con el segundo uso).
 - No cambiar comportamiento al refactorizar. Bug encontrado = se documenta y se pregunta;
   no se arregla en silencio.
+- Priorizar la claridad visual y simpleza de uso para todas las partes de la pagina ya que
+  esta no será utilizada por un cliente técnico.
 - Los colores principales de la página son violeta (violet en tailwind) y amarillo (amber 
   en tailwind). Utilizar estos colores para botones, hovers, borders, etc.
 - El desarrollo debe ser enfocado en uso en resoluciones de pantalla altas (PC) pero los
   elementos de la página deben adaptarse a resoluciones más pequeñas (Celular).
+- Al crear una nueva pagina se debe crear un botón en la sidebar para acceder a esta.
 
 ## Flujo de trabajo
 - ¡IMPORTANTE! La aplicación está EN USO mientras se desarrolla: modificar un módulo en uso

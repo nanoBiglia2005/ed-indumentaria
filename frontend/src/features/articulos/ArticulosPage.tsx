@@ -3,7 +3,7 @@
 // paginacion viajan al backend como parametros y vuelven 30 filas + el total
 // que coincide (ver api/articulos.ts y backend/lib/articulosConsulta.js).
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import type { GRUPOS_DE_VENTA, CLIENTES, SUBGRUPOS_DE_VENTA, LINEAS } from '@backend/types';
+import type { GRUPOS_DE_VENTA, CLIENTES_MAYORISTAS, SUBGRUPOS_DE_VENTA, LINEAS } from '@backend/types';
 import DataGrid from '@/components/tabla/DataGrid';
 import Paginador from '@/components/tabla/Paginador';
 import { useTablaServidor } from '@/components/tabla/useTablaServidor';
@@ -87,7 +87,7 @@ function ArticulosPage() {
 
   // --- Catalogos completos (tablas chicas, se cargan una vez) ---
   const [grupos, setGrupos] = useState<GRUPOS_DE_VENTA[]>([]);
-  const [clientes, setClientes] = useState<CLIENTES[]>([]);
+  const [clientes, setClientes] = useState<CLIENTES_MAYORISTAS[]>([]);
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
   const [lineas, setLineas] = useState<LINEAS[]>([]);
 

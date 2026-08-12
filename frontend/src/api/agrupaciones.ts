@@ -1,10 +1,10 @@
 // ABM de las agrupaciones de Configuracion: grupos de venta, subgrupos,
-// colegios/clubes (CLIENTES) y lineas.
+// colegios/clubes (CLIENTES_MAYORISTAS) y lineas.
 import { request } from './cliente';
 import type {
   GRUPOS_DE_VENTA,
   SUBGRUPOS_DE_VENTA,
-  CLIENTES,
+  CLIENTES_MAYORISTAS,
   LINEAS,
 } from '@backend/types';
 
@@ -43,18 +43,18 @@ export const actualizarSubgrupo = (idSubgrupo: number, nombreSubgrupo: string, i
 export const eliminarSubgrupo = (idSubgrupo: number) =>
   request<void>(`/api/subgrupos/${idSubgrupo}`, { metodo: 'DELETE' });
 
-// --- Colegios/Clubes (CLIENTES) ---
+// --- Colegios/Clubes (CLIENTES_MAYORISTAS) ---
 
-export const listarClientes = () => request<CLIENTES[]>('/api/clientes');
+export const listarClientes = () => request<CLIENTES_MAYORISTAS[]>('/api/clientes');
 
 export const crearCliente = (nombre: string, grupoVentaExclusivo: number) =>
-  request<CLIENTES>('/api/clientes', {
+  request<CLIENTES_MAYORISTAS>('/api/clientes', {
     metodo: 'POST',
     cuerpo: { nombre, grupo_venta_exclusivo: grupoVentaExclusivo },
   });
 
 export const actualizarCliente = (idCliente: number, nombre: string, grupoVentaExclusivo: number) =>
-  request<CLIENTES>(`/api/clientes/${idCliente}`, {
+  request<CLIENTES_MAYORISTAS>(`/api/clientes/${idCliente}`, {
     metodo: 'PUT',
     cuerpo: { nombre, grupo_venta_exclusivo: grupoVentaExclusivo },
   });

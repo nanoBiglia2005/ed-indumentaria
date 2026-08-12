@@ -8,12 +8,12 @@ const router = express.Router();
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    const clientes = await prisma.CLIENTES.findMany();
+    const clientes = await prisma.CLIENTES_MAYORISTAS.findMany();
     res.status(200).json(clientes);
   }, 'Error al obtener los clientes.')
 );
 
-// Crear un colegio/club (tabla CLIENTES). grupo_venta_exclusivo es
+// Crear un colegio/club (tabla CLIENTES_MAYORISTAS). grupo_venta_exclusivo es
 // obligatorio: 1 = Colegio, 2 = Club. El nombre no puede repetirse (sin
 // distinguir mayusculas/minusculas ni espacios al principio/final).
 router.post(
@@ -29,11 +29,11 @@ router.post(
       throw new HttpError(400, { message: 'Debe indicar si es Colegio o Club.' });
     }
 
-    await assertNombreUnico(prisma.CLIENTES, 'nombre', nombre, {
+    await assertNombreUnico(prisma.CLIENTES_MAYORISTAS, 'nombre', nombre, {
       mensaje: 'Ya existe un colegio/club con ese nombre.',
     });
 
-    const nuevoCliente = await prisma.CLIENTES.create({
+    const nuevoCliente = await prisma.CLIENTES_MAYORISTAS.create({
       data: { nombre, grupo_venta_exclusivo },
     });
     res.status(201).json(nuevoCliente);
@@ -57,12 +57,12 @@ router.put(
       throw new HttpError(400, { message: 'Debe indicar si es Colegio o Club.' });
     }
 
-    await assertNombreUnico(prisma.CLIENTES, 'nombre', nombre, {
+    await assertNombreUnico(prisma.CLIENTES_MAYORISTAS, 'nombre', nombre, {
       mensaje: 'Ya existe un colegio/club con ese nombre.',
       excluir: { campo: 'id_cliente', id: id_cliente },
     });
 
-    const clienteActualizado = await prisma.CLIENTES.update({
+    const clienteActualizado = await prisma.CLIENTES_MAYORISTAS.update({
       where: { id_cliente },
       data: { nombre, grupo_venta_exclusivo },
     });
@@ -78,7 +78,7 @@ router.delete(
   asyncHandler(async (req, res) => {
     const id_cliente = parseId(req.params.id_cliente, 'El id del cliente debe ser un numero.');
 
-    await prisma.CLIENTES.delete({ where: { id_cliente } });
+    await prisma.CLIENTES_MAYORISTAS.delete({ where: { id_cliente } });
     res.status(204).send();
   }, 'Error al eliminar el colegio/club.', {
     errores: {

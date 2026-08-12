@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
+import { ROLES_PRECIOS } from '@backend/types';
 import { useCsrfToken, useSession } from '@/context/SessionContext';
 
-type ItemId = 'articulos' | 'ventas' | 'configuracion' | 'historial';
+type ItemId = 'articulos' | 'precios' | 'ventas' | 'configuracion' | 'historial';
 
-const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
+/** `roles` ausente = lo ve cualquier usuario logueado. */
+const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode; roles?: readonly string[] }[] = [
   {
     id: 'articulos',
     ruta: '/gestion/articulos',
@@ -14,6 +16,22 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode }[] = [
         <path strokeLinecap='round' strokeLinejoin='round' d='M20.25 7.5l-8.25-4.5-8.25 4.5 8.25 4.5 8.25-4.5z' />
         <path strokeLinecap='round' strokeLinejoin='round' d='M3.75 7.5v9l8.25 4.5 8.25-4.5v-9' />
         <path strokeLinecap='round' strokeLinejoin='round' d='M12 12v9' />
+      </svg>
+    ),
+  },
+  {
+    id: 'precios',
+    ruta: '/gestion/precios',
+    nombre: 'Precios',
+    roles: ROLES_PRECIOS,
+    icon: (
+      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
+        <path
+          strokeLinecap='round'
+          strokeLinejoin='round'
+          d='M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581a2.25 2.25 0 003.182 0l4.318-4.318a2.25 2.25 0 000-3.182l-9.581-9.581A2.25 2.25 0 009.568 3z'
+        />
+        <path strokeLinecap='round' strokeLinejoin='round' d='M6 6h.008v.008H6V6z' />
       </svg>
     ),
   },
@@ -99,7 +117,9 @@ function Sidebar() {
       >
         <img src='/img/ED Indumentaria Deportiva.png'></img>
         <nav className='flex flex-col gap-1'>
-          {ITEMS.map((item) => {
+          {/* Esconder el item es cosmetico: quien corta de verdad es el
+              RolGuard de la ruta y, sobre todo, el backend. */}
+          {ITEMS.filter((item) => !item.roles || (user?.rol && item.roles.includes(user.rol))).map((item) => {
             const clickeado = presionado === item.id;
 
             return (

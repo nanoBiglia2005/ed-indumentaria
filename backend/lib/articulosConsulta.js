@@ -115,7 +115,7 @@ const condicionBusqueda = (termino) =>
     OR ${contiene(TEXTO_SUBGRUPO, termino)}
     OR EXISTS (
       SELECT 1 FROM "ARTICULOS_X_CLIENTE" ax
-        JOIN "CLIENTES" c ON c.id_cliente = ax.id_cliente
+        JOIN "CLIENTES_MAYORISTAS" c ON c.id_cliente = ax.id_cliente
         WHERE ax.id_articulo = a.id_articulo AND ${contiene(Prisma.sql`c.nombre`, termino)}
     )
   )`;
@@ -219,7 +219,7 @@ const EXPRESIONES_ORDEN = {
   codigo: [Prisma.sql`CASE WHEN ${CODIGO} ~ '^[0-9]+$' THEN (${CODIGO})::numeric END`, CODIGO],
   colegios: [
     Prisma.sql`(SELECT min(c.nombre) FROM "ARTICULOS_X_CLIENTE" ax
-       JOIN "CLIENTES" c ON c.id_cliente = ax.id_cliente
+       JOIN "CLIENTES_MAYORISTAS" c ON c.id_cliente = ax.id_cliente
        WHERE ax.id_articulo = a.id_articulo)`,
   ],
   linea: [nombreDeLinea],
@@ -418,7 +418,7 @@ const OPCIONES_POR_COLUMNA = {
       SELECT DISTINCT c.id_cliente AS id, c.nombre AS nombre
         FROM "ARTICULOS" a
         JOIN "ARTICULOS_X_CLIENTE" axc ON axc.id_articulo = a.id_articulo
-        JOIN "CLIENTES" c ON c.id_cliente = axc.id_cliente
+        JOIN "CLIENTES_MAYORISTAS" c ON c.id_cliente = axc.id_cliente
         WHERE ${where}
         ORDER BY nombre ASC`,
     sinAsignar: Prisma.sql`NOT EXISTS (SELECT 1 FROM "ARTICULOS_X_CLIENTE" ax WHERE ax.id_articulo = a.id_articulo)`,

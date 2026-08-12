@@ -9,6 +9,7 @@ import { mensajeDetallesPrimero } from '@/api/cliente';
 import { obtenerAgrupaciones, obtenerGruposDeCliente, obtenerArticulosDeVenta } from '@/api/venta';
 import { listarLineas } from '@/api/agrupaciones';
 import ColumnFilterModal from '@/components/tabla/ColumnFilterModal';
+import MigasDePasos from '@/components/ui/MigasDePasos';
 import ConfirmarProductoModal from '@/features/ventas/modales/ConfirmarProductoModal';
 import { crearColumnasVenta, desempateTalleVenta } from './columnasVenta';
 import PasoCliente from './PasoCliente';
@@ -292,27 +293,20 @@ export default function AgregarProductoModal({
           <>
             {/* Migas: muestran lo elegido y permiten volver atras */}
             {cliente && (
-              <div className='flex items-center gap-2 mt-2 mb-4 text-sm'>
-                <button
-                  type='button'
-                  onClick={() => volverAPaso(1)}
-                  className='px-2 py-0.5 rounded border border-violet-500 text-violet-600 cursor-pointer hover:bg-violet-50 transition-colors'
-                >
-                  {cliente.nombre} ✕
-                </button>
-                {grupo && (
-                  <>
-                    <span className='text-gray-300'>›</span>
-                    <button
-                      type='button'
-                      onClick={() => volverAPaso(2)}
-                      className='px-2 py-0.5 rounded border border-violet-500 text-violet-600 cursor-pointer hover:bg-violet-50 transition-colors'
-                    >
-                      {grupo.nombre_grupo} ✕
-                    </button>
-                  </>
-                )}
-              </div>
+              <MigasDePasos
+                pasos={[
+                  { clave: 'cliente', texto: cliente.nombre, onClick: () => volverAPaso(1) },
+                  ...(grupo
+                    ? [
+                        {
+                          clave: 'grupo',
+                          texto: grupo.nombre_grupo,
+                          onClick: () => volverAPaso(2),
+                        },
+                      ]
+                    : []),
+                ]}
+              />
             )}
 
             {!cliente && <div className='mb-4' />}

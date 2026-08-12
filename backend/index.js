@@ -45,6 +45,7 @@ app.use('/api/grupos', require('./routes/grupos'));
 app.use('/api/subgrupos', require('./routes/subgrupos'));
 app.use('/api/clientes', require('./routes/clientes'));
 app.use('/api/lineas', require('./routes/lineas'));
+app.use('/api/precios', require('./routes/precios'));
 app.use('/api', require('./routes/asociaciones'));
 
 

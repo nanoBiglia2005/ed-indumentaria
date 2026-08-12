@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { GRUPOS_DE_VENTA, CLIENTES } from '@backend/types';
+import type { GRUPOS_DE_VENTA, CLIENTES_MAYORISTAS } from '@backend/types';
 import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import SegmentedToggle from '@/components/ui/SegmentedToggle';
@@ -16,7 +16,7 @@ interface CreateArticleModalProps {
   onCerrar: () => void;
   onExito: () => void;
   grupos: GRUPOS_DE_VENTA[];
-  clientes: CLIENTES[];
+  clientes: CLIENTES_MAYORISTAS[];
 }
 
 interface ArticuloCreado {
@@ -54,7 +54,7 @@ export default function CreateArticleModal({
   // Un articulo pertenece a UN grupo. Si no se elige ninguno, queda en
   // "No Asignado" por el default de la base (ese grupo no se ofrece acá).
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
-  const [clientesSeleccionados, setClientesSeleccionados] = useState<CLIENTES[]>([]);
+  const [clientesSeleccionados, setClientesSeleccionados] = useState<CLIENTES_MAYORISTAS[]>([]);
   const [isClienteAssignOpen, setIsClienteAssignOpen] = useState(false);
 
   const opcionesGrupo = useMemo(
