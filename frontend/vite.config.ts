@@ -8,6 +8,12 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+      '@backend': resolve(__dirname, '../backend'),
+    },
+  },
   server: {
     allowedHosts: true,
     proxy: {
@@ -20,13 +26,6 @@ export default defineConfig({
         target: 'http://localhost:5000',
         secure: false,
       },
-      '/print-api': {
-        target: 'http://localhost:8001',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-        rewrite: (path) => path.replace(/^\/print-api/, ''),
-      }
     }
   },
   build: {

@@ -1,8 +1,31 @@
 import type { Prisma } from './generated/prisma/client';
+import ventas from './shared/ventas.json';
+
+/**
+ * FACHADA de tipos del backend para el frontend.
+ *
+ * El frontend importa SOLO de este archivo (alias `@backend/types`): los tipos
+ * de Prisma se re-exportan desde aca para que ningun componente dependa
+ * directo de `generated/prisma` (artefacto gitignoreado que se regenera con
+ * `npm run db:sync` / `prisma generate`).
+ */
+export type {
+  ARTICULOS,
+  CLIENTES,
+  GRUPOS_DE_VENTA,
+  SUBGRUPOS_DE_VENTA,
+  LINEAS,
+  TIPOS_DE_PAGO,
+  GRUPOS_X_LINEAS,
+  ARTICULOS_X_GRUPO_VENTA,
+  ARTICULOS_X_CLIENTE,
+} from './generated/prisma/client';
 
 /**
  * Relaciones que se incluyen al consultar REMITOS.
- * Debe reflejar el `remitosInclude` que usa el backend en index.js.
+ * Debe reflejar el `remitosInclude` que usa el backend en services/remitos.js.
+ * (Se duplica a proposito: aca hace falta a nivel de TIPOS, con literales
+ * `true` para REMITOSGetPayload; alla es el objeto runtime de Prisma.)
  */
 export const remitosInclude = {
   DETALLES_REMITO: {
@@ -20,11 +43,12 @@ export type RemitoConDetalles = Prisma.REMITOSGetPayload<{
 /** Como se paga un articulo de la venta. */
 export type MetodoPago = 'efectivo' | 'tarjeta';
 
-/** Estados de la tabla ESTADOS_REMITOS. */
-export const ESTADO_CONFIRMADO = 1;
-export const ESTADO_FACTURADO = 2;
-export const ESTADO_ANULADO = 3;
-export const ESTADO_DEVUELTO = 4;
+/** Estados de la tabla ESTADOS_REMITOS. Fuente unica: shared/ventas.json
+ *  (el backend CommonJS los lee via constants/ventas.js). */
+export const ESTADO_CONFIRMADO = ventas.ESTADOS.CONFIRMADO;
+export const ESTADO_FACTURADO = ventas.ESTADOS.FACTURADO;
+export const ESTADO_ANULADO = ventas.ESTADOS.ANULADO;
+export const ESTADO_DEVUELTO = ventas.ESTADOS.DEVUELTO;
 
 /**
  * Respuesta de POST /api/remitos: el remito ya quedo guardado como CONFIRMADO
