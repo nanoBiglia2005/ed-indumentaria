@@ -2,7 +2,7 @@ import type { Opcion } from '@/types/comunes';
 
 /**
  * Lista de chips con boton X para quitar, usada por los modales que editan
- * asociaciones (grupos/clientes de un articulo, lineas de un grupo).
+ * asociaciones (colegios/clubes de un articulo, lineas de un grupo).
  */
 interface ListaChipsProps {
   items: Opcion[];

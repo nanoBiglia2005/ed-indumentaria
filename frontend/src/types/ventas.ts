@@ -6,9 +6,8 @@ export type ClienteVenta = { id_cliente: number; nombre: string };
 
 export type Agrupacion = { id_grupo: number; nombre_grupo: string; clientes: ClienteVenta[] };
 
-/** Articulo con el subgrupo que tiene DENTRO del grupo elegido. */
+/** Articulo con el nombre de su subgrupo ya resuelto por el backend. */
 export type ArticuloDeVenta = ARTICULOS & {
-  id_subgrupo: number | null;
   nombre_subgrupo: string | null;
 };
 

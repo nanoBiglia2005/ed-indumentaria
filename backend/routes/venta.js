@@ -43,7 +43,9 @@ router.get(
   }, 'Error al obtener las agrupaciones.', { log: 'Error al obtener las agrupaciones de clientes' })
 );
 
-// Grupos con al menos un articulo vigente asociado al cliente elegido.
+// Grupos con al menos un articulo vigente asociado al cliente elegido. El grupo
+// del articulo es su propio campo id_grupo, asi que se pregunta directo por los
+// ARTICULOS del grupo (incluye "No Asignado" si tiene articulos del cliente).
 router.get(
   '/grupos',
   asyncHandler(async (req, res) => {
@@ -51,12 +53,10 @@ router.get(
 
     const grupos = await prisma.GRUPOS_DE_VENTA.findMany({
       where: {
-        ARTICULOS_X_GRUPO_VENTA: {
+        ARTICULOS: {
           some: {
-            ARTICULOS: {
-              vigente: true,
-              ARTICULOS_X_CLIENTE: { some: { id_cliente } },
-            },
+            vigente: true,
+            ARTICULOS_X_CLIENTE: { some: { id_cliente } },
           },
         },
       },
@@ -68,8 +68,8 @@ router.get(
 );
 
 // Articulos vigentes que estan a la vez en el cliente y en el grupo elegidos.
-// La interseccion la resuelve la base; se devuelve tambien el subgrupo de cada
-// articulo DENTRO de ese grupo, y los subgrupos disponibles para el dropdown.
+// La interseccion la resuelve la base; se devuelve tambien el nombre del
+// subgrupo de cada articulo, y los subgrupos del grupo para el dropdown.
 router.get(
   '/articulos',
   asyncHandler(async (req, res) => {
@@ -78,35 +78,26 @@ router.get(
       'El id del cliente y del grupo deben ser numeros.'
     );
 
-    const relaciones = await prisma.ARTICULOS_X_GRUPO_VENTA.findMany({
+    const filas = await prisma.ARTICULOS.findMany({
       where: {
-        id_grupo_venta: id_grupo,
-        ARTICULOS: {
-          vigente: true,
-          ARTICULOS_X_CLIENTE: { some: { id_cliente } },
-        },
+        id_grupo,
+        vigente: true,
+        ARTICULOS_X_CLIENTE: { some: { id_cliente } },
       },
-      include: { ARTICULOS: true, SUBGRUPOS_DE_VENTA: true },
+      include: { SUBGRUPOS_DE_VENTA: true },
     });
 
-    // Un articulo deberia tener una sola fila por grupo, pero se deduplica por
-    // las dudas para no repetir filas en la tabla.
-    const porArticulo = new Map();
-    for (const relacion of relaciones) {
-      if (porArticulo.has(relacion.id_articulo)) continue;
-      porArticulo.set(relacion.id_articulo, {
-        ...relacion.ARTICULOS,
-        id_subgrupo: relacion.id_subgrupo,
-        nombre_subgrupo: relacion.SUBGRUPOS_DE_VENTA?.nombre_subgrupo ?? null,
-      });
-    }
+    const articulos = filas.map(({ SUBGRUPOS_DE_VENTA, ...articulo }) => ({
+      ...articulo,
+      nombre_subgrupo: SUBGRUPOS_DE_VENTA?.nombre_subgrupo ?? null,
+    }));
 
     const subgrupos = await prisma.SUBGRUPOS_DE_VENTA.findMany({
       where: { id_grupo },
       orderBy: { nombre_subgrupo: 'asc' },
     });
 
-    res.status(200).json({ articulos: [...porArticulo.values()], subgrupos });
+    res.status(200).json({ articulos, subgrupos });
   }, 'Error al obtener los articulos.', { log: 'Error al obtener los articulos de la venta' })
 );
 

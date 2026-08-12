@@ -8,9 +8,10 @@ import { diferenciaPorId } from '@/utils/relaciones';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
 
 /**
- * Modal generico para editar una asociacion muchos-a-muchos de un articulo
- * (grupos o colegios/clubes). Fusion de los viejos EditGruposModal y
- * EditClientesModal, que diferian solo en textos y endpoints.
+ * Modal generico para editar una asociacion muchos-a-muchos de un articulo.
+ * Hoy lo usa solo colegios/clubes: el grupo y el subgrupo pasaron a ser campos
+ * propios del articulo (uno-a-muchos) y tienen sus propios modales de
+ * reemplazo (EditGrupoModal / EditSubgrupoModal).
  */
 export interface TextosRelacion {
   titulo: string;

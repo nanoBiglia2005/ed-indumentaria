@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { GRUPOS_DE_VENTA, CLIENTES } from '@backend/types';
+import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import SegmentedToggle from '@/components/ui/SegmentedToggle';
 import ListaChips from '@/components/ui/ListaChips';
 import SelectListModal from '@/components/ui/SelectListModal';
+import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
-import { crearArticulo, asignarGrupo, asignarCliente } from '@/api/articulos';
+import { crearArticulo, asignarCliente } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { dividirBarcodeManual, combinarBarcode, BARCODE_AUTOMATICO, BARCODE_MAX } from '@/utils/barcode';
 
@@ -49,10 +51,22 @@ export default function CreateArticleModal({
   const [articuloCreado, setArticuloCreado] = useState<ArticuloCreado | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-  const [gruposSeleccionados, setGruposSeleccionados] = useState<GRUPOS_DE_VENTA[]>([]);
+  // Un articulo pertenece a UN grupo. Si no se elige ninguno, queda en
+  // "No Asignado" por el default de la base (ese grupo no se ofrece acá).
+  const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [clientesSeleccionados, setClientesSeleccionados] = useState<CLIENTES[]>([]);
-  const [isGrupoAssignOpen, setIsGrupoAssignOpen] = useState(false);
   const [isClienteAssignOpen, setIsClienteAssignOpen] = useState(false);
+
+  const opcionesGrupo = useMemo(
+    () =>
+      grupos
+        .filter((g) => g.id_grupo !== ID_GRUPO_NO_ASIGNADO)
+        .map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` })),
+    [grupos]
+  );
+
+  const nombreGrupoSeleccionado =
+    opcionesGrupo.find((o) => o.id === grupoSeleccionado)?.nombre ?? 'No Asignado';
 
   const resetForm = () => {
     setCantidad(0);
@@ -61,7 +75,7 @@ export default function CreateArticleModal({
     setBarcodeAuto(false);
     setTalle('');
     setError(null);
-    setGruposSeleccionados([]);
+    setGrupoSeleccionado(null);
     setClientesSeleccionados([]);
   };
 
@@ -99,6 +113,7 @@ export default function CreateArticleModal({
         stock_minimo: 0,
         vigente: true,
         cant_reservada: 0,
+        ...(grupoSeleccionado !== null ? { id_grupo: grupoSeleccionado } : {}),
       };
 
       const nuevoArticulo = await crearArticulo(payload);
@@ -106,14 +121,11 @@ export default function CreateArticleModal({
 
       // Igual que siempre: las asignaciones que fallen se ignoran en silencio,
       // el articulo ya quedo creado.
-      await Promise.all([
-        ...gruposSeleccionados.map((grupo) =>
-          asignarGrupo(id_articulo, grupo.id_grupo).catch(() => null)
-        ),
-        ...clientesSeleccionados.map((cliente) =>
+      await Promise.all(
+        clientesSeleccionados.map((cliente) =>
           asignarCliente(id_articulo, cliente.id_cliente).catch(() => null)
-        ),
-      ]);
+        )
+      );
 
       setArticuloCreado({
         id_articulo: nuevoArticulo.id_articulo,
@@ -141,6 +153,7 @@ export default function CreateArticleModal({
         onCerrar={onCerrar}
         titulo='Crear Nuevo Artículo'
         ancho='md'
+        permitirDesborde
         error={error ? { titulo: 'Error al Crear el articulo', detalle: error } : null}
         footer={
           <>
@@ -246,29 +259,24 @@ export default function CreateArticleModal({
             </div>
           </div>
 
-          {/* Grupos de Articulos */}
+          {/* Grupo de Articulos */}
           <div>
-            <div className='flex gap-3 items-center mb-3'>
-              <label className='block text-sm font-medium text-gray-700'>Grupos de Articulos</label>
-              <button
-                type='button'
-                onClick={() => setIsGrupoAssignOpen(true)}
-                className='text-sm px-2 py-1 border border-violet-600 text-violet-600 rounded hover:bg-amber-50 transition-colors cursor-pointer'
-              >
-                Asignar a un Nuevo Grupo
-              </button>
-            </div>
+            <label className='block text-sm font-medium text-gray-700 mb-3'>Grupo de Articulos</label>
 
-            <ListaChips
-              items={gruposSeleccionados.map((g) => ({
-                id: g.id_grupo,
-                nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
-              }))}
-              onQuitar={(id) =>
-                setGruposSeleccionados((prev) => prev.filter((g) => g.id_grupo !== id))
-              }
-              textoVacio='No asignado a ningún grupo'
+            <InlineFilterDropdown
+              label='Elegir Grupo'
+              opciones={opcionesGrupo}
+              selectedId={grupoSeleccionado}
+              onSelect={setGrupoSeleccionado}
+              onClear={() => setGrupoSeleccionado(null)}
+              conBuscador
             />
+
+            {grupoSeleccionado === null && (
+              <p className='mt-2 text-sm text-gray-400 italic'>
+                Sin grupo, el artículo queda en "No Asignado".
+              </p>
+            )}
           </div>
 
           {/* Clientes */}
@@ -340,17 +348,8 @@ export default function CreateArticleModal({
               </ul>
             </div>
             <div className='flex justify-between gap-3 items-center'>
-              <span className='text-sm font-medium text-gray-700'>Grupos de Articulos:</span>
-              <ul className='flex flex-wrap gap-2 flex-row-reverse'>
-                {gruposSeleccionados.map((grupo) => (
-                  <li
-                    key={grupo.id_grupo}
-                    className='flex items-center justify-between gap-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700'
-                  >
-                    <span>{grupo.nombre_grupo}</span>
-                  </li>
-                ))}
-              </ul>
+              <span className='text-sm font-medium text-gray-700'>Grupo de Articulos:</span>
+              <span className='text-sm text-gray-900 font-semibold'>{nombreGrupoSeleccionado}</span>
             </div>
           </div>
         )}
@@ -362,23 +361,6 @@ export default function CreateArticleModal({
           Volver a la Lista
         </button>
       </BaseModal>
-
-      {/* Modal de Asignación de Grupos */}
-      <SelectListModal
-        abierto={isGrupoAssignOpen}
-        onCerrar={() => setIsGrupoAssignOpen(false)}
-        titulo='Asignar a un Grupo'
-        opciones={grupos
-          .filter((g) => !gruposSeleccionados.some((sel) => sel.id_grupo === g.id_grupo))
-          .map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` }))}
-        onSelect={(opcion) => {
-          const grupo = grupos.find((g) => g.id_grupo === opcion.id);
-          if (grupo) {
-            setGruposSeleccionados((prev) => [...prev, grupo]);
-          }
-          setIsGrupoAssignOpen(false);
-        }}
-      />
 
       {/* Modal de Asignación de Clientes */}
       <SelectListModal

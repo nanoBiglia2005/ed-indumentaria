@@ -6,6 +6,7 @@ import type {
   CLIENTES,
   LINEAS,
 } from '@backend/types';
+import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
 import { useFetchLista } from '@/hooks/useFetchLista';
 import { listarTiposDePago } from '@/api/tiposDePago';
 import {
@@ -88,11 +89,15 @@ function ConfiguracionPage() {
     );
   };
 
+  // "No Asignado" lo administra la base (es el destino de los articulos cuando
+  // se borra su grupo): no se crea, ni se renombra, ni se elimina desde acá.
   const itemsGrupos: ItemAgrupacion[] = useMemo(() => {
-    return grupos.map((g) => ({
-      id: g.id_grupo,
-      nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
-    }));
+    return grupos
+      .filter((g) => g.id_grupo !== ID_GRUPO_NO_ASIGNADO)
+      .map((g) => ({
+        id: g.id_grupo,
+        nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
+      }));
   }, [grupos]);
 
   const itemsSubgrupos: ItemAgrupacion[] = useMemo(() => {

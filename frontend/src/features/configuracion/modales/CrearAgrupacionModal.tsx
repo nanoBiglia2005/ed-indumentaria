@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { GRUPOS_DE_VENTA, LINEAS } from '@backend/types';
+import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
 import type { TipoAgrupacion, EdicionAgrupacion } from '@/types/agrupaciones';
 import type { Opcion } from '@/types/comunes';
 import BaseModal from '@/components/ui/BaseModal';
@@ -179,10 +180,13 @@ export default function CrearAgrupacionModal({
             <label className='block text-sm font-medium text-gray-700 mb-1'>Grupo</label>
             <InlineFilterDropdown
               label='Elegir Grupo'
-              opciones={grupos.map((g) => ({
-                id: g.id_grupo,
-                nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
-              }))}
+              // "No Asignado" no puede tener subgrupos.
+              opciones={grupos
+                .filter((g) => g.id_grupo !== ID_GRUPO_NO_ASIGNADO)
+                .map((g) => ({
+                  id: g.id_grupo,
+                  nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
+                }))}
               selectedId={grupoSeleccionado}
               onSelect={setGrupoSeleccionado}
               onClear={() => setGrupoSeleccionado(null)}

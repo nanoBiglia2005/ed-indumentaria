@@ -3,7 +3,6 @@ import type {
   ARTICULOS,
   GRUPOS_DE_VENTA,
   CLIENTES,
-  ARTICULOS_X_GRUPO_VENTA,
   ARTICULOS_X_CLIENTE,
   SUBGRUPOS_DE_VENTA,
   LINEAS,
@@ -18,12 +17,9 @@ import { normalizarBusqueda } from '@/utils/texto';
 import { ApiError, mensajeDetallesPrimero } from '@/api/cliente';
 import {
   listarArticulos,
-  listarArticulosXGrupo,
   listarArticulosXCliente,
   actualizarArticulo,
   eliminarArticulo,
-  asignarGrupo,
-  quitarGrupo,
   asignarCliente,
   quitarCliente,
   imprimirBarcode,
@@ -37,7 +33,8 @@ import {
 import CreateArticleModal from '@/features/articulos/modales/CreateArticleModal';
 import EditRelacionesModal from '@/features/articulos/modales/EditRelacionesModal';
 import type { TextosRelacion } from '@/features/articulos/modales/EditRelacionesModal';
-import EditSubgruposModal from '@/features/articulos/modales/EditSubgruposModal';
+import EditGrupoModal from '@/features/articulos/modales/EditGrupoModal';
+import EditSubgrupoModal from '@/features/articulos/modales/EditSubgrupoModal';
 import EditLineaModal from '@/features/articulos/modales/EditLineaModal';
 import EliminarArticuloModal from '@/features/articulos/modales/EliminarArticuloModal';
 import EditFieldModal from '@/features/articulos/modales/EditFieldModal';
@@ -56,14 +53,6 @@ import {
 } from './columnas';
 import FilterDropdown from './FilterDropdown';
 import ToolbarSeleccionArticulos from './ToolbarSeleccionArticulos';
-
-const TEXTOS_EDITAR_GRUPOS: TextosRelacion = {
-  titulo: 'Editar Grupos',
-  label: 'Grupos de Articulos',
-  labelAgregar: 'Agregar Grupo',
-  textoVacio: 'No asignado a ningún grupo',
-  errorSync: 'Hubo un error al actualizar los grupos asociados.',
-};
 
 const TEXTOS_EDITAR_CLIENTES: TextosRelacion = {
   titulo: 'Editar Colegios/Clubes',
@@ -95,7 +84,6 @@ function ArticulosPage() {
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
   const [lineas, setLineas] = useState<LINEAS[]>([]);
 
-  const [articulosXGrupo, setArticulosXGrupo] = useState<ARTICULOS_X_GRUPO_VENTA[]>([]);
   const [articulosXCliente, setArticulosXCliente] = useState<ARTICULOS_X_CLIENTE[]>([]);
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
@@ -108,9 +96,9 @@ function ArticulosPage() {
   // --- Modales (booleans separados + el articulo activo) ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [articuloAEditar, setArticuloAEditar] = useState<ARTICULOS | null>(null);
-  const [isEditGruposOpen, setIsEditGruposOpen] = useState(false);
+  const [isEditGrupoOpen, setIsEditGrupoOpen] = useState(false);
   const [isEditClientesOpen, setIsEditClientesOpen] = useState(false);
-  const [isEditSubgruposOpen, setIsEditSubgruposOpen] = useState(false);
+  const [isEditSubgrupoOpen, setIsEditSubgrupoOpen] = useState(false);
   const [isEditLineaOpen, setIsEditLineaOpen] = useState(false);
   const [isEliminarModalOpen, setIsEliminarModalOpen] = useState(false);
   const [campoAEditar, setCampoAEditar] = useState<CampoEditable | null>(null);
@@ -130,12 +118,6 @@ function ArticulosPage() {
     listarArticulos()
       .then(setDatosBackend)
       .catch((error) => console.error('Error al conectar con el backend:', error));
-  };
-
-  const fetchArticulosXGrupo = () => {
-    listarArticulosXGrupo()
-      .then(setArticulosXGrupo)
-      .catch((error) => console.error('Error al obtener ARTICULOS_X_GRUPO_VENTA:', error));
   };
 
   const fetchArticulosXCliente = () => {
@@ -174,7 +156,6 @@ function ArticulosPage() {
     fetchClientes();
     fetchSubgrupos();
     fetchLineas();
-    fetchArticulosXGrupo();
     fetchArticulosXCliente();
   }, []);
 
@@ -194,14 +175,13 @@ function ArticulosPage() {
 
   const handleArticuloActualizado = () => {
     fetchArticulos();
-    fetchArticulosXGrupo();
     fetchArticulosXCliente();
   };
 
   // --- Apertura de modales de edicion ---
-  const abrirEdicionGrupos = useCallback((articulo: ARTICULOS) => {
+  const abrirEdicionGrupo = useCallback((articulo: ARTICULOS) => {
     setArticuloAEditar(articulo);
-    setIsEditGruposOpen(true);
+    setIsEditGrupoOpen(true);
   }, []);
 
   const abrirEdicionClientes = useCallback((articulo: ARTICULOS) => {
@@ -209,9 +189,9 @@ function ArticulosPage() {
     setIsEditClientesOpen(true);
   }, []);
 
-  const abrirEdicionSubgrupos = useCallback((articulo: ARTICULOS) => {
+  const abrirEdicionSubgrupo = useCallback((articulo: ARTICULOS) => {
     setArticuloAEditar(articulo);
-    setIsEditSubgruposOpen(true);
+    setIsEditSubgrupoOpen(true);
   }, []);
 
   const abrirEdicionLinea = useCallback((articulo: ARTICULOS) => {
@@ -262,19 +242,31 @@ function ArticulosPage() {
     }
   }, []);
 
-  // --- Mapas articulo -> asociaciones (para chips y filtros) ---
-  const gruposDeArticulo = useMemo(() => {
-    const mapa = new Map<number, OpcionFiltro[]>();
-    for (const registro of articulosXGrupo) {
-      const grupo = grupos.find((g) => g.id_grupo === registro.id_grupo_venta);
-      if (!grupo) continue;
-      const opcion = { id: grupo.id_grupo, nombre: grupo.nombre_grupo ?? `Grupo ${grupo.id_grupo}` };
-      const lista = mapa.get(registro.id_articulo) ?? [];
-      if (!lista.some((o) => o.id === opcion.id)) lista.push(opcion);
-      mapa.set(registro.id_articulo, lista);
-    }
-    return mapa;
-  }, [articulosXGrupo, grupos]);
+  // --- Grupo y subgrupo: campos propios del articulo (relacion uno-a-muchos),
+  // se resuelven contra las listas ya cargadas ---
+  const grupoPorId = useMemo(
+    () =>
+      new Map(
+        grupos.map((g) => [g.id_grupo, { id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` }])
+      ),
+    [grupos]
+  );
+
+  const subgrupoPorId = useMemo(
+    () => new Map(subgrupos.map((s) => [s.id_subgrupo, { id: s.id_subgrupo, nombre: s.nombre_subgrupo }])),
+    [subgrupos]
+  );
+
+  const grupoDeArticulo = useCallback(
+    (articulo: ARTICULOS): OpcionFiltro | null => grupoPorId.get(articulo.id_grupo) ?? null,
+    [grupoPorId]
+  );
+
+  const subgrupoDeArticulo = useCallback(
+    (articulo: ARTICULOS): OpcionFiltro | null =>
+      articulo.id_subgrupo === null ? null : subgrupoPorId.get(articulo.id_subgrupo) ?? null,
+    [subgrupoPorId]
+  );
 
   const clientesDeArticulo = useMemo(() => {
     const mapa = new Map<number, OpcionFiltro[]>();
@@ -289,66 +281,36 @@ function ArticulosPage() {
     return mapa;
   }, [articulosXCliente, clientes]);
 
-  const subgruposDeArticulo = useMemo(() => {
-    const mapa = new Map<number, OpcionFiltro[]>();
-    for (const registro of articulosXGrupo) {
-      if (registro.id_subgrupo === null) continue;
-      const subgrupo = subgrupos.find((s) => s.id_subgrupo === registro.id_subgrupo);
-      if (!subgrupo) continue;
-      const opcion = { id: subgrupo.id_subgrupo, nombre: subgrupo.nombre_subgrupo };
-      const lista = mapa.get(registro.id_articulo) ?? [];
-      if (!lista.some((o) => o.id === opcion.id)) lista.push(opcion);
-      mapa.set(registro.id_articulo, lista);
-    }
-    return mapa;
-  }, [articulosXGrupo, subgrupos]);
-
-  const gruposPorArticulo = useMemo(() => {
-    const mapa = new Map<number, string[]>();
-    for (const [id, opciones] of gruposDeArticulo) mapa.set(id, opciones.map((o) => o.nombre));
-    return mapa;
-  }, [gruposDeArticulo]);
-
   const clientesPorArticulo = useMemo(() => {
     const mapa = new Map<number, string[]>();
     for (const [id, opciones] of clientesDeArticulo) mapa.set(id, opciones.map((o) => o.nombre));
     return mapa;
   }, [clientesDeArticulo]);
 
-  const subgruposPorArticulo = useMemo(() => {
-    const mapa = new Map<number, string[]>();
-    for (const [id, opciones] of subgruposDeArticulo) mapa.set(id, opciones.map((o) => o.nombre));
-    return mapa;
-  }, [subgruposDeArticulo]);
-
   const columnas = useMemo(
     () =>
       crearColumnasArticulos({
         lineas,
-        gruposDeArticulo,
+        grupoDeArticulo,
+        subgrupoDeArticulo,
         clientesDeArticulo,
-        subgruposDeArticulo,
-        gruposPorArticulo,
         clientesPorArticulo,
-        subgruposPorArticulo,
-        abrirEdicionGrupos,
+        abrirEdicionGrupo,
         abrirEdicionClientes,
-        abrirEdicionSubgrupos,
+        abrirEdicionSubgrupo,
         abrirEdicionLinea,
         abrirEdicionCampo,
         onToggleVigente: handleToggleVigente,
       }),
     [
       lineas,
-      gruposDeArticulo,
+      grupoDeArticulo,
+      subgrupoDeArticulo,
       clientesDeArticulo,
-      subgruposDeArticulo,
-      gruposPorArticulo,
       clientesPorArticulo,
-      subgruposPorArticulo,
-      abrirEdicionGrupos,
+      abrirEdicionGrupo,
       abrirEdicionClientes,
-      abrirEdicionSubgrupos,
+      abrirEdicionSubgrupo,
       abrirEdicionLinea,
       abrirEdicionCampo,
       handleToggleVigente,
@@ -360,24 +322,11 @@ function ArticulosPage() {
     let resultado = datosBackend;
 
     if (grupoSeleccionado !== null) {
-      const idsDelGrupo = new Set(
-        articulosXGrupo
-          .filter((registro) => registro.id_grupo_venta === grupoSeleccionado)
-          .map((registro) => registro.id_articulo)
-      );
-      resultado = resultado.filter((articulo) => idsDelGrupo.has(articulo.id_articulo));
+      resultado = resultado.filter((articulo) => articulo.id_grupo === grupoSeleccionado);
     }
 
     if (grupoSeleccionado !== null && subgrupoSeleccionado !== null) {
-      const idsDelSubgrupo = new Set(
-        articulosXGrupo
-          .filter(
-            (registro) =>
-              registro.id_grupo_venta === grupoSeleccionado && registro.id_subgrupo === subgrupoSeleccionado
-          )
-          .map((registro) => registro.id_articulo)
-      );
-      resultado = resultado.filter((articulo) => idsDelSubgrupo.has(articulo.id_articulo));
+      resultado = resultado.filter((articulo) => articulo.id_subgrupo === subgrupoSeleccionado);
     }
 
     if (clienteSeleccionado !== null) {
@@ -399,7 +348,6 @@ function ArticulosPage() {
     return resultado;
   }, [
     datosBackend,
-    articulosXGrupo,
     articulosXCliente,
     grupoSeleccionado,
     subgrupoSeleccionado,
@@ -516,12 +464,6 @@ function ArticulosPage() {
       setSubgrupoSeleccionado(null);
     }
   }, [subgruposFiltrados, subgrupoSeleccionado]);
-
-  const idsGruposDelArticulo = articuloAEditar
-    ? articulosXGrupo
-        .filter((rel) => rel.id_articulo === articuloAEditar.id_articulo)
-        .map((rel) => rel.id_grupo_venta)
-    : [];
 
   const idsClientesDelArticulo = articuloAEditar
     ? articulosXCliente
@@ -683,16 +625,13 @@ function ArticulosPage() {
         clientes={clientes}
       />
 
-      <EditRelacionesModal
-        abierto={isEditGruposOpen}
-        onCerrar={() => setIsEditGruposOpen(false)}
+      <EditGrupoModal
+        abierto={isEditGrupoOpen}
+        onCerrar={() => setIsEditGrupoOpen(false)}
         onExito={handleArticuloActualizado}
         articulo={articuloAEditar}
-        textos={TEXTOS_EDITAR_GRUPOS}
-        opciones={grupos.map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` }))}
-        idsAsignados={idsGruposDelArticulo}
-        asignar={asignarGrupo}
-        quitar={quitarGrupo}
+        grupos={grupos}
+        subgrupos={subgrupos}
       />
 
       <EditRelacionesModal
@@ -707,14 +646,13 @@ function ArticulosPage() {
         quitar={quitarCliente}
       />
 
-      <EditSubgruposModal
-        abierto={isEditSubgruposOpen}
-        onCerrar={() => setIsEditSubgruposOpen(false)}
+      <EditSubgrupoModal
+        abierto={isEditSubgrupoOpen}
+        onCerrar={() => setIsEditSubgrupoOpen(false)}
         onExito={handleArticuloActualizado}
         articulo={articuloAEditar}
         grupos={grupos}
         subgrupos={subgrupos}
-        articulosXGrupo={articulosXGrupo}
       />
 
       <EditLineaModal

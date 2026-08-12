@@ -2,8 +2,91 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId, parseIds } = require('../lib/validaciones');
+const { ID_GRUPO_NO_ASIGNADO } = require('../constants/agrupaciones');
 
 const router = express.Router();
+
+/**
+ * Resuelve el par (id_grupo, id_subgrupo) que se va a guardar en el articulo.
+ * Un articulo pertenece a UN grupo y, como mucho, a un subgrupo de ese grupo
+ * (relacion uno-a-muchos directa: ARTICULOS.id_grupo / ARTICULOS.id_subgrupo).
+ *
+ * `actual` es el articulo antes del cambio (null al crear). Solo se devuelven
+ * las claves que efectivamente hay que escribir, asi un PUT que no manda grupo
+ * ni subgrupo no los toca.
+ *
+ * Reglas:
+ * - El grupo "No Asignado" nunca se puede asignar a mano (solo lo pone la base
+ *   al borrarse el grupo del articulo).
+ * - El subgrupo tiene que pertenecer al grupo con el que queda el articulo.
+ * - Si el articulo cambia de grupo y su subgrupo actual era del grupo viejo,
+ *   el subgrupo se limpia.
+ */
+async function resolverGrupoYSubgrupo({ id_grupo, id_subgrupo }, actual = null) {
+  const cambiaGrupo = id_grupo !== undefined;
+  const cambiaSubgrupo = id_subgrupo !== undefined;
+  if (!cambiaGrupo && !cambiaSubgrupo) return {};
+
+  const datos = {};
+
+  // --- Grupo ---
+  let grupoFinal = actual?.id_grupo ?? null;
+
+  if (cambiaGrupo) {
+    if (id_grupo === null) {
+      throw new HttpError(400, { message: 'El articulo tiene que pertenecer a un grupo.' });
+    }
+
+    const idGrupo = parseId(id_grupo, 'El id del grupo debe ser un numero.');
+    if (idGrupo === ID_GRUPO_NO_ASIGNADO) {
+      throw new HttpError(400, {
+        message: 'No se puede asignar un articulo al grupo "No Asignado".',
+      });
+    }
+
+    const grupo = await prisma.GRUPOS_DE_VENTA.findUnique({ where: { id_grupo: idGrupo } });
+    if (!grupo) {
+      throw new HttpError(404, { message: 'El grupo seleccionado no existe.' });
+    }
+
+    datos.id_grupo = idGrupo;
+    grupoFinal = idGrupo;
+  }
+
+  // --- Subgrupo ---
+  if (cambiaSubgrupo) {
+    if (id_subgrupo === null) {
+      datos.id_subgrupo = null;
+      return datos;
+    }
+
+    const idSubgrupo = parseId(id_subgrupo, 'El id del subgrupo debe ser un numero.');
+    const subgrupo = await prisma.SUBGRUPOS_DE_VENTA.findUnique({
+      where: { id_subgrupo: idSubgrupo },
+    });
+    if (!subgrupo) {
+      throw new HttpError(404, { message: 'El subgrupo seleccionado no existe.' });
+    }
+    // grupoFinal null solo pasa al crear sin mandar grupo: ahi el articulo cae
+    // en "No Asignado" por default y ningun subgrupo puede corresponderle.
+    if (grupoFinal === null || subgrupo.id_grupo !== grupoFinal) {
+      throw new HttpError(400, {
+        message: 'El subgrupo elegido no pertenece al grupo del articulo.',
+      });
+    }
+
+    datos.id_subgrupo = idSubgrupo;
+    return datos;
+  }
+
+  // Cambio de grupo sin tocar el subgrupo: si el que tenia era del grupo
+  // anterior, deja de valer.
+  if (cambiaGrupo && actual?.id_subgrupo != null && actual.id_grupo !== grupoFinal) {
+    datos.id_subgrupo = null;
+  }
+
+  return datos;
+}
 
 // Obtener TODOS los articulos
 router.get(
@@ -27,7 +110,13 @@ router.post(
       vigente,
       talle,
       cant_reservada,
+      id_grupo,
+      id_subgrupo,
     } = req.body;
+
+    // Si no se manda grupo, el articulo queda en "No Asignado" por el default
+    // de la base.
+    const agrupacion = await resolverGrupoYSubgrupo({ id_grupo, id_subgrupo });
 
     const nuevoArticulo = await prisma.ARTICULOS.create({
       data: {
@@ -39,6 +128,7 @@ router.post(
         vigente,
         talle,
         cant_reservada,
+        ...agrupacion,
       },
     });
     res.status(201).json(nuevoArticulo);
@@ -65,7 +155,21 @@ router.put(
       detalle,
       vigente,
       id_linea,
+      id_grupo,
+      id_subgrupo,
     } = req.body;
+
+    let agrupacion = {};
+    if (id_grupo !== undefined || id_subgrupo !== undefined) {
+      const actual = await prisma.ARTICULOS.findUnique({
+        where: { id_articulo },
+        select: { id_grupo: true, id_subgrupo: true },
+      });
+      if (!actual) {
+        throw new HttpError(404, { message: 'El articulo no existe.' });
+      }
+      agrupacion = await resolverGrupoYSubgrupo({ id_grupo, id_subgrupo }, actual);
+    }
 
     const articuloActualizado = await prisma.ARTICULOS.update({
       where: { id_articulo },
@@ -81,6 +185,7 @@ router.put(
         detalle,
         vigente,
         id_linea,
+        ...agrupacion,
       },
     });
     res.status(200).json(articuloActualizado);
@@ -110,19 +215,9 @@ router.delete(
   })
 );
 
-router.post(
-  '/:id_articulo/grupos',
-  asyncHandler(async (req, res) => {
-    const id_articulo = parseId(req.params.id_articulo, 'El id del articulo debe ser un numero.');
-
-    const { id_grupo } = req.body;
-
-    const asignacion = await prisma.ARTICULOS_X_GRUPO_VENTA.create({
-      data: { id_articulo, id_grupo_venta: id_grupo },
-    });
-    res.status(201).json(asignacion);
-  }, 'Error al asignar el articulo al grupo.')
-);
+// El grupo y el subgrupo del articulo son campos propios (ARTICULOS.id_grupo /
+// ARTICULOS.id_subgrupo): se editan con PUT /:id_articulo, no con rutas de
+// asociacion.
 
 router.post(
   '/:id_articulo/clientes',
@@ -140,57 +235,6 @@ router.post(
   })
 );
 
-// Asignar un articulo a un SUBGRUPO: un articulo solo puede tener un
-// subgrupo por cada grupo al que pertenece, asi que esto siempre actualiza
-// la fila existente de ese grupo (sea cual sea su subgrupo actual) en vez de
-// crear una fila nueva; si el articulo todavia no esta en el grupo del
-// subgrupo, se crea la fila.
-router.post(
-  '/:id_articulo/subgrupos',
-  asyncHandler(async (req, res) => {
-    const id_articulo = parseId(req.params.id_articulo, 'El id del articulo debe ser un numero.');
-
-    const { id_subgrupo } = req.body;
-
-    const subgrupo = await prisma.SUBGRUPOS_DE_VENTA.findUnique({ where: { id_subgrupo } });
-    if (!subgrupo) {
-      throw new HttpError(404, { message: 'El subgrupo no existe.' });
-    }
-
-    const filaDelGrupo = await prisma.ARTICULOS_X_GRUPO_VENTA.findFirst({
-      where: { id_articulo, id_grupo_venta: subgrupo.id_grupo },
-    });
-
-    if (filaDelGrupo) {
-      await prisma.ARTICULOS_X_GRUPO_VENTA.update({
-        where: { id_reg: filaDelGrupo.id_reg },
-        data: { id_subgrupo },
-      });
-    } else {
-      await prisma.ARTICULOS_X_GRUPO_VENTA.create({
-        data: { id_articulo, id_grupo_venta: subgrupo.id_grupo, id_subgrupo },
-      });
-    }
-
-    res.status(201).json({ id_articulo, id_subgrupo });
-  }, 'Error al asignar el articulo al subgrupo.')
-);
-
-router.delete(
-  '/:id_articulo/grupos/:id_grupo',
-  asyncHandler(async (req, res) => {
-    const [id_articulo, id_grupo] = parseIds(
-      [req.params.id_articulo, req.params.id_grupo],
-      'El id del articulo y del grupo deben ser numeros.'
-    );
-
-    await prisma.ARTICULOS_X_GRUPO_VENTA.deleteMany({
-      where: { id_articulo, id_grupo_venta: id_grupo },
-    });
-    res.status(204).send();
-  }, 'Error al quitar el articulo del grupo.')
-);
-
 router.delete(
   '/:id_articulo/clientes/:id_cliente',
   asyncHandler(async (req, res) => {
@@ -204,24 +248,6 @@ router.delete(
     });
     res.status(204).send();
   }, 'Error al quitar el articulo del cliente.')
-);
-
-// Quitar un articulo de un SUBGRUPO: se limpia el atributo id_subgrupo de
-// las filas, sin sacar el articulo de su grupo.
-router.delete(
-  '/:id_articulo/subgrupos/:id_subgrupo',
-  asyncHandler(async (req, res) => {
-    const [id_articulo, id_subgrupo] = parseIds(
-      [req.params.id_articulo, req.params.id_subgrupo],
-      'El id del articulo y del subgrupo deben ser numeros.'
-    );
-
-    await prisma.ARTICULOS_X_GRUPO_VENTA.updateMany({
-      where: { id_articulo, id_subgrupo },
-      data: { id_subgrupo: null },
-    });
-    res.status(204).send();
-  }, 'Error al quitar el articulo del subgrupo.')
 );
 
 module.exports = router;

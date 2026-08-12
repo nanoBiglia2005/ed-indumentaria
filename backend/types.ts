@@ -1,5 +1,6 @@
 import type { Prisma } from './generated/prisma/client';
 import ventas from './shared/ventas.json';
+import agrupaciones from './shared/agrupaciones.json';
 
 /**
  * FACHADA de tipos del backend para el frontend.
@@ -16,9 +17,18 @@ export type {
   SUBGRUPOS_DE_VENTA,
   LINEAS,
   TIPOS_DE_PAGO,
-  ARTICULOS_X_GRUPO_VENTA,
   ARTICULOS_X_CLIENTE,
 } from './generated/prisma/client';
+
+/**
+ * Grupo "No Asignado". La base lo pone sola en ARTICULOS.id_grupo (default +
+ * ON DELETE SET DEFAULT) cuando se elimina el grupo del articulo. No se puede
+ * asignar a mano: se filtra de todo selector de asignacion, pero SI se puede
+ * elegir en los filtros (FilterDropdown, ColumnFilterModal, PasoGrupo).
+ * Fuente unica: shared/agrupaciones.json (el backend CommonJS lo lee via
+ * constants/agrupaciones.js).
+ */
+export const ID_GRUPO_NO_ASIGNADO = agrupaciones.ID_GRUPO_NO_ASIGNADO;
 
 /**
  * Relaciones que se incluyen al consultar REMITOS.

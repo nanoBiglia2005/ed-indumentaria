@@ -46,19 +46,22 @@ const formatearListaConLimite = (nombres: string[], maximo = 2) => {
 
 interface DepsColumnas {
   lineas: LINEAS[];
-  gruposDeArticulo: Map<number, OpcionFiltro[]>;
+  /** Grupo del articulo: siempre hay uno (a lo sumo "No Asignado"). */
+  grupoDeArticulo: (articulo: ARTICULOS) => OpcionFiltro | null;
+  /** Subgrupo del articulo: uno o ninguno. */
+  subgrupoDeArticulo: (articulo: ARTICULOS) => OpcionFiltro | null;
   clientesDeArticulo: Map<number, OpcionFiltro[]>;
-  subgruposDeArticulo: Map<number, OpcionFiltro[]>;
-  gruposPorArticulo: Map<number, string[]>;
   clientesPorArticulo: Map<number, string[]>;
-  subgruposPorArticulo: Map<number, string[]>;
-  abrirEdicionGrupos: (articulo: ARTICULOS) => void;
+  abrirEdicionGrupo: (articulo: ARTICULOS) => void;
   abrirEdicionClientes: (articulo: ARTICULOS) => void;
-  abrirEdicionSubgrupos: (articulo: ARTICULOS) => void;
+  abrirEdicionSubgrupo: (articulo: ARTICULOS) => void;
   abrirEdicionLinea: (articulo: ARTICULOS) => void;
   abrirEdicionCampo: (articulo: ARTICULOS, campo: CampoEditable) => void;
   onToggleVigente: (articulo: ARTICULOS) => void;
 }
+
+/** Envuelve un valor unico (o su ausencia) en la lista que espera el filtro. */
+const comoValores = (opcion: OpcionFiltro | null): OpcionFiltro[] => (opcion ? [opcion] : []);
 
 /**
  * Las 13 columnas de la tabla de articulos. Las columnas editables abren su
@@ -67,15 +70,13 @@ interface DepsColumnas {
  */
 export function crearColumnasArticulos({
   lineas,
-  gruposDeArticulo,
+  grupoDeArticulo,
+  subgrupoDeArticulo,
   clientesDeArticulo,
-  subgruposDeArticulo,
-  gruposPorArticulo,
   clientesPorArticulo,
-  subgruposPorArticulo,
-  abrirEdicionGrupos,
+  abrirEdicionGrupo,
   abrirEdicionClientes,
-  abrirEdicionSubgrupos,
+  abrirEdicionSubgrupo,
   abrirEdicionLinea,
   abrirEdicionCampo,
   onToggleVigente,
@@ -128,28 +129,34 @@ export function crearColumnasArticulos({
       },
     },
     {
+      // Un articulo pertenece a UN grupo: siempre un solo chip.
       header: 'Grupo',
-      render: (item) =>
-        formatearListaConLimite(gruposPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Grupos',
+      render: (item) => grupoDeArticulo(item)?.nombre ?? 'Sin Grupo',
       renderCell: (item) => (
-        <ListaDeChips nombres={gruposPorArticulo.get(item.id_articulo) ?? []} vacioTexto='Sin Grupos' />
+        <ListaDeChips
+          nombres={comoValores(grupoDeArticulo(item)).map((o) => o.nombre)}
+          vacioTexto='Sin Grupo'
+        />
       ),
-      onClick: (item) => abrirEdicionGrupos(item),
+      onClick: (item) => abrirEdicionGrupo(item),
       width: 120,
       filtroKey: 'grupos',
-      filtro: { tipo: 'seleccion', getValores: (item) => gruposDeArticulo.get(item.id_articulo) ?? [] },
+      filtro: { tipo: 'seleccion', getValores: (item) => comoValores(grupoDeArticulo(item)) },
     },
     {
+      // Un articulo tiene a lo sumo UN subgrupo (el de su grupo, o ninguno).
       header: 'Subgrupo',
-      render: (item) =>
-        formatearListaConLimite(subgruposPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Subgrupos',
+      render: (item) => subgrupoDeArticulo(item)?.nombre ?? 'Sin Subgrupo',
       renderCell: (item) => (
-        <ListaDeChips nombres={subgruposPorArticulo.get(item.id_articulo) ?? []} vacioTexto='Sin Subgrupos' />
+        <ListaDeChips
+          nombres={comoValores(subgrupoDeArticulo(item)).map((o) => o.nombre)}
+          vacioTexto='Sin Subgrupo'
+        />
       ),
-      onClick: (item) => abrirEdicionSubgrupos(item),
-      width: 160,
+      onClick: (item) => abrirEdicionSubgrupo(item),
+      width: 140,
       filtroKey: 'subgrupos',
-      filtro: { tipo: 'seleccion', getValores: (item) => subgruposDeArticulo.get(item.id_articulo) ?? [] },
+      filtro: { tipo: 'seleccion', getValores: (item) => comoValores(subgrupoDeArticulo(item)) },
     },
     {
       header: 'Color/Modelo',

@@ -26,12 +26,12 @@ const NOMBRE_TIPO: Record<TipoAgrupacion, string> = {
   linea: 'la línea',
 };
 
-// El grupo cascadea (borra tambien sus subgrupos y las asociaciones de
-// articulos), y la linea desasigna (deja sin linea a los articulos que la
-// tenian), asi que ameritan una advertencia mas especifica que subgrupo/
-// colegio (que directamente fallan si todavia estan en uso).
+// El grupo cascadea (borra tambien sus subgrupos) y manda sus articulos al
+// grupo "No Asignado"; la linea desasigna (deja sin linea a los articulos que
+// la tenian). Ameritan una advertencia mas especifica que subgrupo/colegio
+// (que directamente fallan si todavia estan en uso).
 const ADVERTENCIA: Record<TipoAgrupacion, string> = {
-  grupo: 'Esta acción no se puede deshacer. También se eliminarán sus subgrupos y se quitará este grupo de todos los artículos asociados.',
+  grupo: 'Esta acción no se puede deshacer. También se eliminarán sus subgrupos y los artículos de este grupo pasarán al grupo "No Asignado".',
   subgrupo: 'Esta acción no se puede deshacer.',
   colegio: 'Esta acción no se puede deshacer.',
   linea: 'Esta acción no se puede deshacer. Los artículos que tengan esta línea asignada quedarán sin línea.',

@@ -1,7 +1,7 @@
 /**
  * Diff entre la seleccion original y la actual de una asociacion: que filas
  * hay que crear y cuales borrar. Usado por los modales de relaciones
- * (grupos/clientes de un articulo, lineas de un grupo).
+ * (colegios/clubes de un articulo).
  */
 export function diferenciaPorId<T>(
   originales: T[],

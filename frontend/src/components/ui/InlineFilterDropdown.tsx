@@ -12,6 +12,12 @@ interface InlineFilterDropdownProps {
   disabled?: boolean;
   /** Agrega un buscador dentro del desplegable. */
   conBuscador?: boolean;
+  /**
+   * Muestra la X para volver a "sin seleccion". Se apaga cuando el valor es
+   * obligatorio y solo puede reemplazarse por otro (p. ej. el grupo de un
+   * articulo); ahi `onClear` nunca se llama.
+   */
+  permitirLimpiar?: boolean;
 }
 
 function InlineFilterDropdown({
@@ -22,6 +28,7 @@ function InlineFilterDropdown({
   onClear,
   disabled = false,
   conBuscador = false,
+  permitirLimpiar = true,
 }: InlineFilterDropdownProps) {
   const [abierto, setAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
@@ -65,7 +72,7 @@ function InlineFilterDropdown({
         } ${seleccionada ? '!bg-violet-500 !text-white' : ''}`}
       >
         <span className='truncate'>{seleccionada ? seleccionada.nombre : label}</span>
-        {seleccionada ? (
+        {seleccionada && permitirLimpiar ? (
           <span
             role='button'
             onClick={(e) => {

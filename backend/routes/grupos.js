@@ -2,16 +2,27 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId, parseIds, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
+const { ID_GRUPO_NO_ASIGNADO, IDS_GRUPOS_DE_CLIENTES } = require('../constants/agrupaciones');
 
 const router = express.Router();
 
-// Los grupos 1 y 2 (Colegios/Clubes) son especiales y no se listan ni se
-// administran desde Configuracion.
+// "No Asignado" lo administra la base: no se puede renombrar ni borrar (si se
+// borrara, los articulos huerfanos se quedarian sin default al que caer).
+const assertGrupoEditable = (id_grupo) => {
+  if (id_grupo === ID_GRUPO_NO_ASIGNADO) {
+    throw new HttpError(403, { message: 'El grupo "No Asignado" no se puede modificar ni eliminar.' });
+  }
+};
+
+// Los grupos de Colegios/Clubes son especiales y no se listan ni se administran
+// desde Configuracion. "No Asignado" SI se devuelve: la pagina de articulos lo
+// necesita para mostrar el grupo de cada articulo y para filtrar por el (quien
+// no deba ofrecerlo como destino lo descarta de su lista).
 router.get(
   '/',
   asyncHandler(async (req, res) => {
     const grupos = await prisma.GRUPOS_DE_VENTA.findMany({
-      where: { id_grupo: { notIn: [1, 2] } },
+      where: { id_grupo: { notIn: IDS_GRUPOS_DE_CLIENTES } },
     });
     res.status(200).json(grupos);
   }, 'Error al obtener los grupos de articulos.')
@@ -44,6 +55,7 @@ router.put(
   '/:id_grupo',
   asyncHandler(async (req, res) => {
     const id_grupo = parseId(req.params.id_grupo, 'El id del grupo debe ser un numero.');
+    assertGrupoEditable(id_grupo);
 
     const nombre_grupo = normalizarNombre(req.body.nombre_grupo);
     if (!nombre_grupo) {
@@ -65,12 +77,14 @@ router.put(
   })
 );
 
-// Eliminar un grupo. Por la relacion en cascada de la base, esto tambien
-// borra sus subgrupos y las asociaciones de articulos a este grupo.
+// Eliminar un grupo. Por las reglas de la base, esto tambien borra sus
+// subgrupos (cascada) y manda sus articulos al grupo "No Asignado"
+// (ON DELETE SET DEFAULT sobre ARTICULOS.id_grupo).
 router.delete(
   '/:id_grupo',
   asyncHandler(async (req, res) => {
     const id_grupo = parseId(req.params.id_grupo, 'El id del grupo debe ser un numero.');
+    assertGrupoEditable(id_grupo);
 
     await prisma.GRUPOS_DE_VENTA.delete({ where: { id_grupo } });
     res.status(204).send();
