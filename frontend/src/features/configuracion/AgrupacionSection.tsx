@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { GRUPOS_DE_VENTA, LINEAS, GRUPOS_X_LINEAS } from '@backend/types';
+import type { GRUPOS_DE_VENTA, LINEAS } from '@backend/types';
 import type { TipoAgrupacion } from '@/types/agrupaciones';
 import SearchInput from '@/components/ui/SearchInput';
 import CrearAgrupacionModal from '@/features/configuracion/modales/CrearAgrupacionModal';
@@ -33,7 +33,6 @@ interface AgrupacionSectionProps {
   onRefrescar: () => void;
   /** Solo tipo 'grupo': para el editor de líneas asociadas. */
   lineasDisponibles?: LINEAS[];
-  gruposXLineas?: GRUPOS_X_LINEAS[];
 }
 
 export default function AgrupacionSection({
@@ -45,7 +44,6 @@ export default function AgrupacionSection({
   grupos,
   onRefrescar,
   lineasDisponibles,
-  gruposXLineas,
 }: AgrupacionSectionProps) {
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState<Orden>('asc');
@@ -163,7 +161,6 @@ export default function AgrupacionSection({
         tipo={tipo}
         grupos={grupos}
         lineasDisponibles={lineasDisponibles}
-        gruposXLineas={gruposXLineas}
         edicion={
           itemAEditar
             ? {

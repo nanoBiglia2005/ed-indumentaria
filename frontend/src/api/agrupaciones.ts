@@ -1,12 +1,11 @@
 // ABM de las agrupaciones de Configuracion: grupos de venta, subgrupos,
-// colegios/clubes (CLIENTES) y lineas, mas las asociaciones grupo<->linea.
+// colegios/clubes (CLIENTES) y lineas.
 import { request } from './cliente';
 import type {
   GRUPOS_DE_VENTA,
   SUBGRUPOS_DE_VENTA,
   CLIENTES,
   LINEAS,
-  GRUPOS_X_LINEAS,
 } from '@backend/types';
 
 // --- Grupos de venta ---
@@ -78,16 +77,3 @@ export const actualizarLinea = (idLinea: number, nombreLinea: string) =>
 
 export const eliminarLinea = (idLinea: number) =>
   request<void>(`/api/lineas/${idLinea}`, { metodo: 'DELETE' });
-
-// --- Asociaciones grupo <-> linea ---
-
-export const listarGruposXLineas = () => request<GRUPOS_X_LINEAS[]>('/api/grupos-x-lineas');
-
-export const asociarLineaAGrupo = (idGrupo: number, idLinea: number) =>
-  request<GRUPOS_X_LINEAS>(`/api/grupos/${idGrupo}/lineas`, {
-    metodo: 'POST',
-    cuerpo: { id_linea: idLinea },
-  });
-
-export const quitarLineaDeGrupo = (idGrupo: number, idLinea: number) =>
-  request<void>(`/api/grupos/${idGrupo}/lineas/${idLinea}`, { metodo: 'DELETE' });

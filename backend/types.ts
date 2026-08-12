@@ -16,7 +16,6 @@ export type {
   SUBGRUPOS_DE_VENTA,
   LINEAS,
   TIPOS_DE_PAGO,
-  GRUPOS_X_LINEAS,
   ARTICULOS_X_GRUPO_VENTA,
   ARTICULOS_X_CLIENTE,
 } from './generated/prisma/client';

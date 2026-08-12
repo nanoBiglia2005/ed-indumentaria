@@ -5,7 +5,6 @@ import type {
   SUBGRUPOS_DE_VENTA,
   CLIENTES,
   LINEAS,
-  GRUPOS_X_LINEAS,
 } from '@backend/types';
 import { useFetchLista } from '@/hooks/useFetchLista';
 import { listarTiposDePago } from '@/api/tiposDePago';
@@ -14,7 +13,6 @@ import {
   listarSubgrupos,
   listarClientes,
   listarLineas,
-  listarGruposXLineas,
 } from '@/api/agrupaciones';
 import EditRecargoModal from '@/features/configuracion/modales/EditRecargoModal';
 import SectionWrapper from '@/components/layout/SectionWrapper';
@@ -40,7 +38,6 @@ function ConfiguracionPage() {
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
   const [clientes, setClientes] = useState<CLIENTES[]>([]);
   const [lineas, setLineas] = useState<LINEAS[]>([]);
-  const [gruposXLineas, setGruposXLineas] = useState<GRUPOS_X_LINEAS[]>([]);
 
   // Listas de apoyo: si fallan solo se loguea (la pagina sigue usable).
   const fetchGrupos = () => {
@@ -67,23 +64,15 @@ function ConfiguracionPage() {
       .catch((error) => console.error('Error al obtener las líneas:', error));
   };
 
-  const fetchGruposXLineas = () => {
-    listarGruposXLineas()
-      .then(setGruposXLineas)
-      .catch((error) => console.error('Error al obtener las asociaciones de grupos y líneas:', error));
-  };
-
   useEffect(() => {
     fetchGrupos();
     fetchSubgrupos();
     fetchClientes();
     fetchLineas();
-    fetchGruposXLineas();
   }, []);
 
   const refrescarGrupos = () => {
     fetchGrupos();
-    fetchGruposXLineas();
   };
 
   const abrirEdicionRecargo = (tipoDePago: TIPOS_DE_PAGO) => {
@@ -100,21 +89,11 @@ function ConfiguracionPage() {
   };
 
   const itemsGrupos: ItemAgrupacion[] = useMemo(() => {
-    const nombreLineaPorId = new Map(lineas.map((l) => [l.id_linea, l.nombre_linea]));
-    const nombresLineasPorGrupo = new Map<number, string[]>();
-    for (const rel of gruposXLineas) {
-      const nombreLinea = nombreLineaPorId.get(rel.id_linea);
-      if (!nombreLinea) continue;
-      if (!nombresLineasPorGrupo.has(rel.id_grupo)) nombresLineasPorGrupo.set(rel.id_grupo, []);
-      nombresLineasPorGrupo.get(rel.id_grupo)!.push(nombreLinea);
-    }
-
     return grupos.map((g) => ({
       id: g.id_grupo,
       nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
-      subtitulo: nombresLineasPorGrupo.get(g.id_grupo)?.join(', '),
     }));
-  }, [grupos, gruposXLineas, lineas]);
+  }, [grupos]);
 
   const itemsSubgrupos: ItemAgrupacion[] = useMemo(() => {
     const nombreGrupoPorId = new Map(grupos.map((g) => [g.id_grupo, g.nombre_grupo ?? `Grupo ${g.id_grupo}`]));
@@ -208,7 +187,6 @@ function ConfiguracionPage() {
               grupos={grupos}
               onRefrescar={refrescarGrupos}
               lineasDisponibles={lineas}
-              gruposXLineas={gruposXLineas}
             />
           </div>
 

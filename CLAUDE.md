@@ -8,6 +8,7 @@
 - Identificadores y textos en español. Componentes PascalCase, hooks `useCosa`, resto camelCase.
 
 ## Backend
+- Todas las llamadas a la API deben verificar si el usuario está loggeado antes de realizarse.
 - `index.js` es solo bootstrap (health → auth → requireAuth → routers). No agregar rutas ahí.
 - Nueva ruta: archivo en `routes/<dominio>.js` con `express.Router`, handlers envueltos en
   `asyncHandler(fn, 'mensaje de error 500')` de `lib/http.js`. Errores esperados:
@@ -43,3 +44,14 @@
   de la feature. Ante la duda, dejarlo en la feature (extraer recién con el segundo uso).
 - No cambiar comportamiento al refactorizar. Bug encontrado = se documenta y se pregunta;
   no se arregla en silencio.
+- Los colores principales de la página son violeta (violet en tailwind) y amarillo (amber 
+  en tailwind). Utilizar estos colores para botones, hovers, borders, etc.
+- El desarrollo debe ser enfocado en uso en resoluciones de pantalla altas (PC) pero los
+  elementos de la página deben adaptarse a resoluciones más pequeñas (Celular).
+
+## General
+- ¡IMPORTANTE! La aplicación será hosteada en una máquina de Ubuntu en la nube (DonWeb), realizar el desarrollo teniendo en cuenta que vaya a funcionar al migrar. 
+- Aplicar buenas practicas de seguridad al manejar funcionalidades bloqueadas por el rol del usuario.
+- Priorizar la reusabilidad en el desarrollo del codigo.
+
+

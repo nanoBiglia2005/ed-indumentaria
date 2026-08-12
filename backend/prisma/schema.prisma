@@ -23,8 +23,12 @@ model ARTICULOS {
   barcode_header           String?                    @db.VarChar(6)
   talle                    String?                    @db.VarChar(30)
   id_linea                 Int?
+  id_subgrupo              Int?
+  id_grupo                 Int                        @default(-1)
+  GRUPOS_DE_VENTA          GRUPOS_DE_VENTA            @relation(fields: [id_grupo], references: [id_grupo], onDelete: SetDefault, map: "articulos_grupos_de_venta_fk")
   LINEAS                   LINEAS?                    @relation(fields: [id_linea], references: [id_linea], map: "articulos_lineas_fk")
   PROVEEDORES              PROVEEDORES?               @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
+  SUBGRUPOS_DE_VENTA       SUBGRUPOS_DE_VENTA?        @relation(fields: [id_subgrupo], references: [id_subgrupo], map: "articulos_subgrupos_de_venta_fk")
   TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA            @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
   ARTICULOS_X_CLIENTE      ARTICULOS_X_CLIENTE[]
   ARTICULOS_X_GRUPO_VENTA  ARTICULOS_X_GRUPO_VENTA[]
@@ -201,9 +205,9 @@ model GRUPOS_DE_VENTA {
   id_grupo                Int                       @id(map: "grupos_de_venta_pk") @default(autoincrement())
   nombre_grupo            String                    @db.VarChar(50)
   tipo_grupo              tipo_operacion?
+  ARTICULOS               ARTICULOS[]
   ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
   CLIENTES                CLIENTES[]
-  GRUPOS_X_LINEAS         GRUPOS_X_LINEAS[]
   SUBGRUPOS_DE_VENTA      SUBGRUPOS_DE_VENTA[]
 }
 
@@ -221,6 +225,7 @@ model SUBGRUPOS_DE_VENTA {
   id_subgrupo             Int                       @id(map: "_subgrupos_de_venta_alt__pk") @default(autoincrement())
   id_grupo                Int
   nombre_subgrupo         String                    @db.VarChar(30)
+  ARTICULOS               ARTICULOS[]
   ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
   GRUPOS_DE_VENTA         GRUPOS_DE_VENTA           @relation(fields: [id_grupo], references: [id_grupo], onDelete: Cascade, map: "subgrupos_de_venta_grupos_de_venta_fk")
 }
@@ -234,18 +239,9 @@ model ARTICULOS_X_CLIENTE {
 }
 
 model LINEAS {
-  id_linea        Int               @id(map: "lineas_pk") @default(autoincrement())
-  nombre_linea    String            @db.VarChar(20)
-  ARTICULOS       ARTICULOS[]
-  GRUPOS_X_LINEAS GRUPOS_X_LINEAS[]
-}
-
-model GRUPOS_X_LINEAS {
-  id_registro     Int             @id(map: "grupos_x_lineas_pk") @default(autoincrement())
-  id_grupo        Int
-  id_linea        Int
-  GRUPOS_DE_VENTA GRUPOS_DE_VENTA @relation(fields: [id_grupo], references: [id_grupo], onDelete: Cascade, map: "grupos_x_lineas_grupos_de_venta_fk")
-  LINEAS          LINEAS          @relation(fields: [id_linea], references: [id_linea], onDelete: Cascade, map: "grupos_x_lineas_lineas_fk")
+  id_linea     Int         @id(map: "lineas_pk") @default(autoincrement())
+  nombre_linea String      @db.VarChar(20)
+  ARTICULOS    ARTICULOS[]
 }
 
 enum tipo_operacion {

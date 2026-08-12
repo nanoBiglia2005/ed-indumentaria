@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import type { GRUPOS_DE_VENTA, LINEAS, GRUPOS_X_LINEAS } from '@backend/types';
+import type { GRUPOS_DE_VENTA, LINEAS } from '@backend/types';
 import type { TipoAgrupacion, EdicionAgrupacion } from '@/types/agrupaciones';
 import type { Opcion } from '@/types/comunes';
 import BaseModal from '@/components/ui/BaseModal';
 import SegmentedToggle from '@/components/ui/SegmentedToggle';
-import ListaChips from '@/components/ui/ListaChips';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
-import { diferenciaPorId } from '@/utils/relaciones';
 import {
   crearGrupo,
   actualizarGrupo,
@@ -16,8 +14,6 @@ import {
   actualizarCliente,
   crearLinea,
   actualizarLinea,
-  asociarLineaAGrupo,
-  quitarLineaDeGrupo,
 } from '@/api/agrupaciones';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
 
@@ -32,7 +28,6 @@ interface CrearAgrupacionModalProps {
   edicion?: EdicionAgrupacion | null;
   /** Solo tipo 'grupo' en edicion: para el editor de líneas asociadas. */
   lineasDisponibles?: LINEAS[];
-  gruposXLineas?: GRUPOS_X_LINEAS[];
 }
 
 const TITULOS: Record<TipoAgrupacion, string> = {
@@ -69,19 +64,12 @@ export default function CrearAgrupacionModal({
   grupos,
   grupoPreseleccionado = null,
   edicion = null,
-  lineasDisponibles = [],
-  gruposXLineas = [],
 }: CrearAgrupacionModalProps) {
   const [nombre, setNombre] = useState('');
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [tipoCliente, setTipoCliente] = useState<1 | 2>(1);
   const { cargando, error, setError, ejecutar } = useAccionAsync();
-
-  const [lineasOriginales, setLineasOriginales] = useState<LINEAS[]>([]);
-  const [lineasSeleccionadas, setLineasSeleccionadas] = useState<LINEAS[]>([]);
-
   const modoEdicion = edicion !== null;
-  const editaLineas = tipo === 'grupo' && modoEdicion;
 
   useEffect(() => {
     if (!abierto) return;
@@ -90,16 +78,6 @@ export default function CrearAgrupacionModal({
     setTipoCliente(edicion?.tipoCliente ?? 1);
     setError(null);
 
-    if (tipo === 'grupo' && edicion) {
-      const lineasDelGrupo = lineasDisponibles.filter((linea) =>
-        gruposXLineas.some((rel) => rel.id_grupo === edicion.id && rel.id_linea === linea.id_linea)
-      );
-      setLineasOriginales(lineasDelGrupo);
-      setLineasSeleccionadas(lineasDelGrupo);
-    } else {
-      setLineasOriginales([]);
-      setLineasSeleccionadas([]);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [abierto, tipo, edicion]);
 
@@ -149,24 +127,7 @@ export default function CrearAgrupacionModal({
     }
 
     ejecutar(async () => {
-      const opcionGuardada = await guardarRegistro(nombreTrimeado);
-
-      if (editaLineas) {
-        const { aAgregar, aQuitar } = diferenciaPorId(
-          lineasOriginales,
-          lineasSeleccionadas,
-          (l) => l.id_linea
-        );
-
-        const resultadosLineas = await Promise.allSettled([
-          ...aAgregar.map((linea) => asociarLineaAGrupo(edicion!.id, linea.id_linea)),
-          ...aQuitar.map((linea) => quitarLineaDeGrupo(edicion!.id, linea.id_linea)),
-        ]);
-
-        if (resultadosLineas.some((r) => r.status === 'rejected')) {
-          throw new Error('Hubo un error al actualizar las líneas asociadas.');
-        }
-      }
+      const opcionGuardada = await guardarRegistro(nombreTrimeado);  
 
       onGuardado(opcionGuardada);
       onCerrar();
@@ -236,36 +197,6 @@ export default function CrearAgrupacionModal({
               valor={tipoCliente}
               opciones={OPCIONES_TIPO_CLIENTE}
               onChange={setTipoCliente}
-            />
-          </div>
-        )}
-
-        {editaLineas && (
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>Líneas asociadas</label>
-            <div className='mb-3'>
-              <InlineFilterDropdown
-                label='Agregar Línea'
-                opciones={lineasDisponibles
-                  .filter((l) => !lineasSeleccionadas.some((sel) => sel.id_linea === l.id_linea))
-                  .map((l) => ({ id: l.id_linea, nombre: l.nombre_linea }))}
-                selectedId={null}
-                onSelect={(id) => {
-                  const linea = lineasDisponibles.find((l) => l.id_linea === id);
-                  if (linea) {
-                    setLineasSeleccionadas((prev) => [...prev, linea]);
-                  }
-                }}
-                onClear={() => {}}
-              />
-            </div>
-
-            <ListaChips
-              items={lineasSeleccionadas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea }))}
-              onQuitar={(id) =>
-                setLineasSeleccionadas((prev) => prev.filter((l) => l.id_linea !== id))
-              }
-              textoVacio='No asociado a ninguna línea'
             />
           </div>
         )}

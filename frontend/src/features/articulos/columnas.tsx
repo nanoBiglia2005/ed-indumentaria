@@ -128,7 +128,7 @@ export function crearColumnasArticulos({
       },
     },
     {
-      header: 'Grupos',
+      header: 'Grupo',
       render: (item) =>
         formatearListaConLimite(gruposPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Grupos',
       renderCell: (item) => (
@@ -140,7 +140,7 @@ export function crearColumnasArticulos({
       filtro: { tipo: 'seleccion', getValores: (item) => gruposDeArticulo.get(item.id_articulo) ?? [] },
     },
     {
-      header: 'Subgrupos',
+      header: 'Subgrupo',
       render: (item) =>
         formatearListaConLimite(subgruposPorArticulo.get(item.id_articulo) ?? []) ?? 'Sin Subgrupos',
       renderCell: (item) => (
