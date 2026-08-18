@@ -63,8 +63,7 @@ router.post(
         fecha_de_emision: ahora,
         fecha_de_creacion: ahora,
         id_estado: ESTADO_CONFIRMADO,
-        total_bruto: totalVenta,
-        total_neto: totalVenta,
+        total_inicial: totalVenta,
         DETALLES_REMITO: {
           create: detallesData,
         },
@@ -172,8 +171,7 @@ router.put(
         where: { id_remito: remito.id_remito },
         data: {
           id_estado: ESTADO_FACTURADO,
-          total_bruto: totalVenta,
-          total_neto: totalVenta,
+          total_final: totalVenta,
         },
         include: remitosInclude,
       });

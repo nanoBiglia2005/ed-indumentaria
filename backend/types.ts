@@ -4,6 +4,7 @@ import agrupaciones from './shared/agrupaciones.json';
 import barcode from './shared/barcode.json';
 import roles from './shared/roles.json';
 import precios from './shared/precios.json';
+import clientes from './shared/clientes.json';
 
 /**
  * FACHADA de tipos del backend para el frontend.
@@ -15,6 +16,7 @@ import precios from './shared/precios.json';
  */
 export type {
   ARTICULOS,
+  CLIENTES,
   CLIENTES_MAYORISTAS,
   GRUPOS_DE_VENTA,
   SUBGRUPOS_DE_VENTA,
@@ -54,12 +56,35 @@ export const BARCODE_TAIL_MAX = barcode.BARCODE_TAIL_MAX;
 export const ROLES_PRECIOS: readonly string[] = roles.ROLES_PRECIOS;
 
 /**
+ * Roles que pueden entrar al ambiente de prueba (las paginas `*Prueba` y las
+ * rutas `/api/*-prueba`, donde se arman las funcionalidades nuevas sin tocar
+ * las que estan en uso). Igual que arriba: el frontend esconde la seccion, pero
+ * QUIEN DECIDE es el backend (lib/roles.js sobre la sesion). Fuente unica:
+ * shared/roles.json (el backend CommonJS lo lee via constants/roles.js).
+ */
+export const ROLES_PRUEBA: readonly string[] = roles.ROLES_PRUEBA;
+
+/**
  * Limites de la actualizacion masiva de precios: el input de la pagina y la
  * validacion de routes/precios.js aceptan exactamente lo mismo. Fuente unica:
  * shared/precios.json (el backend CommonJS los lee via constants/precios.js).
  */
 export const PRECIO_MAX = precios.PRECIO_MAX;
 export const MAX_ARTICULOS_POR_ACTUALIZACION = precios.MAX_ARTICULOS_POR_ACTUALIZACION;
+
+/**
+ * Limites del alta de un cliente final (tabla CLIENTES, la minorista): el
+ * formulario del frontend limita lo que se puede tipear y routes/ventaPrueba.js
+ * valida exactamente lo mismo. Fuente unica: shared/clientes.json (el backend
+ * CommonJS los lee via constants/clientes.js).
+ */
+export const NOMBRE_MAX = clientes.NOMBRE_MAX;
+export const APELLIDO_MAX = clientes.APELLIDO_MAX;
+export const DNI_LARGO = clientes.DNI_LARGO;
+export const EMAIL_MAX = clientes.EMAIL_MAX;
+export const COD_PAIS_DIGITOS = clientes.COD_PAIS_DIGITOS;
+export const COD_AREA_DIGITOS = clientes.COD_AREA_DIGITOS;
+export const TELEFONO_DIGITOS = clientes.TELEFONO_DIGITOS;
 
 /**
  * Relaciones que se incluyen al consultar REMITOS.
@@ -97,6 +122,27 @@ export const ESTADO_DEVUELTO = ventas.ESTADOS.DEVUELTO;
  * proposito con el boton "Sin Imprimir".
  */
 export type RemitoCreado = RemitoConDetalles & {
+  impresion: { status: 'ok' | 'error' | 'omitida'; message?: string };
+};
+
+/**
+ * Igual que `remitosInclude` pero con el cliente final del remito
+ * (REMITOS.id_cliente -> CLIENTES). Lo usa el flujo de venta de PRUEBA, que es
+ * el unico que asigna un cliente; el resto de las rutas sigue con
+ * `remitosInclude` para no cambiar lo que ya devuelven.
+ */
+export const remitosConClienteInclude = {
+  ...remitosInclude,
+  CLIENTES: true,
+} as const satisfies Prisma.REMITOSInclude;
+
+/** Remito con sus detalles Y el cliente final asignado (o null). */
+export type RemitoConCliente = Prisma.REMITOSGetPayload<{
+  include: typeof remitosConClienteInclude;
+}>;
+
+/** Respuesta de POST /api/venta-prueba/remitos. */
+export type RemitoCreadoConCliente = RemitoConCliente & {
   impresion: { status: 'ok' | 'error' | 'omitida'; message?: string };
 };
 

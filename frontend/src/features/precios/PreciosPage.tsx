@@ -39,6 +39,21 @@ const claveDeTalle = (talle: string | null) => talle ?? CLAVE_SIN_TALLE;
 /** Deja solo digitos y saca los ceros a la izquierda ("0012" -> "12"). */
 const normalizarPrecio = (valor: string) => valor.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
 
+// Los precios de la base son Float y se muestran tal cual: un entero ya se ve
+// "1500" (sin decimales de relleno) y los que no lo son se ven completos. NO se
+// redondea: hay articulos cargados con precios chiquitos (0.0021) que a dos
+// decimales se verian como "0", o sea un precio que no es el que tienen.
+const textoPrecio = (precio: number) => String(precio);
+
+/**
+ * Precio que muestra el input como placeholder: el actual del talle, o el rango
+ * "mas bajo, mas alto" cuando sus articulos no valen todos lo mismo.
+ */
+const placeholderDePrecio = ({ precioMin, precioMax }: TalleDePrecios) =>
+  precioMin === precioMax
+    ? textoPrecio(precioMin)
+    : `${textoPrecio(precioMin)} - ${textoPrecio(precioMax)}`;
+
 /** Talles de un recorte, con la clave del recorte que los produjo. */
 type CargaTalles = {
   clave: string;
@@ -150,6 +165,7 @@ function PreciosPage() {
           etiqueta: fila.talle ?? 'Sin Talle',
           cantidad: fila.ids.length,
           valor: valoresPrecios[clave] ?? '',
+          placeholder: placeholderDePrecio(fila),
         };
       });
   }, [talles, valoresPrecios]);

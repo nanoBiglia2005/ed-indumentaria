@@ -1,3 +1,4 @@
 {
-  "ROLES_PRECIOS": ["admin", "superadmin"]
+  "ROLES_PRECIOS": ["admin", "superadmin"],
+  "ROLES_PRUEBA": ["superadmin"]
 }

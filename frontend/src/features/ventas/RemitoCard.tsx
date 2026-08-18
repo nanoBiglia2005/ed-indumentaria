@@ -73,7 +73,7 @@ function RemitoCard({ remito, abiertoPorDefecto = false, onPagar, onAnular }: Re
             )}
           </div>
         )}
-          <span className='text-lg font-semibold text-violet-600'>{remito.total_neto ?? 0}$</span>
+          <span className='text-lg font-semibold text-violet-600'>{remito.total_final ?? remito.total_inicial ?? 0}$</span>
           <svg
             className={`w-5 h-5 text-gray-400 transition-transform duration-200 ease-in-out ${
               abierto ? 'rotate-180' : ''

@@ -27,10 +27,15 @@ export interface RespuestaArticulosDeLinea {
 /**
  * Un talle del recorte elegido con los ids de sus articulos. `talle` en null
  * son los articulos sin talle cargado.
+ *
+ * `precioMin` y `precioMax` son el precio actual mas bajo y mas alto del talle:
+ * si coinciden, todos sus articulos valen lo mismo.
  */
 export interface TalleDePrecios {
   talle: string | null;
   ids: number[];
+  precioMin: number;
+  precioMax: number;
 }
 
 /** Paso 1: los articulos de la linea + los grupos y subgrupos que aparecen. */

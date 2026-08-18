@@ -1,0 +1,90 @@
+2026-08-14 09:32:23,581 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 5s
+2026-08-14 09:32:31,302 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 10s
+2026-08-14 09:32:44,006 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 20s
+2026-08-14 09:33:06,697 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 40s
+2026-08-14 09:33:49,399 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 80s
+2026-08-14 09:35:12,090 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 160s
+2026-08-14 09:37:54,790 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 09:42:57,495 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 09:48:00,209 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 09:53:02,915 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 09:58:05,640 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:03:08,368 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:08:11,073 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:13:13,785 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:18:16,489 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:23:19,198 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:28:21,897 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:33:24,610 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:38:27,334 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:43:30,052 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:48:32,787 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:53:35,491 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 10:58:38,237 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:03:40,969 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:08:43,703 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:13:46,413 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:18:49,137 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:23:51,857 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:28:54,590 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:33:57,452 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:39:00,148 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:44:02,887 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:49:05,618 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:54:08,401 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 11:59:11,182 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:04:13,972 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:09:16,753 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:14:19,513 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:19:22,273 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:24:25,036 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:29:27,798 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:34:30,552 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:39:33,296 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:44:36,036 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:49:38,752 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:54:41,501 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 12:59:44,262 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:04:47,007 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:09:49,748 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:14:52,478 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:19:55,219 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:24:57,944 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:30:00,668 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:35:03,406 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:40:06,132 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:45:08,866 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:50:11,609 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 13:55:14,329 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 14:00:17,069 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 14:05:19,791 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 14:10:22,529 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 14:15:25,274 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-14 14:20:28,005 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+Traceback (most recent call last):
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 77, in run
+    message = json.loads(raw_message)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 718, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 84, in <module>
+    ack = {"type": "ack", "job_id": job_id, "status": "ok"}
+    
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

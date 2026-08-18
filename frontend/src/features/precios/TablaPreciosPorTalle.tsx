@@ -11,6 +11,8 @@ export interface FilaPrecio {
   cantidad: number;
   /** Lo tipeado en el input (siempre digitos, puede estar vacio). */
   valor: string;
+  /** Precio actual del talle, o "min, max" si sus articulos no valen lo mismo. */
+  placeholder: string;
 }
 
 interface TablaPreciosPorTalleProps {
@@ -62,7 +64,9 @@ export default function TablaPreciosPorTalle({
               <td className='px-4 py-2 font-semibold text-gray-800'>{fila.etiqueta}</td>
               <td className='px-4 py-2 text-gray-500'>{fila.cantidad}</td>
               <td className='px-4 py-2'>
-                <div className='relative w-32 sm:w-40'>
+                {/* Ancho generoso: el placeholder puede ser un rango entero
+                    ("12500, 18900") y no tiene que quedar cortado. */}
+                <div className='relative w-36 sm:w-48'>
                   <span className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'>
                     $
                   </span>
@@ -77,7 +81,9 @@ export default function TablaPreciosPorTalle({
                     maxLength={maxDigitos}
                     value={fila.valor}
                     onChange={(e) => onCambiarPrecio(fila.clave, e.target.value)}
-                    placeholder='Sin cambios'
+                    // El placeholder es el precio que hoy tiene el talle: lo que
+                    // se ve ahi es lo que se va a pisar si se escribe algo.
+                    placeholder={fila.placeholder}
                     aria-label={`Precio para el talle ${fila.etiqueta}`}
                     className='w-full rounded border border-gray-300 bg-white py-1.5 pl-7 pr-3 text-gray-700 placeholder:text-gray-300 transition-colors duration-100 ease-in hover:border-violet-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30'
                   />

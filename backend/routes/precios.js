@@ -121,27 +121,38 @@ router.get(
 
     const articulos = await prisma.ARTICULOS.findMany({
       where: { id_linea, id_grupo, id_subgrupo },
-      select: { id_articulo: true, talle: true },
+      select: { id_articulo: true, talle: true, precio: true },
       orderBy: { id_articulo: 'asc' },
     });
 
     // Agrupado en memoria y no con un GROUP BY: el recorte es de decenas de
     // articulos y asi el talle vacio ('' o NULL) cae en un solo grupo sin
     // ensuciar la consulta.
+    //
+    // De cada talle viajan tambien el precio mas bajo y el mas alto: el
+    // frontend los muestra como placeholder del input, para saber que precio
+    // se esta por pisar. Cuando los dos coinciden, todos los articulos del
+    // talle valen lo mismo.
     const porTalle = new Map();
     for (const articulo of articulos) {
       const talle = articulo.talle?.trim() ? articulo.talle.trim() : null;
-      const ids = porTalle.get(talle);
-      if (ids) {
-        ids.push(articulo.id_articulo);
+      const grupo = porTalle.get(talle);
+
+      if (grupo) {
+        grupo.ids.push(articulo.id_articulo);
+        grupo.precioMin = Math.min(grupo.precioMin, articulo.precio);
+        grupo.precioMax = Math.max(grupo.precioMax, articulo.precio);
       } else {
-        porTalle.set(talle, [articulo.id_articulo]);
+        porTalle.set(talle, {
+          talle,
+          ids: [articulo.id_articulo],
+          precioMin: articulo.precio,
+          precioMax: articulo.precio,
+        });
       }
     }
 
-    res.status(200).json({
-      talles: [...porTalle].map(([talle, ids]) => ({ talle, ids })),
-    });
+    res.status(200).json({ talles: [...porTalle.values()] });
   }, 'Error al obtener los talles.')
 );
 

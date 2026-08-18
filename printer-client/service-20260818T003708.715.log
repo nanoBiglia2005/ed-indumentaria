@@ -1,0 +1,148 @@
+2026-08-17 11:55:05,823 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-17 11:55:11,183 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 10s
+2026-08-17 11:55:21,433 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 20s
+2026-08-17 11:55:41,648 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 40s
+2026-08-17 11:56:22,016 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 80s
+2026-08-17 11:57:42,390 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 160s
+2026-08-17 12:00:22,637 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:05:22,884 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:10:23,123 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:15:23,378 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:20:23,644 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:25:23,902 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:30:24,150 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:35:24,416 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:40:24,666 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:45:24,927 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:50:25,179 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 12:55:25,439 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:00:25,681 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:05:25,949 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:10:26,208 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:15:26,458 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:20:26,746 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:25:27,013 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:30:27,289 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:35:27,586 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:40:27,859 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:45:28,124 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:50:28,391 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 13:55:28,662 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:00:28,911 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:05:29,151 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:10:29,418 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:15:29,798 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:20:30,074 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:25:30,334 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:30:30,594 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:35:30,826 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:40:31,078 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:45:31,367 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:50:31,643 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 14:55:31,908 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:00:32,182 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:05:32,442 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:10:32,914 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:15:33,146 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:20:33,392 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:25:33,751 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:30:33,994 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:35:34,259 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:40:34,515 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:45:34,779 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:50:35,060 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 15:55:35,329 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:00:35,608 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:05:35,878 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:10:36,160 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:15:36,435 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:20:36,695 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:25:36,946 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:30:37,210 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:35:37,471 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:40:37,730 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:45:37,996 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:50:38,265 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 16:55:38,516 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:00:38,770 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:05:39,012 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:10:39,255 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:15:39,516 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:20:39,764 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:25:40,031 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:30:40,290 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:35:40,560 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:40:40,956 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:45:41,196 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:50:41,449 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 17:55:41,714 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:00:41,964 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:05:42,244 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:10:42,504 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:15:42,762 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:20:43,014 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:25:43,299 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:30:43,475 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:35:43,723 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:40:43,988 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:45:44,233 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:50:44,516 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 18:55:44,813 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:00:45,091 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:05:45,348 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:10:45,630 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:15:45,881 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:20:46,125 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:25:46,385 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:30:46,634 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:35:46,892 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:40:47,178 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:45:47,446 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:50:47,725 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 19:55:48,013 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:00:48,290 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:05:48,544 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:10:48,809 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:15:49,066 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:20:49,352 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:25:49,673 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:30:49,974 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:35:50,254 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:40:50,524 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:45:50,829 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:50:51,103 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 20:55:51,429 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:00:51,689 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:05:51,945 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:10:52,187 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:15:52,442 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:20:52,717 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:25:53,001 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:30:53,309 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-17 21:35:53,569 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+Traceback (most recent call last):
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 100, in run
+    await asyncio.sleep(reconnect_delay)
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 718, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 107, in <module>
+    asyncio.run(run())
+    ~~~~~~~~~~~^^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

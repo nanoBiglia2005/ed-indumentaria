@@ -7,11 +7,12 @@ datasource db {
   provider = "postgresql"
 }
 
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model ARTICULOS {
   id_articulo              Int                        @id(map: "articulos_pk") @default(autoincrement())
   cant                     Int                        @default(0)
   precio                   Float                      @default(0)
-  barcode_tail             String?                    @unique(map: "unique_codigo_barras") @db.VarChar(20)
+  barcode_tail             String?                    @db.VarChar(20)
   stock_minimo             Int                        @default(0) @db.SmallInt
   vigente                  Boolean?                   @default(true)
   id_medida                Int                        @default(1)
@@ -123,19 +124,19 @@ model REGISTRO_USUARIOS {
 }
 
 model REMITOS {
-  id_remito            Int                  @id(map: "_remitos__pk") @default(autoincrement())
+  id_remito            Int               @id(map: "_remitos__pk") @default(autoincrement())
   id_sucursal          Int?
-  fecha_de_emision     DateTime?            @db.Date
-  fecha_de_creacion    DateTime?            @db.Date
-  id_estado            Int?
+  fecha_de_emision     DateTime?         @db.Date
+  fecha_de_creacion    DateTime          @default(now()) @db.Date
+  id_estado            Int               @default(1)
   id_cliente           Int?
-  tipo_comprobante     String?              @default("\"remito\"") @db.VarChar(20)
-  num_remito_final     Int?
+  tipo_comprobante     String?           @default("\"remito\"") @db.VarChar(20)
+  cod_remito_final     Int?
   id_moneda            Int?
-  total_bruto          Float?
+  total_inicial        Float
   recargo_financiero   Float?
   bonificaciones       Float?
-  total_neto           Float?
+  total_final          Float?
   redondeo             Float?
   id_tipo_de_pago_1    Int?
   monto_tipo_de_pago_1 Float?
@@ -143,12 +144,13 @@ model REMITOS {
   monto_tipo_de_pago_2 Float?
   id_tipo_de_pago_3    Int?
   monto_tipo_de_pago_3 Float?
+  cod_mes              Int               @default(dbgenerated("(EXTRACT(month FROM now()))::integer"))
   DETALLES_REMITO      DETALLES_REMITO[]
-  ESTADOS_REMITOS      ESTADOS_REMITOS?     @relation(fields: [id_estado], references: [id_estado], map: "_remitos__estados_remitos_fk")
-  CLIENTES             CLIENTES_MAYORISTAS? @relation(fields: [id_cliente], references: [id_cliente], map: "remitos_clientes_fk")
-  MONEDA               MONEDA?              @relation(fields: [id_moneda], references: [id_moneda], map: "remitos_moneda_fk")
-  SUCURSAL             SUCURSAL?            @relation(fields: [id_sucursal], references: [id_sucursal], map: "remitos_sucursal_fk")
-  TIPOS_DE_PAGO        TIPOS_DE_PAGO?       @relation(fields: [id_tipo_de_pago_1], references: [id_tipos_de_pago], map: "remitos_tipos_de_pago_fk")
+  ESTADOS_REMITOS      ESTADOS_REMITOS   @relation(fields: [id_estado], references: [id_estado], onDelete: SetNull, map: "_remitos__estados_remitos_fk")
+  CLIENTES             CLIENTES?         @relation(fields: [id_cliente], references: [id_cliente], map: "remitos_clientes_fk")
+  MONEDA               MONEDA?           @relation(fields: [id_moneda], references: [id_moneda], map: "remitos_moneda_fk")
+  SUCURSAL             SUCURSAL?         @relation(fields: [id_sucursal], references: [id_sucursal], map: "remitos_sucursal_fk")
+  TIPOS_DE_PAGO        TIPOS_DE_PAGO?    @relation(fields: [id_tipo_de_pago_1], references: [id_tipos_de_pago], map: "remitos_tipos_de_pago_fk")
 }
 
 model SUCURSAL {
@@ -234,7 +236,25 @@ model CLIENTES_MAYORISTAS {
   id_cliente            Int                   @id(map: "clientes_alt_pk") @default(autoincrement())
   ARTICULOS_X_CLIENTE   ARTICULOS_X_CLIENTE[]
   GRUPOS_DE_VENTA       GRUPOS_DE_VENTA?      @relation(fields: [grupo_venta_exclusivo], references: [id_grupo], map: "clientes_grupos_de_venta_fk")
-  REMITOS               REMITOS[]
+}
+
+model CLIENTES {
+  id_cliente       Int       @id(map: "_clientes__pk") @default(autoincrement())
+  fecha_alta       DateTime  @default(now()) @db.Date
+  nombre           String    @db.VarChar(50)
+  apellido         String?   @db.VarChar(50)
+  dni              String    @db.VarChar(8)
+  email            String?   @db.VarChar(50)
+  telefono         Int?
+  fecha_nacimiento DateTime? @db.Date
+  cod_pais         Int?      @default(54) @db.SmallInt
+  cod_area         Int?      @default(11) @db.SmallInt
+  REMITOS          REMITOS[]
+}
+
+model remitos_contador {
+  cod_mes       String @id
+  ultimo_numero Int    @default(0)
 }
 
 enum tipo_operacion {
