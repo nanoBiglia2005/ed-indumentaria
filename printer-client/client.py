@@ -19,11 +19,6 @@ PRINTER_COLUMNS = int(os.environ.get("PRINTER_COLUMNS") or ANCHO_TICKET_POR_DEFE
 RECONNECT_DELAY_SECONDS = 5
 RECONNECT_DELAY_MAX_SECONDS = 300
 
-# Prefijo de los articulos sin barcode_header propio. La fuente real es
-# backend/shared/barcode.json y el codigo completo llega ya armado en el
-# payload: esta copia solo se usa con backends que todavia no mandan "codigo".
-PREFIJO_GENERICO_FALLBACK = "77900"
-
 # Se usa el CA bundle de certifi en vez del almacen de certificados de Windows,
 # que puede quedar desactualizado y rechazar certificados wss:// validos.
 SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where()) if PRINT_SERVER_WS_URL.startswith("wss://") else None
@@ -32,27 +27,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger("printer-client")
 
 
-def _codigo_desde_partes(payload: dict) -> str:
-    # Solo para backends viejos, que mandan las partes en vez del codigo ya
-    # armado. Devuelve "" cuando el articulo no tiene ninguna de las dos, para
-    # que el llamador avise con un mensaje entendible.
-    header = payload.get("barcode_header") or ""
-    tail = payload.get("barcode_tail") or ""
-    if not header and not tail:
-        return ""
-    return (header or PREFIJO_GENERICO_FALLBACK) + tail if tail else header
-
-
 def handle_print_job(payload: dict) -> None:
     # Los trabajos viejos no traian "tipo": eran siempre codigos de barra.
     tipo = payload.get("tipo") or "barcode"
 
     if tipo == "barcode":
-        # El codigo completo lo arma el backend (unica fuente del prefijo
-        # generico, en shared/barcode.json). El fallback es solo para backends
-        # viejos que todavia no mandan "codigo": se puede borrar cuando el
-        # servidor este actualizado.
-        codigo = payload.get("codigo") or _codigo_desde_partes(payload)
+        # "codigo" es lo que manda un backend actualizado. El fallback a
+        # "barcode_tail" es solo para backends viejos que todavia no lo
+        # mandan: se puede borrar cuando el servidor este actualizado.
+        codigo = payload.get("codigo") or payload.get("barcode_tail")
         if not codigo:
             raise ValueError("El artículo no tiene código de barra para imprimir")
 

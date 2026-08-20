@@ -8,7 +8,6 @@ interface ToolbarSeleccionArticulosProps {
   onDeseleccionar: () => void;
   onVigenciaMasiva: (vigente: boolean) => void;
   onImprimir: () => void;
-  onEliminar: () => void;
 }
 
 export default function ToolbarSeleccionArticulos({
@@ -17,7 +16,6 @@ export default function ToolbarSeleccionArticulos({
   onDeseleccionar,
   onVigenciaMasiva,
   onImprimir,
-  onEliminar,
 }: ToolbarSeleccionArticulosProps) {
   return (
     <>
@@ -55,14 +53,6 @@ export default function ToolbarSeleccionArticulos({
         className='rounded border border-amber-500 bg-amber-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-amber-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
       >
         Imprimir
-      </button>
-      <button
-        type='button'
-        onClick={onEliminar}
-        disabled={actualizando}
-        className='rounded border border-red-500 bg-red-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-red-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
-      >
-        Eliminar
       </button>
     </>
   );

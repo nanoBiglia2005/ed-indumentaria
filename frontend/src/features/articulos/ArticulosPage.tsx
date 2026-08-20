@@ -18,7 +18,6 @@ import {
   listarIdsArticulos,
   listarOpcionesColumna,
   actualizarArticulo,
-  eliminarArticulo,
   asignarCliente,
   quitarCliente,
   imprimirBarcode,
@@ -31,14 +30,12 @@ import type { TextosRelacion } from '@/features/articulos/modales/EditRelaciones
 import EditGrupoModal from '@/features/articulos/modales/EditGrupoModal';
 import EditSubgrupoModal from '@/features/articulos/modales/EditSubgrupoModal';
 import EditLineaModal from '@/features/articulos/modales/EditLineaModal';
-import EliminarArticuloModal from '@/features/articulos/modales/EliminarArticuloModal';
 import EditFieldModal from '@/features/articulos/modales/EditFieldModal';
 import type { CampoEditable } from '@/features/articulos/modales/EditFieldModal';
 import CrearAgrupacionModal from '@/features/configuracion/modales/CrearAgrupacionModal';
 import type { TipoAgrupacion } from '@/types/agrupaciones';
 import ColumnFilterModal from '@/components/tabla/ColumnFilterModal';
 import AccionMasivaModal from '@/features/articulos/modales/AccionMasivaModal';
-import type { AccionMasiva } from '@/features/articulos/modales/AccionMasivaModal';
 import {
   crearColumnasArticulos,
   ROW_HEIGHT,
@@ -112,11 +109,10 @@ function ArticulosPage() {
   const [isEditClientesOpen, setIsEditClientesOpen] = useState(false);
   const [isEditSubgrupoOpen, setIsEditSubgrupoOpen] = useState(false);
   const [isEditLineaOpen, setIsEditLineaOpen] = useState(false);
-  const [isEliminarModalOpen, setIsEliminarModalOpen] = useState(false);
   const [campoAEditar, setCampoAEditar] = useState<CampoEditable | null>(null);
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
   const [crearModalTipo, setCrearModalTipo] = useState<TipoAgrupacion | null>(null);
-  const [accionMasiva, setAccionMasiva] = useState<AccionMasiva | null>(null);
+  const [imprimirMasivoAbierto, setImprimirMasivoAbierto] = useState(false);
 
   // --- Acciones por fila / masivas ---
   const [imprimiendoId, setImprimiendoId] = useState<number | null>(null);
@@ -177,19 +173,6 @@ function ArticulosPage() {
   // Tras editar/crear un articulo alcanza con volver a pedir la pagina actual.
   const handleArticuloActualizado = recargarPagina;
 
-  const handleArticuloEliminado = () => {
-    if (articuloAEditar) {
-      const id = articuloAEditar.id_articulo;
-      setSeleccionados((prev) => {
-        if (!prev.has(id)) return prev;
-        const siguiente = new Set(prev);
-        siguiente.delete(id);
-        return siguiente;
-      });
-    }
-    recargarPagina();
-  };
-
   // --- Apertura de modales de edicion ---
   const abrirEdicionGrupo = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
@@ -209,11 +192,6 @@ function ArticulosPage() {
   const abrirEdicionLinea = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
     setIsEditLineaOpen(true);
-  }, []);
-
-  const abrirEliminacion = useCallback((articulo: ArticuloListado) => {
-    setArticuloAEditar(articulo);
-    setIsEliminarModalOpen(true);
   }, []);
 
   const abrirEdicionCampo = useCallback((articulo: ArticuloListado, campo: CampoEditable) => {
@@ -460,37 +438,23 @@ function ArticulosPage() {
     }
   };
 
-  // Ejecuta la accion confirmada en el modal (eliminar o imprimir todos los
-  // seleccionados). Si algo falla, lanza para que el modal muestre el error.
-  const ejecutarAccionMasiva = async () => {
+  // Ejecuta la impresion masiva confirmada en el modal. Si algo falla, lanza
+  // para que el modal muestre el error.
+  const ejecutarImpresionMasiva = async () => {
     const ids = [...seleccionados];
 
-    if (accionMasiva === 'eliminar') {
-      const resultados = await Promise.allSettled(ids.map((id) => eliminarArticulo(id)));
-      // Los articulos borrados ya no existen: la seleccion arranca de cero.
-      setSeleccionados(new Set());
-      recargarPagina();
-      const fallidos = resultados.filter((r) => r.status === 'rejected').length;
-      if (fallidos > 0) {
-        throw new Error(`No se pudieron eliminar ${fallidos} de ${ids.length} articulos.`);
+    // Secuencial para no saturar el servicio de impresion.
+    let fallidos = 0;
+    for (const id of ids) {
+      try {
+        const resultado = (await imprimirBarcode(id, 1)) as { status?: string } | null;
+        if (resultado?.status === 'error') fallidos++;
+      } catch {
+        fallidos++;
       }
-      return;
     }
-
-    if (accionMasiva === 'imprimir') {
-      // Secuencial para no saturar el servicio de impresion.
-      let fallidos = 0;
-      for (const id of ids) {
-        try {
-          const resultado = (await imprimirBarcode(id, 1)) as { status?: string } | null;
-          if (resultado?.status === 'error') fallidos++;
-        } catch {
-          fallidos++;
-        }
-      }
-      if (fallidos > 0) {
-        throw new Error(`No se pudieron imprimir ${fallidos} de ${ids.length} articulos.`);
-      }
+    if (fallidos > 0) {
+      throw new Error(`No se pudieron imprimir ${fallidos} de ${ids.length} articulos.`);
     }
   };
 
@@ -618,8 +582,7 @@ function ArticulosPage() {
                   actualizando={actualizandoMasivo}
                   onDeseleccionar={() => setSeleccionados(new Set())}
                   onVigenciaMasiva={handleVigenciaMasiva}
-                  onImprimir={() => setAccionMasiva('imprimir')}
-                  onEliminar={() => setAccionMasiva('eliminar')}
+                  onImprimir={() => setImprimirMasivoAbierto(true)}
                 />
                 {puedeSeleccionarLosQueCoinciden && (
                   <button
@@ -656,13 +619,6 @@ function ArticulosPage() {
                     : impresoId === item.id_articulo
                     ? '✓ Impreso'
                     : 'Imprimir'}
-                </button>
-                <button
-                  type='button'
-                  onClick={() => abrirEliminacion(item)}
-                  className='rounded border opacity-0 group-hover:opacity-100 border-red-500 bg-red-500 px-3 py-1 text-sm font-semibold text-white cursor-pointer transition-color duration-100 ease-in hover:bg-red-600 active:bg-red-700'
-                >
-                  Eliminar
                 </button>
               </>
             )}
@@ -741,13 +697,6 @@ function ArticulosPage() {
         lineas={lineas}
       />
 
-      <EliminarArticuloModal
-        abierto={isEliminarModalOpen}
-        onCerrar={() => setIsEliminarModalOpen(false)}
-        onExito={handleArticuloEliminado}
-        articulo={articuloAEditar}
-      />
-
       <EditFieldModal
         abierto={isFieldModalOpen}
         onCerrar={() => setIsFieldModalOpen(false)}
@@ -766,11 +715,10 @@ function ArticulosPage() {
       />
 
       <AccionMasivaModal
-        abierto={accionMasiva !== null}
-        onCerrar={() => setAccionMasiva(null)}
-        accion={accionMasiva}
+        abierto={imprimirMasivoAbierto}
+        onCerrar={() => setImprimirMasivoAbierto(false)}
         cantidad={seleccionados.size}
-        onConfirmar={ejecutarAccionMasiva}
+        onConfirmar={ejecutarImpresionMasiva}
       />
 
       <ColumnFilterModal

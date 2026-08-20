@@ -1,7 +1,13 @@
-// Logica de negocio de remitos (ventas): precios, validacion de items y
-// busqueda de remitos pendientes. Las rutas (routes/remitos.js) solo orquestan.
+// Logica de negocio de remitos (ventas): validacion de los articulos que entran
+// a una venta y busqueda de remitos pendientes. Las rutas (routes/remitos.js)
+// solo orquestan.
+//
+// Los precios por metodo de pago NO viven aca: se derivan del precio base en
+// services/preciosPorMetodo.js, que es el unico lugar donde se aplica un
+// recargo.
 const prisma = require('../db');
-const { ESTADO_CONFIRMADO, METODOS_DE_PAGO } = require('../constants/ventas');
+const { ESTADO_CONFIRMADO } = require('../constants/ventas');
+const { redondearPrecio } = require('./preciosPorMetodo');
 
 // Relaciones que se incluyen al consultar REMITOS en TODAS las rutas.
 // OJO: backend/types.ts declara este mismo shape a nivel de tipos para el
@@ -10,31 +16,20 @@ const remitosInclude = {
   DETALLES_REMITO: {
     include: { ARTICULOS: true },
   },
+  CLIENTES: true,
+  PAGOS_REMITO: true,
 };
 
-const redondearPrecio = (valor) => Math.round(Math.round(valor) / 10) * 10;
-
-// El recargo sale de TIPOS_DE_PAGO (configurable desde la app).
-const obtenerRecargoTarjeta = async () => {
-  const tiposDePago = await prisma.TIPOS_DE_PAGO.findMany();
-  const tarjeta = tiposDePago.find((tipo) =>
-    (tipo.nombre_tipo_de_pago ?? '').toLowerCase().includes('tarjeta')
-  );
-
-  if (!tarjeta) {
-    console.warn('No se encontro un tipo de pago "Tarjeta": la venta se calcula sin recargo.');
-  }
-
-  return tarjeta?.recargo ?? 0;
-};
-
+/**
+ * Valida los articulos que llegan del modal de venta y los devuelve con su
+ * precio base ya redondeado (el que se va a congelar en la venta).
+ */
 const resolverItemsVenta = async (detalles) => {
   if (!Array.isArray(detalles) || detalles.length === 0) {
     return { error: { status: 400, message: 'La venta debe tener al menos un articulo.' } };
   }
 
   const cantidadesPorArticulo = new Map();
-  const metodosPorArticulo = new Map();
 
   for (const detalle of detalles) {
     const id_articulo = parseInt(detalle.id_articulo, 10);
@@ -45,17 +40,14 @@ const resolverItemsVenta = async (detalles) => {
     }
     if (!Number.isInteger(cantidad) || cantidad <= 0) {
       return {
-        error: { status: 400, message: 'Las cantidades de la venta deben ser numeros enteros mayores a 0.' },
+        error: {
+          status: 400,
+          message: 'Las cantidades de la venta deben ser numeros enteros mayores a 0.',
+        },
       };
     }
 
-    const metodo = detalle.metodo_pago ?? 'efectivo';
-    if (!METODOS_DE_PAGO.includes(metodo)) {
-      return { error: { status: 400, message: `Metodo de pago invalido: "${metodo}".` } };
-    }
-
     cantidadesPorArticulo.set(id_articulo, cantidad);
-    metodosPorArticulo.set(id_articulo, metodo);
   }
 
   const articulos = await prisma.ARTICULOS.findMany({
@@ -76,23 +68,16 @@ const resolverItemsVenta = async (detalles) => {
     };
   }
 
-  const recargoTarjeta = await obtenerRecargoTarjeta();
-  const multiplicador = 1 + recargoTarjeta / 100;
+  const items = articulos.map((articulo) => ({
+    id_articulo: articulo.id_articulo,
+    descripcion: articulo.descripcion ?? `Articulo ${articulo.id_articulo}`,
+    cantidad: cantidadesPorArticulo.get(articulo.id_articulo),
+    // El precio de la venta se congela redondeado: es lo que se va a cobrar y
+    // la base de la que salen los precios de todos los metodos de pago.
+    precio: redondearPrecio(articulo.precio),
+  }));
 
-  const items = articulos.map((articulo) => {
-    const precioEfectivo = redondearPrecio(articulo.precio);
-
-    return {
-      id_articulo: articulo.id_articulo,
-      descripcion: articulo.descripcion ?? `Articulo ${articulo.id_articulo}`,
-      cantidad: cantidadesPorArticulo.get(articulo.id_articulo),
-      metodo_pago: metodosPorArticulo.get(articulo.id_articulo),
-      precio_efectivo: precioEfectivo,
-      precio_tarjeta: redondearPrecio(precioEfectivo * multiplicador),
-    };
-  });
-
-  return { items, recargoTarjeta };
+  return { items };
 };
 
 // Busca un remito y valida que siga pendiente de cobro.
@@ -119,33 +104,8 @@ const buscarRemitoPendiente = async (idParam) => {
   return { remito };
 };
 
-// Precios en efectivo (los guardados) y en tarjeta para cada linea del remito.
-// La base es el precio YA GUARDADO, no el del catalogo: el remito se confirmo a
-// ese precio aunque el articulo haya cambiado despues.
-const opcionesDePagoDeRemito = async (remito) => {
-  const recargoTarjeta = await obtenerRecargoTarjeta();
-  const multiplicador = 1 + recargoTarjeta / 100;
-
-  const items = remito.DETALLES_REMITO.map((detalle) => {
-    const precioEfectivo = detalle.precio ?? 0;
-
-    return {
-      id_detalle: detalle.id_detalle,
-      descripcion: detalle.ARTICULOS?.descripcion ?? `Articulo ${detalle.id_articulo}`,
-      cantidad: detalle.cantidad ?? 0,
-      precio_efectivo: precioEfectivo,
-      precio_tarjeta: redondearPrecio(precioEfectivo * multiplicador),
-    };
-  });
-
-  return { items, recargo_tarjeta: recargoTarjeta };
-};
-
 module.exports = {
   remitosInclude,
-  redondearPrecio,
-  obtenerRecargoTarjeta,
   resolverItemsVenta,
   buscarRemitoPendiente,
-  opcionesDePagoDeRemito,
 };

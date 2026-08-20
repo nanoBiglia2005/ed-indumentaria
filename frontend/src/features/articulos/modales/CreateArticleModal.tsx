@@ -9,7 +9,7 @@ import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
 import { crearArticulo, asignarCliente } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
-import { dividirBarcodeManual, combinarBarcode, BARCODE_AUTOMATICO, BARCODE_MAX } from '@/utils/barcode';
+import { BARCODE_AUTOMATICO, BARCODE_MAX } from '@/utils/barcode';
 
 interface CreateArticleModalProps {
   abierto: boolean;
@@ -20,7 +20,6 @@ interface CreateArticleModalProps {
 }
 
 interface ArticuloCreado {
-  barcode_header: string | null;
   barcode_tail: string | null;
   cant: number | null;
   precio: number | null;
@@ -108,7 +107,7 @@ export default function CreateArticleModal({
       const payload = {
         cant: cantidad || 0,
         precio: precio || 0,
-        ...(barcodeAuto ? BARCODE_AUTOMATICO : dividirBarcodeManual(barcode)),
+        ...(barcodeAuto ? BARCODE_AUTOMATICO : { barcode_tail: barcode.trim() === '' ? null : barcode }),
         talle: talle.trim() === '' ? null : talle.trim(),
         stock_minimo: 0,
         vigente: true,
@@ -129,7 +128,6 @@ export default function CreateArticleModal({
 
       setArticuloCreado({
         id_articulo: nuevoArticulo.id_articulo,
-        barcode_header: nuevoArticulo.barcode_header,
         barcode_tail: nuevoArticulo.barcode_tail,
         cant: nuevoArticulo.cant,
         precio: nuevoArticulo.precio,
@@ -317,9 +315,7 @@ export default function CreateArticleModal({
             <div className='flex justify-between'>
               <span className='text-sm font-medium text-gray-700'>Código de Barra:</span>
               <span className='text-sm text-gray-900 font-semibold'>
-                {articuloCreado.barcode_header === null && articuloCreado.barcode_tail === null
-                  ? 'No Asignado'
-                  : combinarBarcode(articuloCreado.barcode_header, articuloCreado.barcode_tail)}
+                {articuloCreado.barcode_tail ?? 'No Asignado'}
               </span>
             </div>
             <div className='flex justify-between'>

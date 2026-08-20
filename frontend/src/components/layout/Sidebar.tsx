@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { ROLES_PRECIOS, ROLES_PRUEBA } from '@backend/types';
+import { ROLES_PRECIOS } from '@backend/types';
 import { useCsrfToken, useSession } from '@/context/SessionContext';
 
-type ItemId = 'articulos' | 'precios' | 'ventas' | 'ventas-prueba' | 'configuracion' | 'historial';
+type ItemId = 'articulos' | 'precios' | 'ventas' | 'configuracion' | 'historial';
 
 /** `roles` ausente = lo ve cualquier usuario logueado. */
 const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode; roles?: readonly string[] }[] = [
@@ -39,18 +39,6 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode; roles?
     id: 'ventas',
     ruta: '/gestion/ventas',
     nombre: 'Ventas',
-    icon: (
-      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
-        <path strokeLinecap='round' strokeLinejoin='round' d='M2.25 12l3-9 3 9m-6 0h6m-6 0l1.5 6h3l1.5-6M15 3v13.5m0 0a2.25 2.25 0 102.25 2.25M15 16.5a2.25 2.25 0 11-2.25 2.25' />
-      </svg>
-    ),
-  },
-  {
-    // Copia de prueba de Ventas (nuevo alta de venta, con codigo de barras).
-    id: 'ventas-prueba',
-    ruta: '/gestion/ventas-prueba',
-    nombre: 'Ventas (Prueba)',
-    roles: ROLES_PRUEBA,
     icon: (
       <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
         <path strokeLinecap='round' strokeLinejoin='round' d='M3 7V5.25A2.25 2.25 0 015.25 3H7M17 3h1.75A2.25 2.25 0 0121 5.25V7M21 17v1.75A2.25 2.25 0 0118.75 21H17M7 21H5.25A2.25 2.25 0 013 18.75V17' />

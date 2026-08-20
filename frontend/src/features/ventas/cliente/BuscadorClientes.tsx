@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CLIENTES } from '@backend/types';
 import { mensajeDetallesPrimero } from '@/api/cliente';
-import { buscarClientes } from '@/api/ventaPrueba';
+import { buscarClientes } from '@/api/venta';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useDebounce } from '@/hooks/useDebounce';
 import { nombreCompleto } from './formatoCliente';

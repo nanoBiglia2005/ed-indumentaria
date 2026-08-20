@@ -14,7 +14,7 @@ import {
   COD_AREA_DIGITOS,
   TELEFONO_DIGITOS,
 } from '@backend/types';
-import type { DatosClienteAPI } from '@/api/ventaPrueba';
+import type { DatosClienteAPI } from '@/api/venta';
 
 /** Los campos del formulario, tal cual se ven en pantalla. */
 export interface DatosCliente {

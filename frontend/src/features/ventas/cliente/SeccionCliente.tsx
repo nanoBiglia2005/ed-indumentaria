@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { CLIENTES } from '@backend/types';
 import { mensajeDetallesPrimero } from '@/api/cliente';
-import { actualizarCliente, crearCliente } from '@/api/ventaPrueba';
+import { actualizarCliente, crearCliente } from '@/api/venta';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
 import ConfirmarClienteModal from '@/features/ventas/modales/ConfirmarClienteModal';
 import QuitarClienteModal from '@/features/ventas/modales/QuitarClienteModal';

@@ -1,4 +1,6 @@
-import type { RemitoConDetalles } from '@backend/types';
+import { useEffect, useState } from 'react';
+import type { RemitoConDetalles, TIPOS_DE_PAGO } from '@backend/types';
+import { listarTiposDePago } from '@/api/tiposDePago';
 import RemitoCard from '@/features/ventas/RemitoCard';
 
 /**
@@ -27,6 +29,24 @@ export default function ListaDeRemitos({
   onPagar,
   onAnular,
 }: ListaDeRemitosProps) {
+  // Los metodos se piden una sola vez para toda la lista: cada tarjeta los
+  // necesita solo para poner el nombre al lado de cada total.
+  const [metodos, setMetodos] = useState<TIPOS_DE_PAGO[]>([]);
+
+  useEffect(() => {
+    let cancelado = false;
+
+    listarTiposDePago()
+      .then((data) => {
+        if (!cancelado) setMetodos([...data].sort((a, b) => a.id_tipos_de_pago - b.id_tipos_de_pago));
+      })
+      .catch((err) => console.error('Error al obtener los tipos de pago:', err));
+
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
   const claseEstado = anchoCompleto ? ' w-full' : '';
 
   return (
@@ -44,7 +64,13 @@ export default function ListaDeRemitos({
           className={`flex flex-col gap-3${anchoCompleto ? ' w-full' : ''} flex-1 min-h-0 overflow-y-auto pr-1 pb-6`}
         >
           {remitos.map((remito) => (
-            <RemitoCard key={remito.id_remito} remito={remito} onPagar={onPagar} onAnular={onAnular} />
+            <RemitoCard
+              key={remito.id_remito}
+              remito={remito}
+              metodos={metodos}
+              onPagar={onPagar}
+              onAnular={onAnular}
+            />
           ))}
         </div>
       )}

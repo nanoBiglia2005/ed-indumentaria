@@ -37,7 +37,6 @@ app.use('/api', async (req, res, next) => (await authModule).requireAuth(req, re
 //  ROUTERS POR DOMINIO (ver routes/)
 // ============================================================
 app.use('/api/venta', require('./routes/venta'));
-app.use('/api/venta-prueba', require('./routes/ventaPrueba'));
 app.use('/api/tipos-de-pago', require('./routes/tiposDePago'));
 app.use('/api/remitos', require('./routes/remitos'));
 app.use('/api/print', require('./routes/print'));

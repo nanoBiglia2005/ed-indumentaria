@@ -71,9 +71,6 @@ export const crearArticulo = (datos: Partial<ARTICULOS>) =>
 export const actualizarArticulo = (idArticulo: number, datos: Partial<ARTICULOS>) =>
   request<ARTICULOS>(`/api/articulos/${idArticulo}`, { metodo: 'PUT', cuerpo: datos });
 
-export const eliminarArticulo = (idArticulo: number) =>
-  request<void>(`/api/articulos/${idArticulo}`, { metodo: 'DELETE' });
-
 // --- Asociaciones del articulo (clientes) ---
 // El grupo y el subgrupo son campos propios del articulo: se editan con
 // actualizarArticulo({ id_grupo, id_subgrupo }).

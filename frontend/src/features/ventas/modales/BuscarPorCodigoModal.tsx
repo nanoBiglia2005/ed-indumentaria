@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import type { ArticuloDeVenta } from '@/types/ventas';
 import BaseModal from '@/components/ui/BaseModal';
 import { ApiError, mensajeDetallesPrimero } from '@/api/cliente';
-import { buscarArticuloPorCodigo } from '@/api/ventaPrueba';
+import { buscarArticuloPorCodigo } from '@/api/venta';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { BARCODE_MAX } from '@/utils/barcode';

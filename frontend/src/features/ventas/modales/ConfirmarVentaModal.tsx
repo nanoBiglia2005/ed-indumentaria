@@ -1,4 +1,5 @@
-import type { ARTICULOS } from '@backend/types';
+import type { ImportesPorMetodo, TIPOS_DE_PAGO } from '@backend/types';
+import type { ArticuloDeVenta } from '@/types/ventas';
 import BaseModal from '@/components/ui/BaseModal';
 import { estiloLineClamp } from '@/utils/formato';
 import type { ClienteDeVenta } from '@/features/ventas/cliente/useClienteDeVenta';
@@ -7,7 +8,7 @@ import { telefonoLegible } from '@/features/ventas/cliente/formatoCliente';
 const MAX_LINEAS_DESCRIPCION = 2;
 
 export interface LineaVenta {
-  articulo: ARTICULOS;
+  articulo: ArticuloDeVenta;
   cantidad: number | null;
 }
 
@@ -16,6 +17,10 @@ interface ConfirmarVentaModalProps {
   productos: LineaVenta[];
   cliente: ClienteDeVenta;
   total: number;
+  /** Total con cada metodo de pago, por id_tipos_de_pago. */
+  totalesPorMetodo: ImportesPorMetodo;
+  /** Solo los metodos con recargo: el que no tiene cobra el precio base. */
+  metodos: TIPOS_DE_PAGO[];
   /** Se esta registrando la venta (el boton de confirmar queda en curso). */
   cargando: boolean;
   /** true = confirmar tambien imprime el ticket. */
@@ -34,6 +39,8 @@ export default function ConfirmarVentaModal({
   productos,
   cliente,
   total,
+  totalesPorMetodo,
+  metodos,
   cargando,
   conImpresion,
   onCerrar,
@@ -83,7 +90,17 @@ export default function ConfirmarVentaModal({
                 >
                   {articulo.descripcion ?? 'Sin Nombre'}
                 </span>
-                <span className='text-xs font-medium text-gray-500'>{articulo.precio}$</span>
+                <div className='flex flex-wrap items-center gap-x-3'>
+                  <span className='text-xs font-medium text-gray-500'>{articulo.precio}$</span>
+                  {metodos.map((metodo) => (
+                    <span
+                      key={metodo.id_tipos_de_pago}
+                      className='text-xs font-medium text-violet-500'
+                    >
+                      {articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$
+                    </span>
+                  ))}
+                </div>
               </div>
               <span className='text-sm text-gray-500 shrink-0'>x{cantidad ?? 0}</span>
               <span className='w-24 text-right text-sm font-semibold text-gray-800 shrink-0'>
@@ -129,7 +146,16 @@ export default function ConfirmarVentaModal({
 
           <div className='mt-auto border-t border-gray-200 pt-3'>
             <p className='text-lg text-gray-500'>Total</p>
-            <p className='text-3xl font-bold text-violet-700 break-words'>{total}$</p>
+            <p className='text-3xl font-bold text-gray-900 break-words'>{total}$</p>
+            {metodos.map((metodo) => (
+              <p
+                key={metodo.id_tipos_de_pago}
+                className='text-3xl font-bold text-violet-700 break-words'
+                title={`Total con ${metodo.nombre_tipo_de_pago}`}
+              >
+                {totalesPorMetodo[metodo.id_tipos_de_pago] ?? 0}$
+              </p>
+            ))}
           </div>
         </div>
       </div>

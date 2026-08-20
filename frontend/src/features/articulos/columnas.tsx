@@ -89,9 +89,8 @@ export function crearColumnasArticulos({
   return [
     {
       header: 'Código',
-      render: (item) => codigoBarcodeCompleto(item.barcode_header, item.barcode_tail) ?? 'No Asignado',
-      extraClassName: (item) =>
-        !item.barcode_tail && !item.barcode_header ? 'text-gray-400 text-sm flex justify-center' : '',
+      render: (item) => codigoBarcodeCompleto(item.barcode_tail) ?? 'No Asignado',
+      extraClassName: (item) => (!item.barcode_tail ? 'text-gray-400 text-sm flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'barcode'),
       width: 120,
       filtroKey: 'codigo',
@@ -99,7 +98,7 @@ export function crearColumnasArticulos({
       // El codigo se guarda como string, pero es un numero: se ordena por su
       // valor numerico para que 100 quede despues de 20 en vez de antes.
       ordenValor: (item) => {
-        const codigo = codigoBarcodeCompleto(item.barcode_header, item.barcode_tail);
+        const codigo = codigoBarcodeCompleto(item.barcode_tail);
         if (!codigo) return null;
         const numero = Number(codigo);
         return Number.isNaN(numero) ? codigo : numero;

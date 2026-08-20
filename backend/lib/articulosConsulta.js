@@ -17,11 +17,6 @@
 const { Prisma } = require('../generated/prisma/client');
 const { HttpError } = require('./http');
 const { IDS_GRUPOS_DE_CLIENTES } = require('../constants/agrupaciones');
-// Mismo prefijo que usa el frontend para MOSTRAR el codigo (utils/barcode.ts lo
-// lee de @backend/types, que sale del mismo shared/barcode.json): si los dos
-// lados no arman el codigo igual, filtrar y ordenar por Codigo no coincide con
-// lo que se ve en la tabla.
-const { BARCODE_HEADER_GENERICO } = require('../constants/barcode');
 
 const TAMANO_PAGINA_DEFECTO = 30;
 const TAMANO_PAGINA_MAX = 200;
@@ -55,13 +50,7 @@ const TIPOS_DE_FILTRO = {
 
 // Espejo exacto de codigoBarcodeCompleto() de frontend/src/utils/barcode.ts.
 // NULLIF(...,'') replica la "truthiness" de JS sobre el string vacio.
-const CODIGO = Prisma.sql`
-  CASE
-    WHEN NULLIF(a.barcode_header, '') IS NOT NULL AND NULLIF(a.barcode_tail, '') IS NOT NULL
-      THEN a.barcode_header || a.barcode_tail
-    WHEN NULLIF(a.barcode_header, '') IS NOT NULL THEN a.barcode_header
-    WHEN NULLIF(a.barcode_tail, '') IS NOT NULL THEN ${BARCODE_HEADER_GENERICO}::text || a.barcode_tail
-  END`;
+const CODIGO = Prisma.sql`NULLIF(a.barcode_tail, '')`;
 
 // Texto que muestra cada columna, con el literal que la tabla usa cuando el
 // campo esta vacio (ver los render() de features/articulos/columnas.tsx).

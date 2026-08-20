@@ -1,14 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { ItemPago, MetodoPago, OpcionesDePago, RemitoConDetalles } from '@backend/types';
+import type { RemitoConDetalles, TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
-import PaymentToggle from '@/components/ui/PaymentToggle';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
-import { obtenerOpcionesPago, facturarRemito } from '@/api/remitos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
-import { estiloLineClamp } from '@/utils/formato';
-
-const MAX_LINEAS_DESCRIPCION = 3;
+import { listarTiposDePago } from '@/api/tiposDePago';
+import { facturarRemito } from '@/api/remitos';
+import { codigoRemito } from '@/features/ventas/codigoRemito';
+import SelectorMetodoPago from '@/features/ventas/pago/SelectorMetodoPago';
+import TablaPersonalizado from '@/features/ventas/pago/TablaPersonalizado';
+import type { ValoresPago } from '@/features/ventas/pago/TablaPersonalizado';
+import {
+  formatearPesos,
+  montoACobrar,
+  montoInicialDesdeFinal,
+  repartirEntreVacios,
+  soloDigitos,
+} from '@/features/ventas/pago/calculoPago';
 
 interface MetodoPagoModalProps {
   abierto: boolean;
@@ -18,17 +26,31 @@ interface MetodoPagoModalProps {
   onFacturado: (remito: RemitoConDetalles) => void;
 }
 
+/**
+ * Cobro de un remito. El metodo de pago es del REMITO, no de cada articulo: los
+ * precios de los articulos no se muestran ni se modifican. Lo unico que se
+ * decide aca es como se cubre el precio de la venta (`total_efectivo`):
+ *
+ *  - con un solo metodo, y el total final es el total de la venta para ese
+ *    metodo (lo trae el backend en `totales_por_metodo`); o
+ *  - repartido entre varios ("Personalizado"), donde cada parte paga el recargo
+ *    de su metodo y el total final es la suma.
+ *
+ * Los metodos salen de la base, asi que agregar uno nuevo no toca este archivo.
+ */
 export default function MetodoPagoModal({
   abierto,
   remito,
   onCerrar,
   onFacturado,
 }: MetodoPagoModalProps) {
-  const [opciones, setOpciones] = useState<OpcionesDePago | null>(null);
+  const [tipos, setTipos] = useState<TIPOS_DE_PAGO[]>([]);
   const [cargando, setCargando] = useState(false);
-  // Metodo de pago por linea (id_detalle -> metodo). Lo que falta en el mapa se
-  // considera 'efectivo', asi que arranca vacio.
-  const [metodos, setMetodos] = useState<Record<number, MetodoPago>>({});
+  const [personalizado, setPersonalizado] = useState(false);
+  // null = todavia no se eligio: vale el primer metodo de la lista.
+  const [metodoSimple, setMetodoSimple] = useState<number | null>(null);
+  const [valores, setValores] = useState<Record<number, ValoresPago>>({});
+
   const {
     cargando: finalizando,
     error,
@@ -40,29 +62,29 @@ export default function MetodoPagoModal({
 
   // Reset al llegar un remito distinto (el modal queda montado entre usos).
   useResetAlCambiar(remito, () => {
-    setMetodos({});
-    setOpciones(null);
+    setValores({});
+    setPersonalizado(false);
+    setMetodoSimple(null);
     setError(null);
   });
 
-  const id_remito = remito?.id_remito;
-
+  // Los recargos se leen al abrir: pueden haber cambiado en Configuracion
+  // desde que se cargo la pagina.
   useEffect(() => {
-    if (id_remito === undefined) return;
+    if (!abierto) return;
 
     let cancelado = false;
     setCargando(true);
 
-    obtenerOpcionesPago(id_remito)
+    listarTiposDePago()
       .then((data) => {
         if (cancelado) return;
-        setOpciones(data);
-        setError(null);
+        setTipos([...data].sort((a, b) => a.id_tipos_de_pago - b.id_tipos_de_pago));
       })
       .catch((err) => {
         if (cancelado) return;
-        console.error('Error al obtener las opciones de pago:', err);
-        setError(mensajeDetallesPrimero(err, 'No se pudieron cargar los precios.'));
+        console.error('Error al obtener los tipos de pago:', err);
+        setError(mensajeDetallesPrimero(err, 'No se pudieron cargar los métodos de pago.'));
       })
       .finally(() => {
         if (!cancelado) setCargando(false);
@@ -71,129 +93,242 @@ export default function MetodoPagoModal({
     return () => {
       cancelado = true;
     };
-  }, [id_remito, setError]);
+  }, [abierto, setError]);
 
-  const items = useMemo(() => opciones?.items ?? [], [opciones]);
+  const totalEfectivo = remito?.total_efectivo ?? 0;
+  // Cuanto sale la venta con cada metodo: lo calcula el backend sumando las
+  // lineas ya redondeadas, y es el numero que manda cuando un metodo se lleva
+  // todo (ver montoACobrar).
+  const totalesDelRemito = useMemo(() => remito?.totales_por_metodo ?? {}, [remito]);
 
-  const precioDe = (item: ItemPago) =>
-    metodos[item.id_detalle] === 'tarjeta' ? item.precio_tarjeta : item.precio_efectivo;
+  const porId = useMemo(() => new Map(tipos.map((tipo) => [tipo.id_tipos_de_pago, tipo])), [tipos]);
 
-  const total = useMemo(
-    () =>
-      items.reduce((acumulado, item) => {
-        const precio =
-          metodos[item.id_detalle] === 'tarjeta' ? item.precio_tarjeta : item.precio_efectivo;
-        return acumulado + precio * item.cantidad;
-      }, 0),
-    [items, metodos]
-  );
+  // Metodo del modo simple: el elegido o, si no se toco nada, el primero.
+  const metodoElegido = personalizado ? null : metodoSimple ?? tipos[0]?.id_tipos_de_pago ?? null;
 
-  // El toggle general solo se muestra en "Tarjeta" cuando TODAS las lineas lo estan.
-  const metodoGeneral: MetodoPago =
-    items.length > 0 && items.every((item) => metodos[item.id_detalle] === 'tarjeta')
-      ? 'tarjeta'
-      : 'efectivo';
+  const inicialDe = (idTipoDePago: number) => Number(valores[idTipoDePago]?.inicial || 0);
 
-  const aplicarATodos = (metodo: MetodoPago) => {
-    setMetodos(Object.fromEntries(items.map((item) => [item.id_detalle, metodo])));
+  const sumaIniciales = tipos.reduce((total, tipo) => total + inicialDe(tipo.id_tipos_de_pago), 0);
+  const restante = totalEfectivo - sumaIniciales;
+
+  const idsVacios = tipos
+    .filter((tipo) => (valores[tipo.id_tipos_de_pago]?.inicial ?? '') === '')
+    .map((tipo) => tipo.id_tipos_de_pago);
+  const sugerencias = repartirEntreVacios(restante, idsVacios);
+
+  const totalFinal = personalizado
+    ? tipos.reduce((total, tipo) => total + Number(valores[tipo.id_tipos_de_pago]?.final || 0), 0)
+    : totalesDelRemito[metodoElegido ?? -1] ?? totalEfectivo;
+
+  // Con el reparto solo se cobra cuando el precio quedo cubierto exacto.
+  const puedeFinalizar = personalizado ? restante === 0 : metodoElegido !== null;
+
+  // Cuanto mas se puede imputar a un metodo sin pasarse del precio de la venta.
+  const maximoPara = (idTipoDePago: number) =>
+    Math.max(0, totalEfectivo - (sumaIniciales - inicialDe(idTipoDePago)));
+
+  /**
+   * Recalcula la columna "Monto a Cobrar" de TODAS las filas a partir de los
+   * montos imputados. Se hace de una porque la regla del metodo unico depende
+   * del conjunto: cargar una segunda fila cambia lo que cobra la primera.
+   */
+  const conFinalesRecalculados = (iniciales: Record<number, string>) => {
+    const conMonto = tipos.filter((tipo) => Number(iniciales[tipo.id_tipos_de_pago] || 0) > 0);
+    const esMetodoUnico = conMonto.length === 1;
+
+    return Object.fromEntries(
+      tipos.map((tipo) => {
+        const inicial = iniciales[tipo.id_tipos_de_pago] ?? '';
+        if (inicial === '') return [tipo.id_tipos_de_pago, { inicial: '', final: '' }];
+
+        const final = montoACobrar({
+          montoInicial: Number(inicial),
+          recargo: tipo.recargo,
+          esMetodoUnico,
+          totalDelMetodo: totalesDelRemito[tipo.id_tipos_de_pago],
+        });
+
+        return [tipo.id_tipos_de_pago, { inicial, final: String(final) }];
+      })
+    ) as Record<number, ValoresPago>;
   };
 
-  const cambiarMetodo = (id_detalle: number, metodo: MetodoPago) => {
-    setMetodos((prev) => ({ ...prev, [id_detalle]: metodo }));
+  const inicialesActuales = (cambio?: { id: number; inicial: string }) => {
+    const iniciales = Object.fromEntries(
+      tipos.map((tipo) => [tipo.id_tipos_de_pago, valores[tipo.id_tipos_de_pago]?.inicial ?? ''])
+    ) as Record<number, string>;
+
+    if (cambio) iniciales[cambio.id] = cambio.inicial;
+    return iniciales;
   };
 
-  const handleFinalizarVenta = () => {
-    if (!remito || items.length === 0) return;
+  // Ninguno de los handlers corre dentro de un efecto y cada uno escribe el
+  // estado de una sola vez: por eso completar una celda no puede disparar la
+  // actualizacion de la otra en cadena.
+  const handleCambiarInicial = (idTipoDePago: number, tipeado: string) => {
+    const tipo = porId.get(idTipoDePago);
+    if (!tipo) return;
+
+    const digitos = soloDigitos(tipeado);
+    const inicial =
+      digitos === '' ? '' : String(Math.min(Number(digitos), maximoPara(idTipoDePago)));
+
+    setValores(conFinalesRecalculados(inicialesActuales({ id: idTipoDePago, inicial })));
+  };
+
+  const handleCambiarFinal = (idTipoDePago: number, tipeado: string) => {
+    const tipo = porId.get(idTipoDePago);
+    if (!tipo) return;
+
+    const digitos = soloDigitos(tipeado);
+    if (digitos === '') {
+      setValores(conFinalesRecalculados(inicialesActuales({ id: idTipoDePago, inicial: '' })));
+      return;
+    }
+
+    const derivado = montoInicialDesdeFinal(Number(digitos), tipo.recargo);
+    const maximo = maximoPara(idTipoDePago);
+
+    // Pasarse del precio de la venta no se permite: se recorta al maximo y el
+    // importe a cobrar se recalcula desde ahi.
+    if (derivado > maximo) {
+      setValores(conFinalesRecalculados(inicialesActuales({ id: idTipoDePago, inicial: String(maximo) })));
+      return;
+    }
+
+    // Mientras se tipea se respeta lo escrito; al salir del campo se acomoda.
+    const recalculado = conFinalesRecalculados(
+      inicialesActuales({ id: idTipoDePago, inicial: String(derivado) })
+    );
+    setValores({ ...recalculado, [idTipoDePago]: { inicial: String(derivado), final: digitos } });
+  };
+
+  /**
+   * Al salir del campo, el importe a cobrar vuelve a ser el que se va a cobrar
+   * de verdad. Se acomoda aca y no en cada tecla porque si no, tipear "58825"
+   * seria imposible: el primer "5" se convertiria en 0.
+   */
+  const handleSalirDeFinal = () => setValores(conFinalesRecalculados(inicialesActuales()));
+
+  const handleFinalizar = () => {
+    if (!remito || !puedeFinalizar) return;
 
     ejecutar(async () => {
-      const remitoFacturado = await facturarRemito(
-        remito.id_remito,
-        items.map((item) => ({
-          id_detalle: item.id_detalle,
-          metodo_pago: metodos[item.id_detalle] ?? 'efectivo',
-        }))
-      );
-      onFacturado(remitoFacturado);
+      // Viajan TODOS los metodos: el backend descarta los que van en 0 y
+      // recalcula los importes a cobrar (no confia en los de la pantalla).
+      const pagos = tipos.map((tipo) => ({
+        id_tipo_de_pago: tipo.id_tipos_de_pago,
+        monto_inicial: personalizado
+          ? inicialDe(tipo.id_tipos_de_pago)
+          : tipo.id_tipos_de_pago === metodoElegido
+          ? totalEfectivo
+          : 0,
+      }));
+
+      onFacturado(await facturarRemito(remito.id_remito, pagos));
     });
   };
+
+  const codigo = remito
+    ? codigoRemito(remito.cod_mes, remito.cod_remito_final) ?? `#${remito.id_remito}`
+    : '';
 
   return (
     <BaseModal
       abierto={abierto}
       onCerrar={finalizando ? () => {} : onCerrar}
-      titulo={<>Método de Pago — Remito #{remito?.id_remito}</>}
-      claseTitulo='text-xl font-medium leading-6 text-gray-900 mb-4'
-      ancho='lg'
+      titulo={
+        <div className='flex items-center justify-between gap-4'>
+          <span>Realizar Pago</span>
+          <span className='text-2xl font-bold text-violet-600'>{codigo}</span>
+        </div>
+      }
+      claseTitulo='text-2xl font-semibold leading-7 text-gray-900 mb-4'
+      ancho='2xl'
+      clasePanel='select-none'
       error={error ? { titulo: 'Error al finalizar la venta', detalle: error } : null}
       footer={
-        <>
+        <div className='flex w-full flex-col gap-3 sm:flex-row'>
           <button
+            type='button'
             onClick={onCerrar}
             disabled={finalizando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60'
+            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60'
           >
-            Cerrar
+            Cancelar
           </button>
           <button
-            onClick={handleFinalizarVenta}
-            disabled={finalizando || cargando || items.length === 0}
-            className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
+            type='button'
+            onClick={handleFinalizar}
+            disabled={finalizando || cargando || !puedeFinalizar}
+            className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-800 rounded-md hover:bg-violet-900 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors cursor-pointer'
           >
-            {finalizando ? 'Finalizando...' : 'Finalizar Venta'}
+            {finalizando ? 'Finalizando...' : 'Finalizar Pago'}
           </button>
-        </>
+        </div>
       }
     >
-      <div className='border border-gray-200 rounded-md max-h-72 overflow-y-auto divide-y divide-gray-100'>
-        {cargando && <p className='text-sm text-gray-400 px-4 py-3'>Cargando precios...</p>}
+      {/* min-h: el modal no cambia de alto al abrir y cerrar el reparto. */}
+      <div className='flex min-h-[18rem] flex-col gap-3'>
+        {cargando && <p className='text-sm text-gray-400'>Cargando métodos de pago...</p>}
 
-        {!cargando && items.length === 0 && (
-          <p className='text-sm text-gray-400 italic px-4 py-3'>Sin artículos</p>
+        {!cargando && tipos.length === 0 && (
+          <p className='text-sm italic text-gray-400'>No hay métodos de pago cargados.</p>
         )}
 
-        {!cargando &&
-          items.map((item) => (
-            <div key={item.id_detalle} className='flex items-center gap-3 px-4 py-2'>
-              <div className='flex-1 min-w-0 flex flex-col text-left'>
-                <span
-                  className='text-md text-gray-800 break-words'
-                  style={estiloLineClamp(MAX_LINEAS_DESCRIPCION)}
-                >
-                  {item.descripcion}
-                </span>
-                {/* Cambia solo con el toggle de esta linea. */}
-                <span className='text-sm font-medium text-gray-500'>{precioDe(item)}$</span>
-              </div>
+        {!cargando && tipos.length > 0 && (
+          <>
+            <SelectorMetodoPago
+              tipos={tipos}
+              seleccionado={metodoElegido}
+              onSeleccionar={(id) => {
+                setPersonalizado(false);
+                setMetodoSimple(id);
+              }}
+              deshabilitado={finalizando}
+            />
 
-              <div className='w-36 shrink-0'>
-                <PaymentToggle
-                  compacto
-                  valor={metodos[item.id_detalle] ?? 'efectivo'}
-                  onChange={(metodo) => cambiarMetodo(item.id_detalle, metodo)}
+            <div>
+              <button
+                type='button'
+                onClick={() => setPersonalizado((prev) => !prev)}
+                disabled={finalizando}
+                className={`flex w-full items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+                  personalizado
+                    ? 'rounded-t-lg bg-violet-800 text-white'
+                    : 'rounded-lg bg-gray-100 text-gray-900 hover:bg-gray-200'
+                }`}
+              >
+                <span className='text-xs'>●</span>
+                Personalizado
+              </button>
+
+              {personalizado && (
+                <TablaPersonalizado
+                  tipos={tipos}
+                  valores={valores}
+                  sugerencias={sugerencias}
+                  restante={restante}
+                  onCambiarInicial={handleCambiarInicial}
+                  onCambiarFinal={handleCambiarFinal}
+                  onSalirDeFinal={handleSalirDeFinal}
+                  deshabilitado={finalizando}
                 />
-              </div>
-
-              <span className='w-10 text-center text-sm text-gray-500 shrink-0'>
-                x{item.cantidad}
-              </span>
-
-              <span className='w-20 text-right text-sm font-medium text-gray-800 shrink-0'>
-                {precioDe(item) * item.cantidad}$
-              </span>
+              )}
             </div>
-          ))}
-      </div>
+          </>
+        )}
 
-      <div className='mt-4'>
-        <span className='block text-sm font-medium text-gray-700 mb-1'>
-          Aplicar a todos los artículos
-        </span>
-        <PaymentToggle valor={metodoGeneral} onChange={aplicarATodos} />
-      </div>
-
-      <div className='mt-5 flex items-center justify-between'>
-        <span className='text-md text-gray-500'>Total</span>
-        <span className='text-2xl font-semibold text-violet-600'>{total}$</span>
+        <div className='mt-auto flex items-end justify-between gap-4 pt-4'>
+          <div className='flex flex-col'>
+            <span className='text-sm font-medium text-gray-400'>Total en Efectivo</span>
+            <span className='text-2xl font-bold text-gray-900'>{formatearPesos(totalEfectivo)}</span>
+          </div>
+          <div className='flex flex-col items-end'>
+            <span className='text-sm font-medium text-violet-400'>Total Final</span>
+            <span className='text-3xl font-bold text-violet-600'>{formatearPesos(totalFinal)}</span>
+          </div>
+        </div>
       </div>
     </BaseModal>
   );

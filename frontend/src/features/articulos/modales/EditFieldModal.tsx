@@ -5,7 +5,7 @@ import { useAccionAsync } from '@/hooks/useAccionAsync';
 import { actualizarArticulo } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { triggerShake } from '@/utils/formato';
-import { BARCODE_TAIL_MAX } from '@/utils/barcode';
+import { BARCODE_MAX } from '@/utils/barcode';
 
 const DESCRIPCION_MAX = 70;
 const TALLE_MAX = 30;
@@ -98,8 +98,8 @@ export default function EditFieldModal({
 
   const handleBarcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const soloNumeros = e.target.value.replace(/[^0-9]/g, '');
-    if (soloNumeros.length > BARCODE_TAIL_MAX) {
-      setValorTexto(soloNumeros.slice(0, BARCODE_TAIL_MAX));
+    if (soloNumeros.length > BARCODE_MAX) {
+      setValorTexto(soloNumeros.slice(0, BARCODE_MAX));
       triggerShake(barcodeRef.current);
       return;
     }
@@ -205,25 +205,20 @@ export default function EditFieldModal({
           <div className='flex items-center justify-end mb-1'>
             <span
               className={`text-xs transition-colors ${
-                valorTexto.length >= BARCODE_TAIL_MAX ? 'text-red-500 opacity-100' : 'text-gray-400 opacity-70'
+                valorTexto.length >= BARCODE_MAX ? 'text-red-500 opacity-100' : 'text-gray-400 opacity-70'
               }`}
             >
-              {valorTexto.length}/{BARCODE_TAIL_MAX} dígitos
+              {valorTexto.length}/{BARCODE_MAX} dígitos
             </span>
           </div>
           <div className='flex items-center gap-2'>
-            {articulo?.barcode_header && (
-              <span className='shrink-0 px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500 text-sm'>
-                {articulo.barcode_header}
-              </span>
-            )}
             <input
               ref={barcodeRef}
               type='text'
               value={valorTexto}
               onChange={handleBarcodeChange}
               placeholder='Sin numeración'
-              maxLength={BARCODE_TAIL_MAX}
+              maxLength={BARCODE_MAX}
               className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
             />
           </div>

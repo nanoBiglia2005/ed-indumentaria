@@ -12,7 +12,7 @@ model ARTICULOS {
   id_articulo              Int                        @id(map: "articulos_pk") @default(autoincrement())
   cant                     Int                        @default(0)
   precio                   Float                      @default(0)
-  barcode_tail             String?                    @db.VarChar(20)
+  barcode_tail             String?                    @unique(map: "articulos_barcode_tail_idx") @db.VarChar(20)
   stock_minimo             Int                        @default(0) @db.SmallInt
   vigente                  Boolean?                   @default(true)
   id_medida                Int                        @default(1)
@@ -21,7 +21,7 @@ model ARTICULOS {
   fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
   descripcion              String?                    @db.VarChar(70)
   detalle                  String?                    @db.VarChar(50)
-  barcode_header           String?                    @db.VarChar(5)
+  barcode_old              String?                    @db.VarChar(20)
   talle                    String?                    @db.VarChar(30)
   id_linea                 Int?
   id_subgrupo              Int?
@@ -124,33 +124,27 @@ model REGISTRO_USUARIOS {
 }
 
 model REMITOS {
-  id_remito            Int               @id(map: "_remitos__pk") @default(autoincrement())
-  id_sucursal          Int?
-  fecha_de_emision     DateTime?         @db.Date
-  fecha_de_creacion    DateTime          @default(now()) @db.Date
-  id_estado            Int               @default(1)
-  id_cliente           Int?
-  tipo_comprobante     String?           @default("\"remito\"") @db.VarChar(20)
-  cod_remito_final     Int?
-  id_moneda            Int?
-  total_inicial        Float
-  recargo_financiero   Float?
-  bonificaciones       Float?
-  total_final          Float?
-  redondeo             Float?
-  id_tipo_de_pago_1    Int?
-  monto_tipo_de_pago_1 Float?
-  id_tipo_de_pago_2    Int?
-  monto_tipo_de_pago_2 Float?
-  id_tipo_de_pago_3    Int?
-  monto_tipo_de_pago_3 Float?
-  cod_mes              Int               @default(dbgenerated("(EXTRACT(month FROM now()))::integer"))
-  DETALLES_REMITO      DETALLES_REMITO[]
-  ESTADOS_REMITOS      ESTADOS_REMITOS   @relation(fields: [id_estado], references: [id_estado], onDelete: SetNull, map: "_remitos__estados_remitos_fk")
-  CLIENTES             CLIENTES?         @relation(fields: [id_cliente], references: [id_cliente], map: "remitos_clientes_fk")
-  MONEDA               MONEDA?           @relation(fields: [id_moneda], references: [id_moneda], map: "remitos_moneda_fk")
-  SUCURSAL             SUCURSAL?         @relation(fields: [id_sucursal], references: [id_sucursal], map: "remitos_sucursal_fk")
-  TIPOS_DE_PAGO        TIPOS_DE_PAGO?    @relation(fields: [id_tipo_de_pago_1], references: [id_tipos_de_pago], map: "remitos_tipos_de_pago_fk")
+  id_remito          Int               @id(map: "_remitos__pk") @default(autoincrement())
+  id_sucursal        Int?
+  fecha_de_emision   DateTime?         @db.Date
+  fecha_de_creacion  DateTime          @default(now()) @db.Date
+  id_estado          Int               @default(1)
+  id_cliente         Int?
+  tipo_comprobante   String?           @default("\"remito\"") @db.VarChar(20)
+  cod_remito_final   Int?
+  id_moneda          Int?
+  total_efectivo     Float
+  recargo_financiero Float?
+  bonificaciones     Float?
+  total_final        Float?
+  redondeo           Float?
+  cod_mes            Int               @default(dbgenerated("(EXTRACT(month FROM now()))::integer"))
+  DETALLES_REMITO    DETALLES_REMITO[]
+  PAGOS_REMITO       PAGOS_REMITO[]
+  ESTADOS_REMITOS    ESTADOS_REMITOS   @relation(fields: [id_estado], references: [id_estado], onDelete: SetNull, map: "_remitos__estados_remitos_fk")
+  CLIENTES           CLIENTES?         @relation(fields: [id_cliente], references: [id_cliente], map: "remitos_clientes_fk")
+  MONEDA             MONEDA?           @relation(fields: [id_moneda], references: [id_moneda], map: "remitos_moneda_fk")
+  SUCURSAL           SUCURSAL?         @relation(fields: [id_sucursal], references: [id_sucursal], map: "remitos_sucursal_fk")
 }
 
 model SUCURSAL {
@@ -167,12 +161,12 @@ model TIPOS_DE_MEDIDA {
 }
 
 model TIPOS_DE_PAGO {
-  id_tipos_de_pago    Int       @id(map: "_tipos_de_pago__pk") @default(autoincrement())
-  nombre_tipo_de_pago String    @db.VarChar(20)
+  id_tipos_de_pago    Int            @id(map: "_tipos_de_pago__pk") @default(autoincrement())
+  nombre_tipo_de_pago String         @db.VarChar(20)
   recargo             Float
   signo               Boolean?
-  modificable         Boolean   @default(true)
-  REMITOS             REMITOS[]
+  modificable         Boolean        @default(true)
+  PAGOS_REMITO        PAGOS_REMITO[]
 }
 
 model USUARIOS {
@@ -255,6 +249,16 @@ model CLIENTES {
 model remitos_contador {
   cod_mes       String @id
   ultimo_numero Int    @default(0)
+}
+
+model PAGOS_REMITO {
+  id_pago         Int           @id(map: "_pagos_remito__pk") @default(autoincrement())
+  id_remito       Int
+  id_tipo_de_pago Int           @default(1)
+  monto_inicial   Float
+  monto_final     Float
+  REMITOS         REMITOS       @relation(fields: [id_remito], references: [id_remito], onDelete: Cascade, map: "_pagos_remito__remitos_fk")
+  TIPOS_DE_PAGO   TIPOS_DE_PAGO @relation(fields: [id_tipo_de_pago], references: [id_tipos_de_pago], onDelete: SetDefault, map: "_pagos_remito__tipos_de_pago_fk")
 }
 
 enum tipo_operacion {

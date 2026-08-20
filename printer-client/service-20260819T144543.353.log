@@ -1,0 +1,40 @@
+2026-08-19 10:23:30,173 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-19 10:23:35,540 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 10s
+2026-08-19 10:23:45,769 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 20s
+2026-08-19 10:24:05,976 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 40s
+2026-08-19 10:24:46,337 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 80s
+2026-08-19 10:26:06,782 INFO Conectado al servidor de impresión
+Traceback (most recent call last):
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 76, in run
+                                "message": f"{type(exc).__name__}: {exc}",
+    ...<19 lines>...
+    
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\connection.py", line 242, in __aiter__
+    yield await self.recv()
+          ^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\connection.py", line 294, in recv
+    return await self.recv_messages.get(decode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\messages.py", line 150, in get
+    frame = await self.frames.get(not self.closed)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\.venv\Lib\site-packages\websockets\asyncio\messages.py", line 51, in get
+    await self.get_waiter
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 107, in <module>
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

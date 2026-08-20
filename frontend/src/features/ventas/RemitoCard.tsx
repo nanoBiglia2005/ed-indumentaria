@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { RemitoConDetalles } from '@backend/types';
+import type { RemitoConDetalles, TIPOS_DE_PAGO } from '@backend/types';
 import {
   ESTADO_ANULADO,
   ESTADO_CONFIRMADO,
@@ -18,14 +18,28 @@ const BORDE_POR_ESTADO: Record<number, string> = {
 
 interface RemitoCardProps {
   remito: RemitoConDetalles;
+  /** Metodos de pago, para rotular cada total mientras no este cobrado. */
+  metodos?: TIPOS_DE_PAGO[];
   abiertoPorDefecto?: boolean;
   /** Si se pasan, aparecen los botones en el encabezado del detalle. */
   onPagar?: (remito: RemitoConDetalles) => void;
   onAnular?: (remito: RemitoConDetalles) => void;
 }
 
-function RemitoCard({ remito, abiertoPorDefecto = false, onPagar, onAnular }: RemitoCardProps) {
+function RemitoCard({
+  remito,
+  metodos = [],
+  abiertoPorDefecto = false,
+  onPagar,
+  onAnular,
+}: RemitoCardProps) {
   const [abierto, setAbierto] = useState(abiertoPorDefecto);
+
+  // Cobrado: lo que se cobro de verdad es un solo numero. Sin cobrar (pendiente
+  // o anulado) todavia no hay metodo elegido, asi que se muestra cuanto saldria
+  // con cada uno: el precio base y los metodos con recargo.
+  const cobrado = remito.id_estado === ESTADO_FACTURADO;
+  const metodosConRecargo = metodos.filter((metodo) => metodo.recargo > 0);
 
   const borde = BORDE_POR_ESTADO[remito.id_estado ?? ESTADO_FACTURADO] ?? 'border-violet-500';
   const hayAcciones = Boolean(onPagar || onAnular);
@@ -73,7 +87,24 @@ function RemitoCard({ remito, abiertoPorDefecto = false, onPagar, onAnular }: Re
             )}
           </div>
         )}
-          <span className='text-lg font-semibold text-violet-600'>{remito.total_final ?? remito.total_inicial ?? 0}$</span>
+          {cobrado ? (
+            <span className='text-lg font-semibold text-violet-600'>{remito.total_final ?? 0}$</span>
+          ) : (
+            <div className='flex flex-col items-end'>
+              <span className='text-lg font-semibold text-gray-900'>
+                {remito.total_efectivo ?? 0}$
+              </span>
+              {metodosConRecargo.map((metodo) => (
+                <span
+                  key={metodo.id_tipos_de_pago}
+                  className='text-lg font-semibold text-violet-600'
+                  title={`Total con ${metodo.nombre_tipo_de_pago}`}
+                >
+                  {remito.totales_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$
+                </span>
+              ))}
+            </div>
+          )}
           <svg
             className={`w-5 h-5 text-gray-400 transition-transform duration-200 ease-in-out ${
               abierto ? 'rotate-180' : ''

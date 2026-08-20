@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ARTICULOS, GRUPOS_DE_VENTA, LINEAS, SUBGRUPOS_DE_VENTA } from '@backend/types';
+import type { GRUPOS_DE_VENTA, LINEAS, SUBGRUPOS_DE_VENTA, TIPOS_DE_PAGO } from '@backend/types';
 import type { Agrupacion, ArticuloDeVenta, ClienteVenta, ItemAConfirmar } from '@/types/ventas';
 import BaseModal from '@/components/ui/BaseModal';
 import { useTablaFiltrable } from '@/components/tabla/useTablaFiltrable';
@@ -20,13 +20,16 @@ interface AgregarProductoModalProps {
   abierto: boolean;
   onCerrar: () => void;
   articulosExcluidos: number[];
-  onAgregar: (articulo: ARTICULOS, cantidad: number) => void;
+  /** Metodos de pago: la tabla muestra una columna de precio por cada uno. */
+  metodos: TIPOS_DE_PAGO[];
+  onAgregar: (articulo: ArticuloDeVenta, cantidad: number) => void;
 }
 
 export default function AgregarProductoModal({
   abierto,
   onCerrar,
   articulosExcluidos,
+  metodos,
   onAgregar,
 }: AgregarProductoModalProps) {
   // --- Seleccion del asistente ---
@@ -131,7 +134,7 @@ export default function AgregarProductoModal({
     };
   }, [cliente]);
 
-  const columnas = useMemo(() => crearColumnasVenta(lineas), [lineas]);
+  const columnas = useMemo(() => crearColumnasVenta(lineas, metodos), [lineas, metodos]);
 
   // Filas base: se excluyen los ya agregados a la venta y se aplican el
   // subgrupo elegido y la busqueda global. Los filtros por columna y el orden
@@ -365,6 +368,7 @@ export default function AgregarProductoModal({
       <ConfirmarProductoModal
         abierto={productosAConfirmar !== null}
         productos={productosAConfirmar}
+        metodos={metodos}
         onCerrar={() => setProductosAConfirmar(null)}
         onConfirmar={handleConfirmarProductos}
       />

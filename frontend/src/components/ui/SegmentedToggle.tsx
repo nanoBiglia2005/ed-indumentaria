@@ -1,6 +1,6 @@
 /**
  * Toggle segmentado de dos opciones con la pastilla violeta animada.
- * Es el patron que antes estaba copiado en PaymentToggle, CrearAgrupacionModal
+ * Es el patron que antes estaba copiado en CrearAgrupacionModal
  * (Colegio/Club) y CreateArticleModal (Manual/Automatico).
  */
 interface SegmentedToggleProps<T extends string | number> {

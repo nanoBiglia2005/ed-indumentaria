@@ -203,7 +203,6 @@ router.post(
     const {
       cant,
       precio,
-      barcode_header,
       barcode_tail,
       stock_minimo,
       vigente,
@@ -221,7 +220,6 @@ router.post(
       data: {
         cant,
         precio,
-        barcode_header,
         barcode_tail,
         stock_minimo,
         vigente,
@@ -245,7 +243,6 @@ router.put(
     const {
       cant,
       precio,
-      barcode_header,
       barcode_tail,
       stock_minimo,
       talle,
@@ -275,7 +272,6 @@ router.put(
       data: {
         cant,
         precio,
-        barcode_header,
         barcode_tail,
         stock_minimo,
         talle,
@@ -292,24 +288,6 @@ router.put(
     errores: {
       P2002: { status: 409, message: 'Ya existe un articulo con ese codigo de barra.' },
       P2025: { status: 404, message: 'El articulo no existe.' },
-    },
-  })
-);
-
-router.delete(
-  '/:id_articulo',
-  asyncHandler(async (req, res) => {
-    const id_articulo = parseId(req.params.id_articulo, 'El id del articulo debe ser un numero.');
-
-    await prisma.ARTICULOS.delete({ where: { id_articulo } });
-    res.status(204).send();
-  }, 'Error al eliminar el articulo.', {
-    errores: {
-      P2025: { status: 404, message: 'El articulo no existe.' },
-      P2003: {
-        status: 409,
-        message: 'No se puede eliminar el articulo: tiene ventas u otros registros asociados.',
-      },
     },
   })
 );

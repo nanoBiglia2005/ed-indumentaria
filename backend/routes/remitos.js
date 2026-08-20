@@ -1,16 +1,23 @@
 const express = require('express');
 const prisma = require('../db');
 const { asyncHandler, HttpError } = require('../lib/http');
-const { ESTADO_CONFIRMADO, ESTADO_FACTURADO, ESTADO_ANULADO, METODOS_DE_PAGO } = require('../constants/ventas');
-const {
-  remitosInclude,
-  resolverItemsVenta,
-  buscarRemitoPendiente,
-  opcionesDePagoDeRemito,
-} = require('../services/remitos');
+const { parseId } = require('../lib/validaciones');
+const { ESTADO_CONFIRMADO, ESTADO_ANULADO } = require('../constants/ventas');
+const { remitosInclude, resolverItemsVenta, buscarRemitoPendiente } = require('../services/remitos');
+const { listarMetodosDePago, remitoConTotales } = require('../services/preciosPorMetodo');
+const { parsearPagos, registrarCobro } = require('../services/pagosRemito');
+const { parsearDatosCliente, obtenerCliente } = require('../services/clientesFinales');
 const { construirPayloadTicket, enviarTrabajoDeImpresion } = require('../services/impresion');
 
 const router = express.Router();
+
+// Todo remito viaja con `totales_por_metodo`: cuanto costaria cobrarlo con cada
+// metodo de pago. NO esta guardado en la base, se calcula con el recargo
+// vigente a partir de los precios congelados de sus lineas.
+const responderRemitos = async (res, remitos) => {
+  const metodos = await listarMetodosDePago();
+  res.status(200).json(remitos.map((remito) => remitoConTotales(remito, metodos)));
+};
 
 // Historial: todo MENOS los pendientes de cobro, que viven en la pagina de Ventas.
 router.get(
@@ -21,7 +28,7 @@ router.get(
       include: remitosInclude,
       orderBy: { id_remito: 'desc' },
     });
-    res.status(200).json(remitos);
+    await responderRemitos(res, remitos);
   }, 'Error al obtener los remitos.')
 );
 
@@ -34,53 +41,84 @@ router.get(
       include: remitosInclude,
       orderBy: { id_remito: 'desc' },
     });
-    res.status(200).json(remitos);
+    await responderRemitos(res, remitos);
   }, 'Error al obtener los remitos pendientes.')
 );
 
-// Registra la venta como CONFIRMADA (pendiente de cobro) con los precios en
-// efectivo, e imprime el ticket salvo que se pida `imprimir: false`.
-// El metodo de pago se elige despues, al facturar.
+/**
+ * Registra la venta como CONFIRMADA (pendiente de cobro) e imprime el ticket
+ * salvo que se pida `imprimir: false`. El metodo de pago se elige despues, al
+ * cobrar: aca solo se congela el precio base de cada articulo.
+ *
+ * Si viene un cliente asignado y sus datos se editaron en la pantalla, se
+ * actualizan en la MISMA transaccion: o queda todo o no queda nada.
+ *
+ * Solo se carga `fecha_de_creacion`; la de emision se llenara cuando el remito
+ * se emita de verdad. `cod_remito_final` lo asigna el trigger
+ * trg_cod_remito_final de la base a partir de remitos_contador.
+ */
 router.post(
   '/',
   asyncHandler(async (req, res) => {
-    const { error, items, recargoTarjeta } = await resolverItemsVenta(req.body.detalles);
+    const { error, items } = await resolverItemsVenta(req.body.detalles);
     if (error) {
       throw new HttpError(error.status, { message: error.message });
     }
 
+    // El cliente es opcional: una venta puede no tener a nadie asignado.
+    const id_cliente =
+      req.body.id_cliente === undefined || req.body.id_cliente === null
+        ? null
+        : parseId(req.body.id_cliente, 'El id del cliente debe ser un numero.');
+
+    // Se valida ANTES de abrir la transaccion para no crear el remito si el
+    // formulario del cliente esta mal.
+    let datosCliente = null;
+    if (id_cliente !== null) {
+      await obtenerCliente(id_cliente);
+      if (req.body.cliente) datosCliente = parsearDatosCliente(req.body.cliente);
+    }
+
     const detallesData = items.map((item) => ({
       id_articulo: item.id_articulo,
-      precio: item.precio_efectivo,
+      precio: item.precio,
       cantidad: item.cantidad,
     }));
 
-    const totalVenta = detallesData.reduce((acumulado, d) => acumulado + d.precio * d.cantidad, 0);
-    const ahora = new Date();
+    const totalEfectivo = detallesData.reduce(
+      (acumulado, detalle) => acumulado + detalle.precio * detalle.cantidad,
+      0
+    );
 
-    const nuevoRemito = await prisma.REMITOS.create({
-      data: {
-        fecha_de_emision: ahora,
-        fecha_de_creacion: ahora,
-        id_estado: ESTADO_CONFIRMADO,
-        total_inicial: totalVenta,
-        DETALLES_REMITO: {
-          create: detallesData,
+    const nuevoRemito = await prisma.$transaction(async (tx) => {
+      if (datosCliente) {
+        await tx.CLIENTES.update({ where: { id_cliente }, data: datosCliente });
+      }
+
+      return tx.REMITOS.create({
+        data: {
+          fecha_de_creacion: new Date(),
+          id_estado: ESTADO_CONFIRMADO,
+          id_cliente,
+          total_efectivo: totalEfectivo,
+          DETALLES_REMITO: { create: detallesData },
         },
-      },
-      include: remitosInclude,
+        include: remitosInclude,
+      });
     });
 
-    // La venta ya quedo guardada: si falla la impresion no se revierte, se avisa
-    // en la respuesta. Ahora el ticket si lleva el numero de remito.
+    const metodos = await listarMetodosDePago();
+
+    // La venta ya quedo guardada: si falla la impresion no se revierte, se
+    // avisa en la respuesta.
     let impresion = { status: 'omitida' };
     if (req.body.imprimir !== false) {
       impresion = { status: 'ok' };
       try {
         const { respuesta, resultado } = await enviarTrabajoDeImpresion(
-          construirPayloadTicket(items, recargoTarjeta, {
+          construirPayloadTicket(items, metodos, {
             id_remito: nuevoRemito.id_remito,
-            fecha: nuevoRemito.fecha_de_emision,
+            fecha: nuevoRemito.fecha_de_creacion,
           })
         );
 
@@ -93,25 +131,18 @@ router.post(
       }
     }
 
-    res.status(201).json({ ...nuevoRemito, impresion });
+    res.status(201).json({ ...remitoConTotales(nuevoRemito, metodos), impresion });
   }, 'Error al crear la venta.')
 );
 
-// Opciones de pago de un remito pendiente, para poblar el modal de cobro.
-router.get(
-  '/:id_remito/opciones-pago',
-  asyncHandler(async (req, res) => {
-    const { error, remito } = await buscarRemitoPendiente(req.params.id_remito);
-    if (error) {
-      throw new HttpError(error.status, { message: error.message });
-    }
-
-    res.status(200).json(await opcionesDePagoDeRemito(remito));
-  }, 'Error al obtener las opciones de pago.')
-);
-
-// Cobra un remito pendiente: fija el precio de cada linea segun su metodo de
-// pago, recalcula el total y lo pasa a FACTURADO.
+/**
+ * Cobra un remito pendiente. El metodo de pago es del REMITO, no de cada
+ * articulo: los precios de DETALLES_REMITO no se tocan. El reparto entre
+ * metodos se guarda en PAGOS_REMITO (una fila por metodo usado) y `total_final`
+ * es la suma de lo que se cobra por cada uno.
+ *
+ * El cuerpo trae TODOS los metodos de pago; los que vengan en 0 se descartan.
+ */
 router.put(
   '/:id_remito/facturar',
   asyncHandler(async (req, res) => {
@@ -120,64 +151,12 @@ router.put(
       throw new HttpError(error.status, { message: error.message });
     }
 
-    const { pagos } = req.body;
-    if (!Array.isArray(pagos)) {
-      throw new HttpError(400, { message: 'Falta el detalle de como se paga cada articulo.' });
-    }
+    const metodos = await listarMetodosDePago();
+    const { totales_por_metodo } = remitoConTotales(remito, metodos);
+    const pagos = parsearPagos(req.body, metodos, remito.total_efectivo, totales_por_metodo);
 
-    const metodosPorDetalle = new Map();
-    for (const pago of pagos) {
-      const id_detalle = parseInt(pago.id_detalle, 10);
-      const metodo = pago.metodo_pago ?? 'efectivo';
-
-      if (Number.isNaN(id_detalle)) {
-        throw new HttpError(400, { message: 'Los detalles del pago son invalidos.' });
-      }
-      if (!METODOS_DE_PAGO.includes(metodo)) {
-        throw new HttpError(400, { message: `Metodo de pago invalido: "${metodo}".` });
-      }
-
-      metodosPorDetalle.set(id_detalle, metodo);
-    }
-
-    const { items } = await opcionesDePagoDeRemito(remito);
-
-    const preciosFinales = items.map((item) => ({
-      id_detalle: item.id_detalle,
-      precio:
-        metodosPorDetalle.get(item.id_detalle) === 'tarjeta'
-          ? item.precio_tarjeta
-          : item.precio_efectivo,
-      cantidad: item.cantidad,
-    }));
-
-    const totalVenta = preciosFinales.reduce(
-      (acumulado, linea) => acumulado + linea.precio * linea.cantidad,
-      0
-    );
-
-    // Todo junto: si algo falla no queda un remito a medio cobrar.
-    const remitoFacturado = await prisma.$transaction(async (tx) => {
-      await Promise.all(
-        preciosFinales.map((linea) =>
-          tx.DETALLES_REMITO.update({
-            where: { id_detalle: linea.id_detalle },
-            data: { precio: linea.precio },
-          })
-        )
-      );
-
-      return tx.REMITOS.update({
-        where: { id_remito: remito.id_remito },
-        data: {
-          id_estado: ESTADO_FACTURADO,
-          total_final: totalVenta,
-        },
-        include: remitosInclude,
-      });
-    });
-
-    res.status(200).json(remitoFacturado);
+    const facturado = await registrarCobro(remito, pagos, remitosInclude);
+    res.status(200).json(remitoConTotales(facturado, metodos));
   }, 'Error al facturar el remito.')
 );
 
@@ -196,7 +175,8 @@ router.put(
       include: remitosInclude,
     });
 
-    res.status(200).json(remitoAnulado);
+    const metodos = await listarMetodosDePago();
+    res.status(200).json(remitoConTotales(remitoAnulado, metodos));
   }, 'Error al anular el remito.')
 );
 

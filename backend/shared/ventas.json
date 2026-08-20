@@ -4,6 +4,5 @@
     "FACTURADO": 2,
     "ANULADO": 3,
     "DEVUELTO": 4
-  },
-  "METODOS_DE_PAGO": ["efectivo", "tarjeta"]
+  }
 }

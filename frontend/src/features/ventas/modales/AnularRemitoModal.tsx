@@ -73,7 +73,7 @@ export default function AnularRemitoModal({
     >
       <p className='text-sm text-gray-700'>
         Vas a anular el remito <span className='font-semibold'>#{remito?.id_remito}</span> por{' '}
-        <span className='font-semibold'>{remito?.total_inicial ?? 0}$</span>. Esta acción no se
+        <span className='font-semibold'>{remito?.total_efectivo ?? 0}$</span>. Esta acción no se
         puede deshacer.
       </p>
     </BaseModal>

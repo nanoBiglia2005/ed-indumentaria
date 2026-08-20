@@ -19,24 +19,20 @@ router.post(
       throw new HttpError(404, { message: 'El articulo no existe.' });
     }
 
-    // El codigo va ya armado: el printer-client corre en otra maquina y no
-    // puede leer shared/barcode.json, asi que no debe conocer la regla del
-    // prefijo generico (si la duplicara, se desincronizaria).
-    const codigo = codigoBarcodeCompleto(articulo.barcode_header, articulo.barcode_tail);
+    const codigo = codigoBarcodeCompleto(articulo.barcode_tail);
 
-    // Sin barcode_header ni barcode_tail no hay nada que imprimir: se corta aca
-    // en vez de mandar un trabajo que la impresora no puede resolver.
+    // Sin barcode_tail no hay nada que imprimir: se corta aca en vez de mandar
+    // un trabajo que la impresora no puede resolver.
     if (!codigo) {
       throw new HttpError(400, { message: 'El articulo no tiene codigo de barra para imprimir.' });
     }
 
-    // barcode_header/barcode_tail siguen viajando para los printer-client
-    // viejos, que arman el codigo por su cuenta.
+    // barcode_tail sigue viajando para los printer-client viejos, que arman el
+    // codigo por su cuenta.
     const { respuesta: printResponse, resultado: printResult } = await enviarTrabajoDeImpresion({
       tipo: 'barcode',
       id_articulo: articulo.id_articulo,
       codigo,
-      barcode_header: articulo.barcode_header,
       barcode_tail: articulo.barcode_tail,
       descripcion: articulo.descripcion,
       precio: articulo.precio,
