@@ -7,8 +7,17 @@ import AnularRemitoModal from '@/features/ventas/modales/AnularRemitoModal';
 import ListaDeRemitos from '@/features/ventas/ListaDeRemitos';
 import MetodoPagoModal from '@/features/ventas/modales/MetodoPagoModal';
 import NuevaVentaModal from '@/features/ventas/modales/NuevaVentaModal';
+import Notificacion from '@/components/ui/Notificacion';
 import SectionWrapper from '@/components/layout/SectionWrapper';
 import VentaExitosaModal from '@/features/ventas/modales/VentaExitosaModal';
+import { codigoRemito } from '@/features/ventas/codigoRemito';
+import { useNotificacion } from '@/hooks/useNotificacion';
+
+/** Como se nombra la venta en los avisos: "Venta 0812", o sin codigo si no tiene. */
+const textoDelRemito = (remito: RemitoConDetalles) => {
+  const codigo = codigoRemito(remito.cod_mes, remito.cod_remito_final);
+  return codigo ? `Venta ${codigo}` : 'La venta';
+};
 
 function VentasPage() {
   const {
@@ -29,6 +38,7 @@ function VentasPage() {
   const [remitoACobrar, setRemitoACobrar] = useState<RemitoConDetalles | null>(null);
   const [remitoAAnular, setRemitoAAnular] = useState<RemitoConDetalles | null>(null);
   const [metodos, setMetodos] = useState<TIPOS_DE_PAGO[]>([]);
+  const { notificacion, mostrar: mostrarNotificacion } = useNotificacion();
 
   // Los metodos (y sus recargos) se leen al abrir: pueden haber cambiado en
   // Configuracion desde que se cargo la pagina.
@@ -66,19 +76,27 @@ function VentasPage() {
     setRemitoACobrar(remito);
   };
 
-  // Ya no esta pendiente: sale de la lista y pasa al historial.
-  const handleFacturado = () => {
+  // Ya no esta pendiente: sale de la lista y pasa al historial. Como al cobrar
+  // se cierra todo y no queda ningun modal a la vista, el aviso es lo unico que
+  // confirma que la venta se finalizo.
+  const handleFacturado = (remito: RemitoConDetalles) => {
     setRemitoACobrar(null);
     fetchPendientes();
+    mostrarNotificacion(`${textoDelRemito(remito)} finalizada con éxito.`);
   };
 
-  const handleAnulado = () => {
+  // Igual que al cobrar: la venta sale de la lista y no queda ningun modal
+  // abierto, asi que el aviso es lo unico que confirma que se anulo.
+  const handleAnulado = (remito: RemitoConDetalles) => {
     setRemitoAAnular(null);
     fetchPendientes();
+    mostrarNotificacion(`${textoDelRemito(remito)} anulada.`);
   };
 
   return (
     <SectionWrapper>
+      <Notificacion mensaje={notificacion} posicion='pagina' />
+
       <div className='flex flex-col w-full h-full px-5 pt-10 min-h-0 items-center'>
         <button
           type='button'

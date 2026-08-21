@@ -2,17 +2,27 @@ import type { SUBGRUPOS_DE_VENTA } from '@backend/types';
 import type { ArticuloDeVenta } from '@/types/ventas';
 import type { ColumnaTabla } from '@/components/tabla/tipos';
 import DataGrid from '@/components/tabla/DataGrid';
-import type { useTablaFiltrable } from '@/components/tabla/useTablaFiltrable';
+import type { useTablaServidor } from '@/components/tabla/useTablaServidor';
+import Paginador from '@/components/tabla/Paginador';
 import SearchInput from '@/components/ui/SearchInput';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
-import { MAX_LINEAS_CELDA, ROW_HEIGHT, ANCHO_COL_SELECCION } from './columnasVenta';
+import { ALTO_LINEA, MAX_LINEAS_CELDA, ROW_HEIGHT, ANCHO_COL_SELECCION } from './columnasVenta';
 
-type Tabla = ReturnType<typeof useTablaFiltrable<ArticuloDeVenta>>;
+type Tabla = ReturnType<typeof useTablaServidor<ArticuloDeVenta>>;
+
+/** Cuantos articulos trae cada pagina (lo mismo que la tabla de Articulos). */
+export const TAMANO_PAGINA = 30;
 
 /** Paso 3 del wizard: tabla de articulos disponibles, con filtros y seleccion. */
 interface PasoTablaProps {
   tabla: Tabla;
   columnas: ColumnaTabla<ArticuloDeVenta>[];
+  /** Solo la pagina actual: el resto vive en la base. */
+  articulos: ArticuloDeVenta[];
+  pagina: number;
+  /** Cuantos coinciden con los filtros, para el paginador. */
+  total: number;
+  onCambiarPagina: (pagina: number) => void;
   subgrupos: SUBGRUPOS_DE_VENTA[];
   subgrupoSeleccionado: number | null;
   onSubgrupoChange: (id: number | null) => void;
@@ -31,6 +41,10 @@ interface PasoTablaProps {
 export default function PasoTabla({
   tabla,
   columnas,
+  articulos,
+  pagina,
+  total,
+  onCambiarPagina,
   subgrupos,
   subgrupoSeleccionado,
   onSubgrupoChange,
@@ -48,15 +62,19 @@ export default function PasoTabla({
   return (
     <>
       <div className='flex flex-wrap items-center gap-2 mb-3'>
-        <InlineFilterDropdown
-          label='Filtrar por Subgrupo'
-          conBuscador
-          opciones={subgrupos.map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo }))}
-          selectedId={subgrupoSeleccionado}
-          onSelect={onSubgrupoChange}
-          onClear={() => onSubgrupoChange(null)}
-          disabled={cargando}
-        />
+        {/* Sin un grupo concreto la base no filtra por subgrupo, asi que el
+            desplegable no se ofrece: para eso esta el filtro de la columna. */}
+        {subgrupos.length > 0 && (
+          <InlineFilterDropdown
+            label='Filtrar por Subgrupo'
+            conBuscador
+            opciones={subgrupos.map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo }))}
+            selectedId={subgrupoSeleccionado}
+            onSelect={onSubgrupoChange}
+            onClear={() => onSubgrupoChange(null)}
+            disabled={cargando}
+          />
+        )}
 
         <SearchInput
           valor={busqueda}
@@ -67,7 +85,7 @@ export default function PasoTabla({
       </div>
 
       <DataGrid<ArticuloDeVenta>
-        filas={tabla.filasVisibles}
+        filas={articulos}
         columnas={columnas}
         keyDe={(item) => item.id_articulo}
         altoFila={ROW_HEIGHT}
@@ -79,6 +97,11 @@ export default function PasoTabla({
           WebkitLineClamp: MAX_LINEAS_CELDA,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
+          // El line-height va explicito porque ROW_HEIGHT se calculo con el:
+          // sin esto el navegador usa el heredado (1.5) y MAX_LINEAS_CELDA
+          // lineas no entran en la altura fija que reserva la virtualizacion.
+          lineHeight: `${ALTO_LINEA}px`,
+          minWidth: 0,
         }}
         compacta
         filtrosColumna={tabla.filtrosColumna}
@@ -134,6 +157,14 @@ export default function PasoTabla({
             No hay artículos disponibles para agregar.
           </p>
         }
+      />
+
+      <Paginador
+        pagina={pagina}
+        tamano={TAMANO_PAGINA}
+        total={total}
+        cargando={cargando}
+        onCambiarPagina={onCambiarPagina}
       />
     </>
   );

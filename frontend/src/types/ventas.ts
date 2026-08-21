@@ -1,5 +1,5 @@
 // Tipos de dominio del flujo de venta (respuestas de /api/venta/*).
-import type { ARTICULOS, ImportesPorMetodo, SUBGRUPOS_DE_VENTA } from '@backend/types';
+import type { ARTICULOS, ImportesPorMetodo } from '@backend/types';
 
 /** Un cliente (colegio o club) tal como lo devuelve /api/venta/agrupaciones. */
 export type ClienteVenta = { id_cliente: number; nombre: string };
@@ -18,10 +18,14 @@ export type ArticuloDeVenta = ARTICULOS & {
   precios_por_metodo: ImportesPorMetodo;
 };
 
-/** Respuesta de GET /api/venta/articulos. */
+/**
+ * Respuesta de GET /api/venta/articulos: la tabla se pagina en la base, asi que
+ * `articulos` es SOLO la pagina pedida y `total` los que coinciden con los
+ * filtros (para el paginador).
+ */
 export type RespuestaArticulosVenta = {
   articulos: ArticuloDeVenta[];
-  subgrupos: SUBGRUPOS_DE_VENTA[];
+  total: number;
 };
 
 /** Articulo + cantidad que sale del modal de confirmacion hacia el carrito. */

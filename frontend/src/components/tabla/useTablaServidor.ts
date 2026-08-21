@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { ColumnaTabla, CriterioOrden, FiltroColumna, OpcionFiltro } from './tipos';
+import { esFiltrable } from './tipos';
 
 interface UseTablaServidorParams<T> {
   columnas: ColumnaTabla<T>[];
@@ -27,7 +28,10 @@ export function useTablaServidor<T>({ columnas, opciones }: UseTablaServidorPara
   // criterio principal, los siguientes desempatan en orden.
   const [ordenColumnas, setOrdenColumnas] = useState<CriterioOrden[]>([]);
 
-  const columnaAbierta = columnas.find((c) => c.filtroKey === columnaFiltroAbierta) ?? null;
+  // Las columnas de solo lectura (valores derivados) no participan del motor:
+  // no tienen filtroKey y la grilla les dibuja un header plano.
+  const columnaAbierta =
+    columnas.filter(esFiltrable).find((c) => c.filtroKey === columnaFiltroAbierta) ?? null;
 
   const opcionesFiltroAbierto =
     columnaAbierta?.filtro.tipo === 'seleccion'
@@ -36,6 +40,8 @@ export function useTablaServidor<T>({ columnas, opciones }: UseTablaServidorPara
 
   // Click en el header: abre el filtro, o lo quita si ya estaba puesto.
   const handleClickHeader = (columna: ColumnaTabla<T>) => {
+    if (!esFiltrable(columna)) return;
+
     if (filtrosColumna[columna.filtroKey]) {
       setFiltrosColumna((prev) => {
         const siguiente = { ...prev };
@@ -51,6 +57,8 @@ export function useTablaServidor<T>({ columnas, opciones }: UseTablaServidorPara
   // direccion / la quita si ya estaba). Shift+click: la vuelve el unico
   // criterio de orden, descartando los demas.
   const handleClickOrdenar = (columna: ColumnaTabla<T>, event: React.MouseEvent) => {
+    if (!esFiltrable(columna)) return;
+
     setOrdenColumnas((prev) => {
       const indice = prev.findIndex((c) => c.key === columna.filtroKey);
 

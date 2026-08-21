@@ -16,6 +16,7 @@
 // palabras validadas contra una lista blanca (ASC/DESC).
 const { Prisma } = require('../generated/prisma/client');
 const { HttpError } = require('./http');
+const { parseIdOpcional } = require('./validaciones');
 const { IDS_GRUPOS_DE_CLIENTES } = require('../constants/agrupaciones');
 
 const TAMANO_PAGINA_DEFECTO = 30;
@@ -142,6 +143,12 @@ const seleccionFk = (columna, ids, sinAsignar, { idFicticio = true } = {}) => {
 const existeCliente = (condicion) =>
   Prisma.sql`EXISTS (SELECT 1 FROM "ARTICULOS_X_CLIENTE" ax WHERE ax.id_articulo = a.id_articulo AND ${condicion})`;
 
+// "Todos los colegios" / "todos los clubes": el articulo es de ALGUN cliente de
+// esa agrupacion. La agrupacion de un cliente es su grupo de venta exclusivo.
+const clienteDeAgrupacion = (idAgrupacion) => Prisma.sql`
+  EXISTS (SELECT 1 FROM "CLIENTES_MAYORISTAS" c
+    WHERE c.id_cliente = ax.id_cliente AND c.grupo_venta_exclusivo = ${idAgrupacion})`;
+
 // Una entrada por filtroKey de features/articulos/columnas.tsx.
 const TRADUCTORES = {
   codigo: (f) => contiene(TEXTO_CODIGO, f.valor),
@@ -251,13 +258,30 @@ const construirOrderBy = (orden) => {
  * las filas que pasan todos los DEMAS filtros.
  */
 const construirWhere = (consulta, { excluirFiltro = null } = {}) => {
-  const { busqueda, idGrupo, idSubgrupo, idCliente, filtros } = consulta;
+  const { busqueda, idGrupo, idSubgrupo, idCliente, idAgrupacion, idLinea, filtros } = consulta;
+  // Los tres ultimos NO salen de la query: los fija la ruta. El recorrido de
+  // venta solo vende articulos vigentes, de algun colegio o club, y sin los que
+  // ya estan en el carrito; la tabla de Articulos no los usa y quedan apagados.
+  const { soloVigentes = false, exigeCliente = false, excluirIds = [] } = consulta;
   const partes = [];
 
   if (idGrupo !== null) partes.push(Prisma.sql`a.id_grupo = ${idGrupo}`);
   // El subgrupo solo filtra si hay un grupo elegido (igual que ArticulosPage).
   if (idGrupo !== null && idSubgrupo !== null) partes.push(Prisma.sql`a.id_subgrupo = ${idSubgrupo}`);
+  if (idLinea !== null) partes.push(Prisma.sql`a.id_linea = ${idLinea}`);
+
+  // Los tres son el mismo filtro con distinto alcance, de mas a menos acotado:
+  // un colegio/club puntual, una agrupacion entera, o cualquiera.
   if (idCliente !== null) partes.push(existeCliente(Prisma.sql`ax.id_cliente = ${idCliente}`));
+  else if (idAgrupacion !== null) partes.push(existeCliente(clienteDeAgrupacion(idAgrupacion)));
+  // Sin nada elegido pero exigiendo cliente: "Todos los colegios y clubes" trae
+  // lo que sea de ALGUNO, no el stock que no esta asociado a ninguno.
+  else if (exigeCliente) partes.push(existeCliente(SIEMPRE));
+
+  if (soloVigentes) partes.push(Prisma.sql`a.vigente IS TRUE`);
+  if (excluirIds.length > 0) {
+    partes.push(Prisma.sql`a.id_articulo NOT IN (${Prisma.join(excluirIds)})`);
+  }
   if (busqueda !== '') partes.push(condicionBusqueda(busqueda));
 
   for (const [key, filtro] of Object.entries(filtros)) {
@@ -277,14 +301,6 @@ const error400 = (message) => new HttpError(400, { message });
 const parseEntero = (valor, mensaje, { minimo = 1 } = {}) => {
   const numero = Number(valor);
   if (!Number.isInteger(numero) || numero < minimo) throw error400(mensaje);
-  return numero;
-};
-
-// Id opcional de un filtro de pagina: ausente o vacio = sin filtro.
-const parseIdOpcional = (valor, mensaje) => {
-  if (valor === undefined || valor === '') return null;
-  const numero = Number(valor);
-  if (!Number.isInteger(numero)) throw error400(mensaje);
   return numero;
 };
 
@@ -367,6 +383,10 @@ const parsearConsultaArticulos = (query) => ({
   idGrupo: parseIdOpcional(query.id_grupo, 'El id del grupo debe ser un numero.'),
   idSubgrupo: parseIdOpcional(query.id_subgrupo, 'El id del subgrupo debe ser un numero.'),
   idCliente: parseIdOpcional(query.id_cliente, 'El id del cliente debe ser un numero.'),
+  // Solo la usa el recorrido de venta ("todos los colegios" / "todos los
+  // clubes"); si viaja junto con id_cliente, el cliente puntual manda.
+  idAgrupacion: parseIdOpcional(query.id_agrupacion, 'El id de la agrupación debe ser un numero.'),
+  idLinea: parseIdOpcional(query.id_linea, 'El id de la linea debe ser un numero.'),
   filtros: parseFiltros(query.filtros),
   orden: parseOrden(query.orden),
 });

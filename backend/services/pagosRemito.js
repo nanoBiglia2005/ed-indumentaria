@@ -17,6 +17,7 @@
 // muestre: lo que llega del navegador no decide cuanta plata entra.
 const prisma = require('../db');
 const { HttpError } = require('../lib/http');
+const { aId } = require('../lib/validaciones');
 const { ESTADO_FACTURADO } = require('../constants/ventas');
 const { precioConRecargo } = require('./preciosPorMetodo');
 
@@ -46,7 +47,9 @@ const parsearPagos = (cuerpo, metodos, totalEfectivo, totalesDelRemito) => {
   const reales = [];
 
   for (const pago of pagos) {
-    const id_tipo_de_pago = parseInt(pago?.id_tipo_de_pago, 10);
+    // Un id invalido cae en null, que no esta en el mapa: lo rechaza el mismo
+    // "no existe" de abajo, con el valor crudo en el mensaje.
+    const id_tipo_de_pago = aId(pago?.id_tipo_de_pago);
     const metodo = porId.get(id_tipo_de_pago);
 
     if (!metodo) {

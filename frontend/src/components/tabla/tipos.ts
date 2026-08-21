@@ -32,8 +32,14 @@ export type ColumnaTabla<T> = {
   /** Click en la celda (p. ej. abrir el editor inline de ese campo). */
   onClick?: (item: T) => void;
   width: number;
-  filtroKey: string;
-  filtro: FiltroDef<T>;
+  /**
+   * Como se filtra y ordena la columna. Se omiten juntos en las columnas de
+   * SOLO LECTURA: valores derivados que no existen como campo en la base (p. ej.
+   * el precio con el recargo de un metodo de pago), que una tabla paginada en
+   * la base no puede filtrar ni ordenar.
+   */
+  filtroKey?: string;
+  filtro?: FiltroDef<T>;
   /**
    * Si se define, se usa para ordenar en lugar del criterio por defecto segun
    * el tipo de filtro (util cuando el texto mostrado no ordena bien, p. ej.
@@ -41,5 +47,18 @@ export type ColumnaTabla<T> = {
    */
   ordenValor?: (item: T) => string | number | null;
 };
+
+/**
+ * Columna que SI se puede filtrar y ordenar. El motor de la tabla trabaja solo
+ * con estas: las de solo lectura se descartan en el borde, asi el resto del
+ * codigo no tiene que preguntar por `filtroKey` en cada uso.
+ */
+export type ColumnaFiltrable<T> = ColumnaTabla<T> & {
+  filtroKey: string;
+  filtro: FiltroDef<T>;
+};
+
+export const esFiltrable = <T,>(columna: ColumnaTabla<T>): columna is ColumnaFiltrable<T> =>
+  columna.filtroKey !== undefined && columna.filtro !== undefined;
 
 export type CriterioOrden = { key: string; direccion: 'asc' | 'desc' };

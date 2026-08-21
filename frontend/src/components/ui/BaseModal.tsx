@@ -9,6 +9,7 @@ const ANCHOS = {
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
   '5xl': 'max-w-5xl',
+  '1200px' : 'max-w-[1200px]'
 } as const;
 
 /** Banner rojo estandar de los modales: titulo (opcional) + detalle chico. */

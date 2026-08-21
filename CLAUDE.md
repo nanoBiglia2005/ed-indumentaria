@@ -72,4 +72,17 @@
 - Aplicar buenas practicas de seguridad al manejar funcionalidades bloqueadas por el rol del usuario.
 - Priorizar la reusabilidad en el desarrollo del codigo.
 
+## Migración a DonWeb: zona horaria (PENDIENTE)
+- ANTES de facturar nada en el servidor nuevo, fijar la zona horaria de la base:
+  `ALTER DATABASE <base> SET TimeZone = 'America/Buenos_Aires';` y verificar con `SHOW TimeZone;`.
+  La base actual ya está en `America/Buenos_Aires`; el default de Postgres en un server
+  limpio suele ser UTC.
+- Por qué: con la base en UTC, todo lo que se sella con la fecha del servidor se corre un día
+  para las operaciones posteriores a las 21:00 hora argentina. Afecta a `REMITOS.fecha_de_creacion`
+  (default `now()`), al trigger `trg_fecha_de_emision`, y sobre todo a `REMITOS.cod_mes`
+  (default `EXTRACT(month FROM now())`), que entra en el código visible del remito: un remito
+  del 31 a la noche quedaría numerado en el mes siguiente.
+- Vale para cualquier `now()` / `CURRENT_DATE` que se agregue en la base. En código JS usar
+  fechas del servidor de Node tiene el mismo problema: ahí el que manda es el TZ del SO.
+
 

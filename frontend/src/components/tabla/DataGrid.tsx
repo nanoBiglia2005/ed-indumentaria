@@ -143,13 +143,27 @@ export default function DataGrid<T>({
         ) : (
           <>
             {columnas.map((columna) => {
+              // Columna de solo lectura (valor derivado): header plano, sin los
+              // botones de filtrar ni de ordenar.
+              if (columna.filtroKey === undefined) {
+                return (
+                  <span
+                    key={columna.header}
+                    className={`${claseBtnFiltro} border-black/35 bg-stone-100 text-[13px] font-medium border-b border-l flex items-center`}
+                    title={`${columna.header} (no se puede filtrar ni ordenar)`}
+                  >
+                    <span className='flex-1 truncate'>{columna.header}</span>
+                  </span>
+                );
+              }
+
               const filtroActivo = filtrosColumna[columna.filtroKey];
               const prioridadOrden = ordenColumnas.findIndex((c) => c.key === columna.filtroKey);
               const ordenActivo = prioridadOrden === -1 ? null : ordenColumnas[prioridadOrden].direccion;
               return (
                 <div
                   key={columna.header}
-                  className={`flex items-stretch border-black/35 text-[13px] font-medium border-b border-l transition-colors duration-100 ease-in ${
+                  className={`flex items-stretch border-black/35 text-xs font-medium border-b border-l transition-colors duration-100 ease-in ${
                     filtroActivo ? 'bg-violet-500 text-white' : 'bg-stone-100'
                   }`}
                 >
@@ -231,7 +245,7 @@ export default function DataGrid<T>({
               <div
                 key={id}
                 onClick={onFilaClick ? () => onFilaClick(item) : undefined}
-                className={`grid text-black text-[13px] group absolute top-0 left-0 w-full${
+                className={`grid text-black text-xs group absolute top-0 left-0 w-full${
                   onFilaClick ? ' cursor-pointer' : ''
                 }`}
                 style={{
@@ -255,7 +269,8 @@ export default function DataGrid<T>({
                 </label>
                 {columnas.map((columna) => {
                   const valorTexto = String(columna.render(item) ?? '');
-                  const filtroTextoColumna = filtrosColumna[columna.filtroKey];
+                  const filtroTextoColumna =
+                    columna.filtroKey === undefined ? undefined : filtrosColumna[columna.filtroKey];
                   const terminoResaltado = resaltarPorFiltroColumna
                     ? filtroTextoColumna?.tipo === 'texto' && filtroTextoColumna.valor.trim() !== ''
                       ? filtroTextoColumna.valor.trim()

@@ -7,6 +7,7 @@ import { mensajeDetallesPrimero } from '@/api/cliente';
 import { listarTiposDePago } from '@/api/tiposDePago';
 import { facturarRemito } from '@/api/remitos';
 import { codigoRemito } from '@/features/ventas/codigoRemito';
+import ConfirmarPagoModal from '@/features/ventas/modales/ConfirmarPagoModal';
 import SelectorMetodoPago from '@/features/ventas/pago/SelectorMetodoPago';
 import TablaPersonalizado from '@/features/ventas/pago/TablaPersonalizado';
 import type { ValoresPago } from '@/features/ventas/pago/TablaPersonalizado';
@@ -50,6 +51,7 @@ export default function MetodoPagoModal({
   // null = todavia no se eligio: vale el primer metodo de la lista.
   const [metodoSimple, setMetodoSimple] = useState<number | null>(null);
   const [valores, setValores] = useState<Record<number, ValoresPago>>({});
+  const [confirmando, setConfirmando] = useState(false);
 
   const {
     cargando: finalizando,
@@ -65,6 +67,7 @@ export default function MetodoPagoModal({
     setValores({});
     setPersonalizado(false);
     setMetodoSimple(null);
+    setConfirmando(false);
     setError(null);
   });
 
@@ -210,6 +213,35 @@ export default function MetodoPagoModal({
    */
   const handleSalirDeFinal = () => setValores(conFinalesRecalculados(inicialesActuales()));
 
+  /**
+   * Cuanto del precio de la venta cubre cada metodo. Es la UNICA definicion:
+   * de aca salen tanto lo que se manda al backend como lo que muestra la
+   * confirmacion, asi no pueden discrepar.
+   */
+  const inicialACobrar = (idTipoDePago: number) =>
+    personalizado
+      ? inicialDe(idTipoDePago)
+      : idTipoDePago === metodoElegido
+      ? totalEfectivo
+      : 0;
+
+  const finalACobrar = (idTipoDePago: number) =>
+    personalizado
+      ? Number(valores[idTipoDePago]?.final || 0)
+      : idTipoDePago === metodoElegido
+      ? totalFinal
+      : 0;
+
+  // Lo que se le muestra al usuario antes de facturar: solo los metodos que
+  // efectivamente se usan (los que quedaron en 0 no se cobran ni se guardan).
+  const pagosAConfirmar = tipos
+    .map((tipo) => ({
+      tipo,
+      inicial: inicialACobrar(tipo.id_tipos_de_pago),
+      final: finalACobrar(tipo.id_tipos_de_pago),
+    }))
+    .filter((pago) => pago.inicial > 0);
+
   const handleFinalizar = () => {
     if (!remito || !puedeFinalizar) return;
 
@@ -218,15 +250,13 @@ export default function MetodoPagoModal({
       // recalcula los importes a cobrar (no confia en los de la pantalla).
       const pagos = tipos.map((tipo) => ({
         id_tipo_de_pago: tipo.id_tipos_de_pago,
-        monto_inicial: personalizado
-          ? inicialDe(tipo.id_tipos_de_pago)
-          : tipo.id_tipos_de_pago === metodoElegido
-          ? totalEfectivo
-          : 0,
+        monto_inicial: inicialACobrar(tipo.id_tipos_de_pago),
       }));
 
       onFacturado(await facturarRemito(remito.id_remito, pagos));
-    });
+      // Se cierra pase lo que pase: si fallo, el banner de error vive en este
+      // modal y la confirmacion lo estaria tapando.
+    }).finally(() => setConfirmando(false));
   };
 
   const codigo = remito
@@ -234,88 +264,89 @@ export default function MetodoPagoModal({
     : '';
 
   return (
-    <BaseModal
-      abierto={abierto}
-      onCerrar={finalizando ? () => {} : onCerrar}
-      titulo={
-        <div className='flex items-center justify-between gap-4'>
-          <span>Realizar Pago</span>
-          <span className='text-2xl font-bold text-violet-600'>{codigo}</span>
-        </div>
-      }
-      claseTitulo='text-2xl font-semibold leading-7 text-gray-900 mb-4'
-      ancho='2xl'
-      clasePanel='select-none'
-      error={error ? { titulo: 'Error al finalizar la venta', detalle: error } : null}
-      footer={
-        <div className='flex w-full flex-col gap-3 sm:flex-row'>
-          <button
-            type='button'
-            onClick={onCerrar}
-            disabled={finalizando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60'
-          >
-            Cancelar
-          </button>
-          <button
-            type='button'
-            onClick={handleFinalizar}
-            disabled={finalizando || cargando || !puedeFinalizar}
-            className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-800 rounded-md hover:bg-violet-900 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors cursor-pointer'
-          >
-            {finalizando ? 'Finalizando...' : 'Finalizar Pago'}
-          </button>
-        </div>
-      }
-    >
-      {/* min-h: el modal no cambia de alto al abrir y cerrar el reparto. */}
-      <div className='flex min-h-[18rem] flex-col gap-3'>
-        {cargando && <p className='text-sm text-gray-400'>Cargando métodos de pago...</p>}
+    <>
+      <BaseModal
+        abierto={abierto}
+        onCerrar={finalizando ? () => {} : onCerrar}
+        titulo={
+          <div className='flex items-center justify-between gap-4'>
+            <span>Realizar Pago</span>
+            <span className='text-2xl font-bold text-violet-600'>{codigo}</span>
+          </div>
+        }
+        claseTitulo='text-2xl font-semibold leading-7 text-gray-900 mb-4'
+        ancho='2xl'
+        clasePanel='select-none'
+        error={error ? { titulo: 'Error al finalizar la venta', detalle: error } : null}
+        footer={
+          <div className='flex w-full flex-col gap-3 sm:flex-row'>
+            <button
+              type='button'
+              onClick={onCerrar}
+              disabled={finalizando}
+              className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60'
+            >
+              Cancelar
+            </button>
+            <button
+              type='button'
+              onClick={() => setConfirmando(true)}
+              disabled={finalizando || cargando || !puedeFinalizar}
+              className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-800 rounded-md hover:bg-violet-900 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors cursor-pointer'
+            >
+              {finalizando ? 'Finalizando...' : 'Finalizar Pago'}
+            </button>
+          </div>
+        }
+      >
+        {/* min-h: el modal no cambia de alto al abrir y cerrar el reparto. */}
+        <div className='flex min-h-[18rem] flex-col gap-3'>
+          {cargando && <p className='text-sm text-gray-400'>Cargando métodos de pago...</p>}
 
-        {!cargando && tipos.length === 0 && (
-          <p className='text-sm italic text-gray-400'>No hay métodos de pago cargados.</p>
-        )}
+          {!cargando && tipos.length === 0 && (
+            <p className='text-sm italic text-gray-400'>No hay métodos de pago cargados.</p>
+          )}
 
-        {!cargando && tipos.length > 0 && (
-          <>
-            <SelectorMetodoPago
-              tipos={tipos}
-              seleccionado={metodoElegido}
-              onSeleccionar={(id) => {
-                setPersonalizado(false);
-                setMetodoSimple(id);
-              }}
-              deshabilitado={finalizando}
-            />
+          {!cargando && tipos.length > 0 && (
+            <>
+              <SelectorMetodoPago
+                tipos={tipos}
+                seleccionado={metodoElegido}
+                onSeleccionar={(id) => {
+                  setPersonalizado(false);
+                  setMetodoSimple(id);
+                }}
+                deshabilitado={finalizando}
+              />
 
-            <div>
-              <button
-                type='button'
-                onClick={() => setPersonalizado((prev) => !prev)}
-                disabled={finalizando}
-                className={`flex w-full items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-                  personalizado
-                    ? 'rounded-t-lg bg-violet-800 text-white'
-                    : 'rounded-lg bg-gray-100 text-gray-900 hover:bg-gray-200'
-                }`}
-              >
-                <span className='text-xs'>●</span>
-                Personalizado
-              </button>
+              <div>
+                <button
+                  type='button'
+                  onClick={() => setPersonalizado((prev) => !prev)}
+                  disabled={finalizando}
+                  className={`flex w-full items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+                    personalizado
+                      ? 'rounded-t-lg bg-violet-800 text-white'
+                      : 'rounded-lg bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className='text-xs'>●</span>
+                  Personalizado
+                </button>
 
-              {personalizado && (
-                <TablaPersonalizado
-                  tipos={tipos}
-                  valores={valores}
-                  sugerencias={sugerencias}
-                  restante={restante}
-                  onCambiarInicial={handleCambiarInicial}
-                  onCambiarFinal={handleCambiarFinal}
-                  onSalirDeFinal={handleSalirDeFinal}
-                  deshabilitado={finalizando}
-                />
-              )}
-            </div>
+                {personalizado && (
+                  <TablaPersonalizado
+                    tipos={tipos}
+                    valores={valores}
+                    sugerencias={sugerencias}
+                    restante={restante}
+                    onCambiarInicial={handleCambiarInicial}
+                    onCambiarFinal={handleCambiarFinal}
+                    onSalirDeFinal={handleSalirDeFinal}
+                    deshabilitado={finalizando}
+                  />
+                )}
+              </div>
           </>
         )}
 
@@ -331,5 +362,17 @@ export default function MetodoPagoModal({
         </div>
       </div>
     </BaseModal>
+
+    <ConfirmarPagoModal
+      abierto={confirmando}
+      pagos={pagosAConfirmar}
+      totalEfectivo={totalEfectivo}
+      totalFinal={totalFinal}
+      codigo={codigo}
+      cargando={finalizando}
+      onCerrar={() => setConfirmando(false)}
+      onConfirmar={handleFinalizar}
+    />
+    </>
   );
 }

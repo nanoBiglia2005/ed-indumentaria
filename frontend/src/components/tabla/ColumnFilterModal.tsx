@@ -17,6 +17,12 @@ interface ColumnFilterModalProps {
   filtroActual?: FiltroColumna;
   opciones?: OpcionFiltro[];
   onAplicar: (filtro: FiltroColumna | null) => void;
+  /**
+   * z-index del modal. Por defecto queda en la capa base (z-50), que alcanza
+   * cuando la tabla vive en una pagina. Si la tabla esta DENTRO de otro modal
+   * hay que subirlo por encima de ese, o el filtro se abre por detras.
+   */
+  z?: string;
 }
 
 export default function ColumnFilterModal({
@@ -27,6 +33,7 @@ export default function ColumnFilterModal({
   filtroActual,
   opciones = [],
   onAplicar,
+  z,
 }: ColumnFilterModalProps) {
   const [valorTexto, setValorTexto] = useState('');
   const [desde, setDesde] = useState('');
@@ -110,6 +117,7 @@ export default function ColumnFilterModal({
       abierto={abierto}
       onCerrar={onCerrar}
       titulo={`Filtrar por ${titulo}`}
+      z={z}
       footer={
         <>
           <button

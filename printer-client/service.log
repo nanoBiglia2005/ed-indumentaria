@@ -13,3 +13,5 @@
 2026-08-21 10:17:10,119 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
 2026-08-21 10:22:10,416 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
 2026-08-21 10:27:10,759 INFO Conectado al servidor de impresión
+2026-08-21 18:30:43,476 WARNING Conexión perdida (no close frame received or sent); reintentando en 5s
+2026-08-21 18:30:48,805 INFO Conectado al servidor de impresión

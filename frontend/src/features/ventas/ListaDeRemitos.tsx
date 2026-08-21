@@ -33,6 +33,12 @@ export default function ListaDeRemitos({
   // necesita solo para poner el nombre al lado de cada total.
   const [metodos, setMetodos] = useState<TIPOS_DE_PAGO[]>([]);
 
+  // Que remito esta desplegado: se maneja aca (no en cada RemitoCard) para que
+  // abrir uno cierre el que estaba abierto antes.
+  const [abiertoId, setAbiertoId] = useState<number | null>(null);
+  const toggleAbierto = (id_remito: number) =>
+    setAbiertoId((prev) => (prev === id_remito ? null : id_remito));
+
   useEffect(() => {
     let cancelado = false;
 
@@ -68,6 +74,8 @@ export default function ListaDeRemitos({
               key={remito.id_remito}
               remito={remito}
               metodos={metodos}
+              abierto={abiertoId === remito.id_remito}
+              onToggle={() => toggleAbierto(remito.id_remito)}
               onPagar={onPagar}
               onAnular={onAnular}
             />

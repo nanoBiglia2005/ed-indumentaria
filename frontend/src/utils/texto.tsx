@@ -8,6 +8,23 @@ export function normalizarBusqueda(texto: string): string {
   return texto.toLowerCase().replace(/\s+/g, '');
 }
 
+/**
+ * Plural de una palabra suelta, para armar textos con nombres que salen de la
+ * base ("Colegio" -> "colegios", "Club" -> "clubes"). Devuelve en minusculas
+ * porque se usa dentro de una frase ("Todos los clubes").
+ *
+ * Es la regla general del castellano, no un diccionario: alcanza para nombres
+ * de agrupaciones y grupos, que es donde se usa.
+ */
+export function pluralizar(palabra: string): string {
+  const texto = palabra.trim().toLowerCase();
+  if (texto === '') return texto;
+
+  if (texto.endsWith('z')) return `${texto.slice(0, -1)}ces`;
+  if (texto.endsWith('s')) return texto;
+  return /[aeiou]$/.test(texto) ? `${texto}s` : `${texto}es`;
+}
+
 export function resaltarCoincidencia(texto: string, termino: string): ReactNode {
   if (!termino) return texto;
 

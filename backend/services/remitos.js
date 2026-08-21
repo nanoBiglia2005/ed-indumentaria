@@ -6,6 +6,7 @@
 // services/preciosPorMetodo.js, que es el unico lugar donde se aplica un
 // recargo.
 const prisma = require('../db');
+const { aId } = require('../lib/validaciones');
 const { ESTADO_CONFIRMADO } = require('../constants/ventas');
 const { redondearPrecio } = require('./preciosPorMetodo');
 
@@ -32,10 +33,10 @@ const resolverItemsVenta = async (detalles) => {
   const cantidadesPorArticulo = new Map();
 
   for (const detalle of detalles) {
-    const id_articulo = parseInt(detalle.id_articulo, 10);
+    const id_articulo = aId(detalle.id_articulo);
     const cantidad = parseInt(detalle.cantidad, 10);
 
-    if (Number.isNaN(id_articulo)) {
+    if (id_articulo === null) {
       return { error: { status: 400, message: 'Los articulos de la venta son invalidos.' } };
     }
     if (!Number.isInteger(cantidad) || cantidad <= 0) {
@@ -82,8 +83,8 @@ const resolverItemsVenta = async (detalles) => {
 
 // Busca un remito y valida que siga pendiente de cobro.
 const buscarRemitoPendiente = async (idParam) => {
-  const id_remito = parseInt(idParam, 10);
-  if (Number.isNaN(id_remito)) {
+  const id_remito = aId(idParam);
+  if (id_remito === null) {
     return { error: { status: 400, message: 'El id del remito debe ser un numero.' } };
   }
 

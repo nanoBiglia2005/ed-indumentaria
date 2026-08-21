@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
-const { parseId, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
+const { aId, parseId, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
 
 const router = express.Router();
 
@@ -20,7 +20,9 @@ router.post(
   '/',
   asyncHandler(async (req, res) => {
     const nombre = normalizarNombre(req.body.nombre);
-    const grupo_venta_exclusivo = parseInt(req.body.grupo_venta_exclusivo, 10);
+    // Sin mensaje propio: el que rechaza es el chequeo contra [1, 2] de abajo,
+    // que ya cubre tanto "no es un id" como "no es Colegio ni Club".
+    const grupo_venta_exclusivo = aId(req.body.grupo_venta_exclusivo);
 
     if (!nombre) {
       throw new HttpError(400, { message: 'El nombre es obligatorio.' });
@@ -48,7 +50,9 @@ router.put(
     const id_cliente = parseId(req.params.id_cliente, 'El id del cliente debe ser un numero.');
 
     const nombre = normalizarNombre(req.body.nombre);
-    const grupo_venta_exclusivo = parseInt(req.body.grupo_venta_exclusivo, 10);
+    // Sin mensaje propio: el que rechaza es el chequeo contra [1, 2] de abajo,
+    // que ya cubre tanto "no es un id" como "no es Colegio ni Club".
+    const grupo_venta_exclusivo = aId(req.body.grupo_venta_exclusivo);
 
     if (!nombre) {
       throw new HttpError(400, { message: 'El nombre es obligatorio.' });

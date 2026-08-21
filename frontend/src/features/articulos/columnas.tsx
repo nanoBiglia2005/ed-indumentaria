@@ -28,12 +28,12 @@ export function ListaDeChips({ nombres, vacioTexto }: { nombres: string[]; vacio
       {visibles.map((nombre) => (
         <span
           key={nombre}
-          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700'
+          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-gray-700'
         >
           {nombre}
         </span>
       ))}
-      {restantes > 0 && <span className='text-xs text-gray-500 font-medium'>+{restantes}</span>}
+      {restantes > 0 && <span className='text-gray-500 font-medium'>+{restantes}</span>}
     </span>
   );
 }
@@ -90,9 +90,9 @@ export function crearColumnasArticulos({
     {
       header: 'Código',
       render: (item) => codigoBarcodeCompleto(item.barcode_tail) ?? 'No Asignado',
-      extraClassName: (item) => (!item.barcode_tail ? 'text-gray-400 text-sm flex justify-center' : ''),
+      extraClassName: (item) => (!item.barcode_tail ? 'text-gray-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'barcode'),
-      width: 120,
+      width: 110,
       filtroKey: 'codigo',
       filtro: { tipo: 'texto' },
       // El codigo se guarda como string, pero es un numero: se ordena por su
@@ -111,7 +111,7 @@ export function crearColumnasArticulos({
         <ListaDeChips nombres={nombresDeClientes(item)} vacioTexto='Sin Colegios/Clubes' />
       ),
       onClick: (item) => abrirEdicionClientes(item),
-      width: 175,
+      width: 160,
       filtroKey: 'colegios',
       filtro: { tipo: 'seleccion', getValores: (item) => item.clientes },
     },
@@ -119,9 +119,9 @@ export function crearColumnasArticulos({
       header: 'Línea',
       render: (item) => lineas.find((l) => l.id_linea === item.id_linea)?.nombre_linea ?? 'Sin Línea',
       extraClassName: (item) =>
-        item.id_linea === null ? 'text-gray-400 text-sm flex justify-center' : 'font-semibold text-[14px]',
+        item.id_linea === null ? 'text-gray-400 flex justify-center' : 'font-semibold',
       onClick: (item) => abrirEdicionLinea(item),
-      width: 120,
+      width: 110,
       filtroKey: 'linea',
       filtro: {
         tipo: 'seleccion',
@@ -142,7 +142,7 @@ export function crearColumnasArticulos({
         />
       ),
       onClick: (item) => abrirEdicionGrupo(item),
-      width: 120,
+      width: 110,
       filtroKey: 'grupos',
       filtro: { tipo: 'seleccion', getValores: (item) => comoValores(grupoDeArticulo(item)) },
     },
@@ -157,32 +157,32 @@ export function crearColumnasArticulos({
         />
       ),
       onClick: (item) => abrirEdicionSubgrupo(item),
-      width: 140,
+      width: 125,
       filtroKey: 'subgrupos',
       filtro: { tipo: 'seleccion', getValores: (item) => comoValores(subgrupoDeArticulo(item)) },
     },
     {
       header: 'Color/Modelo',
       render: (item) => item.detalle ?? 'Sin Detalle',
-      extraClassName: (item) => (!item.detalle ? 'text-gray-400 text-sm flex justify-center' : ''),
+      extraClassName: (item) => (!item.detalle ? 'text-gray-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'detalle'),
-      width: 160,
+      width: 150,
       filtroKey: 'detalle',
       filtro: { tipo: 'texto' },
     },
     {
       header: 'Detalle',
       render: (item) => item.descripcion ?? 'Sin Nombre',
-      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-sm flex justify-center' : ''),
+      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'descripcion'),
-      width: 180,
+      width: 150,
       filtroKey: 'nombre',
       filtro: { tipo: 'texto' },
     },
     {
       header: 'Talle',
       render: (item) => item.talle ?? 'Sin Talle',
-      extraClassName: (item) => (!item.talle ? 'text-gray-400 text-sm flex justify-center' : ''),
+      extraClassName: (item) => (!item.talle ? 'text-gray-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'talle'),
       width: 105,
       filtroKey: 'talle',
@@ -192,7 +192,7 @@ export function crearColumnasArticulos({
       header: 'Cantidad',
       render: (item) => item.cant,
       onClick: (item) => abrirEdicionCampo(item, 'cant'),
-      width: 130,
+      width: 120,
       filtroKey: 'cant',
       filtro: { tipo: 'rango', getValor: (item) => item.cant },
     },
@@ -200,7 +200,7 @@ export function crearColumnasArticulos({
       header: 'Precio Unitario',
       render: (item) => `${item.precio}$`,
       onClick: (item) => abrirEdicionCampo(item, 'precio'),
-      width: 170,
+      width: 155,
       filtroKey: 'precio',
       filtro: { tipo: 'rango', getValor: (item) => item.precio },
     },
@@ -208,7 +208,7 @@ export function crearColumnasArticulos({
       header: 'C. Reservada',
       render: (item) => item.cant_reservada,
       onClick: (item) => abrirEdicionCampo(item, 'cant_reservada'),
-      width: 155,
+      width: 145,
       filtroKey: 'cant_reservada',
       filtro: { tipo: 'rango', getValor: (item) => item.cant_reservada ?? 0 },
     },
@@ -216,7 +216,7 @@ export function crearColumnasArticulos({
       header: 'C. Minima',
       render: (item) => item.stock_minimo,
       onClick: (item) => abrirEdicionCampo(item, 'stock_minimo'),
-      width: 140,
+      width: 130,
       filtroKey: 'stock_minimo',
       filtro: { tipo: 'rango', getValor: (item) => item.stock_minimo },
     },
@@ -224,9 +224,9 @@ export function crearColumnasArticulos({
       header: 'Vigente',
       render: (item) => (item.vigente ? 'Vigente' : 'No Vigente'),
       extraClassName: (item) =>
-        (item.vigente ? 'text-green-500' : 'text-red-500') + ' text-[15px] flex items-center justify-center',
+        (item.vigente ? 'text-green-500' : 'text-red-500') + ' flex items-center justify-center',
       onClick: (item) => onToggleVigente(item),
-      width: 120,
+      width: 115,
       filtroKey: 'vigente',
       filtro: {
         tipo: 'seleccion',

@@ -73,7 +73,8 @@ export default function TablaPersonalizado({
             return (
               <tr key={id} className={vacia ? 'bg-gray-50/60' : ''}>
                 <td className='px-4 py-3 text-left font-semibold text-gray-800'>
-                  {tipo.nombre_tipo_de_pago}
+                  {tipo.nombre_tipo_de_pago}{' '}
+                  {tipo.recargo > 0 && <span>({tipo.recargo}% de Recargo)</span>}
                 </td>
 
                 <td className='px-4 py-2 text-center'>

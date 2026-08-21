@@ -12,6 +12,11 @@ interface ListaSeleccionableProps {
   placeholder?: string;
   /** Alto maximo de la lista: el wizard de venta usa max-h-96. */
   claseLista?: string;
+  /**
+   * Opcion fija arriba de todo que saltea este paso ("Todas las lineas", ...).
+   * No la afecta el buscador: siempre esta a la vista.
+   */
+  opcionTodos?: { nombre: string; onSeleccionar: () => void };
 }
 
 /**
@@ -30,6 +35,7 @@ export default function ListaSeleccionable({
   mensajeVacio,
   placeholder = 'Buscar...',
   claseLista = 'max-h-96',
+  opcionTodos,
 }: ListaSeleccionableProps) {
   const [busqueda, setBusqueda] = useState('');
 
@@ -59,6 +65,17 @@ export default function ListaSeleccionable({
             />
           </div>
           <ul className={`${claseLista} overflow-y-auto divide-y divide-gray-100`}>
+            {/* Va fuera del filtrado: "Todos" tiene que seguir a mano aunque
+                se este buscando algo puntual. */}
+            {opcionTodos && (
+              <li
+                onClick={opcionTodos.onSeleccionar}
+                className='px-4 py-2.5 text-sm font-semibold text-violet-600 cursor-pointer hover:bg-violet-50 transition-colors duration-100 ease-in'
+              >
+                {opcionTodos.nombre}
+              </li>
+            )}
+
             {opcionesFiltradas.length === 0 ? (
               <li className='px-4 py-3 text-sm text-gray-400 italic'>Sin resultados</li>
             ) : (
