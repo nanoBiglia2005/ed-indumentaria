@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { RemitoConDetalles, RemitoCreado } from '@backend/types';
+import { useEffect, useState, useMemo} from 'react';
+import type { RemitoConDetalles, RemitoCreado, TIPOS_DE_PAGO } from '@backend/types';
+import { listarTiposDePago } from '@/api/tiposDePago';
 import { useFetchLista } from '@/hooks/useFetchLista';
 import { listarRemitosPendientes } from '@/api/remitos';
 import AnularRemitoModal from '@/features/ventas/modales/AnularRemitoModal';
@@ -27,6 +28,32 @@ function VentasPage() {
   // Remito que se esta cobrando / anulando.
   const [remitoACobrar, setRemitoACobrar] = useState<RemitoConDetalles | null>(null);
   const [remitoAAnular, setRemitoAAnular] = useState<RemitoConDetalles | null>(null);
+  const [metodos, setMetodos] = useState<TIPOS_DE_PAGO[]>([]);
+
+  // Los metodos (y sus recargos) se leen al abrir: pueden haber cambiado en
+  // Configuracion desde que se cargo la pagina.
+  useEffect(() => {
+    if (cargando) return;
+
+    let cancelado = false;
+
+    listarTiposDePago()
+      .then((data) => {
+        if (cancelado) return;
+        setMetodos([...data].sort((a, b) => a.id_tipos_de_pago - b.id_tipos_de_pago));
+      })
+      .catch((err) => {
+        if (cancelado) return;
+        console.error('Error al obtener los tipos de pago:', err);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [cargando]);
+
+  // El metodo sin recargo cobra el precio base, que ya se muestra aparte.
+  const metodosConRecargo = useMemo(() => metodos.filter((metodo) => metodo.recargo > 0), [metodos]);
 
   const handleVentaRegistrada = (remito: RemitoCreado) => {
     setIsNuevaVentaOpen(false);
@@ -79,6 +106,7 @@ function VentasPage() {
 
       <NuevaVentaModal
         abierto={isNuevaVentaOpen}
+        metodosConRecargo={metodosConRecargo}
         onCerrar={() => setIsNuevaVentaOpen(false)}
         onVentaRegistrada={handleVentaRegistrada}
       />
@@ -86,6 +114,7 @@ function VentasPage() {
       <VentaExitosaModal
         abierto={ventaRegistrada !== null}
         remito={ventaRegistrada}
+        metodosConRecargo={metodosConRecargo}
         onCerrar={() => setVentaRegistrada(null)}
         onSeguirAlPago={handleSeguirAlPago}
       />

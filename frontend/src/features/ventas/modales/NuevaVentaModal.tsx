@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { RemitoCreado, TIPOS_DE_PAGO } from '@backend/types';
 import type { ArticuloDeVenta, ItemAConfirmar } from '@/types/ventas';
 import BaseModal from '@/components/ui/BaseModal';
 import { crearRemito } from '@/api/remitos';
-import { listarTiposDePago } from '@/api/tiposDePago';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { estiloLineClamp } from '@/utils/formato';
 import AgregarProductoModal from '@/features/ventas/agregar-producto/AgregarProductoModal';
@@ -26,6 +25,7 @@ interface ProductoSeleccionado {
 interface NuevaVentaModalProps {
   abierto: boolean;
   onCerrar: () => void;
+  metodosConRecargo: TIPOS_DE_PAGO[];
   /** El remito ya quedo guardado como pendiente de cobro (y se imprimio). */
   onVentaRegistrada: (remito: RemitoCreado) => void;
 }
@@ -42,10 +42,10 @@ interface NuevaVentaModalProps {
 export default function NuevaVentaModal({
   abierto,
   onCerrar,
+  metodosConRecargo,
   onVentaRegistrada,
 }: NuevaVentaModalProps) {
   const [productos, setProductos] = useState<ProductoSeleccionado[]>([]);
-  const [metodos, setMetodos] = useState<TIPOS_DE_PAGO[]>([]);
   const [isAgregarOpen, setIsAgregarOpen] = useState(false);
   const [isCodigoOpen, setIsCodigoOpen] = useState(false);
   // Articulo llegado por codigo de barras, esperando que se elija la cantidad.
@@ -63,29 +63,6 @@ export default function NuevaVentaModal({
 
   const isLoading = accionEnCurso !== null;
 
-  // Los metodos (y sus recargos) se leen al abrir: pueden haber cambiado en
-  // Configuracion desde que se cargo la pagina.
-  useEffect(() => {
-    if (!abierto) return;
-
-    let cancelado = false;
-
-    listarTiposDePago()
-      .then((data) => {
-        if (cancelado) return;
-        setMetodos([...data].sort((a, b) => a.id_tipos_de_pago - b.id_tipos_de_pago));
-      })
-      .catch((err) => {
-        if (cancelado) return;
-        console.error('Error al obtener los tipos de pago:', err);
-        setError(mensajeDetallesPrimero(err, 'No se pudieron cargar los métodos de pago.'));
-      });
-
-    return () => {
-      cancelado = true;
-    };
-  }, [abierto]);
-
   const resetForm = () => {
     setProductos([]);
     setError(null);
@@ -98,9 +75,6 @@ export default function NuevaVentaModal({
     resetForm();
     onCerrar();
   };
-
-  // El metodo sin recargo cobra el precio base, que ya se muestra aparte.
-  const metodosConRecargo = useMemo(() => metodos.filter((metodo) => metodo.recargo > 0), [metodos]);
 
   const totalVenta = useMemo(
     () => productos.reduce((acumulado, p) => acumulado + p.articulo.precio * (p.cantidad ?? 0), 0),
@@ -431,7 +405,7 @@ export default function NuevaVentaModal({
         abierto={isAgregarOpen}
         onCerrar={() => setIsAgregarOpen(false)}
         articulosExcluidos={articulosExcluidos}
-        metodos={metodos}
+        metodos={metodosConRecargo}
         onAgregar={handleAgregarProducto}
       />
 
@@ -445,7 +419,7 @@ export default function NuevaVentaModal({
       <ConfirmarProductoModal
         abierto={productosAConfirmar !== null}
         productos={productosAConfirmar}
-        metodos={metodos}
+        metodosConRecargo={metodosConRecargo}
         onCerrar={() => setProductosAConfirmar(null)}
         onConfirmar={handleConfirmarProductos}
       />

@@ -11,7 +11,7 @@ interface ConfirmarProductoModalProps {
   /** Uno o varios productos (alta individual o masiva). */
   productos: ArticuloDeVenta[] | null;
   /** Metodos de pago, para mostrar el precio de cada uno. */
-  metodos?: TIPOS_DE_PAGO[];
+  metodosConRecargo?: TIPOS_DE_PAGO[];
   onCerrar: () => void;
   onConfirmar: (items: ItemAConfirmar[]) => void;
 }
@@ -19,7 +19,7 @@ interface ConfirmarProductoModalProps {
 export default function ConfirmarProductoModal({
   abierto,
   productos,
-  metodos = [],
+  metodosConRecargo = [],
   onCerrar,
   onConfirmar,
 }: ConfirmarProductoModalProps) {
@@ -52,9 +52,6 @@ export default function ConfirmarProductoModal({
     (acumulado, p) => acumulado + p.precio * (cantidadDe(p.id_articulo) ?? 0),
     0
   );
-
-  // El metodo sin recargo cobra el precio base, que ya se muestra aparte.
-  const metodosConRecargo = metodos.filter((metodo) => metodo.recargo > 0);
 
   // Totales con cada metodo: se suman los precios por linea que ya calculo el
   // backend, con la misma regla que usa el resto del sistema.

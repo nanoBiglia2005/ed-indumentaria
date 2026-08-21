@@ -1,30 +1,38 @@
-import type { RemitoCreado } from '@backend/types';
+import type { RemitoCreado, TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import { estiloLineClamp, formatearFecha } from '@/utils/formato';
 import { codigoRemito } from '@/features/ventas/codigoRemito';
 import { nombreCompleto } from '@/features/ventas/cliente/formatoCliente';
+import PaymentIcon from '@/components/ui/PaymentIcon';
 
 const MAX_LINEAS_DESCRIPCION = 2;
 
 interface VentaExitosaModalProps {
   abierto: boolean;
   remito: RemitoCreado | null;
+  metodosConRecargo: TIPOS_DE_PAGO[];
   /** Cerrar sin cobrar: el remito queda pendiente en la lista de Ventas. */
   onCerrar: () => void;
   onSeguirAlPago: (remito: RemitoCreado) => void;
 }
 
 /**
- * COPIA DE PRUEBA de VentaExitosaModal. Cambia respecto de la original:
- *  - el remito se identifica con su codigo visible (mes + numero del mes) en
- *    vez del id interno;
- *  - se muestra el cliente asignado;
- *  - la tarjeta se arma aca (no con RemitoCard) porque el flujo nuevo ya no
- *    carga la fecha de emision: la unica fecha que hay es la de creacion.
+ * Confirmacion de que la venta quedo registrada.
+ *
+ * El remito viene con `precios_por_metodo` YA CALCULADO en cada linea de
+ * DETALLES_REMITO (services/preciosPorMetodo.js) y es la MISMA cuenta que se
+ * sumo para armar `totales_por_metodo`: por eso aca no se vuelve a aplicar
+ * ningun recargo, solo se lee lo que ya viene. Si se recalculara aca (por
+ * ejemplo volviendo a pedir los metodos de pago), el precio de un articulo
+ * podria terminar sin coincidir con el total si el recargo cambio en el medio.
+ *
+ * La tarjeta se arma aca (no con RemitoCard) porque este flujo ya no carga la
+ * fecha de emision: la unica fecha que hay es la de creacion.
  */
 export default function VentaExitosaModal({
   abierto,
   remito,
+  metodosConRecargo,
   onCerrar,
   onSeguirAlPago,
 }: VentaExitosaModalProps) {
@@ -87,9 +95,20 @@ export default function VentaExitosaModal({
                   {remito.CLIENTES ? nombreCompleto(remito.CLIENTES) : 'Sin asignar'}
                 </span>
               </div>
-              <div className='flex flex-col items-end'>
-                <span className='text-xs text-gray-400'>Total</span>
-                <span className='text-xl font-bold text-violet-600'>{remito.total_efectivo ?? 0}$</span>
+              <div className='flex flex-col items-start text-xl'>
+                <div className='flex gap-x-3 font-bold'>
+                  <div className='flex gap-1 items-center text-black'>
+                    <PaymentIcon paymentId={1} height={20}/>
+                    <span>{remito.total_efectivo ?? 0}$</span>
+                  </div>
+                  
+                  {metodosConRecargo.map((metodo) => (
+                    <div className='text-violet-600 flex gap-1 items-center'>
+                      <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={20}/>
+                      <span>{remito.totales_por_metodo[metodo.id_tipos_de_pago]}$</span>
+                    </div>
+                  ))}                              
+                </div>          
               </div>
             </div>
           </div>
@@ -107,12 +126,50 @@ export default function VentaExitosaModal({
                     >
                       {detalle.ARTICULOS?.descripcion ?? `Artículo ${detalle.id_articulo}`}
                     </span>
-                    <span className='text-xs font-medium text-gray-500'>{detalle.precio ?? 0}$</span>
+                    {/* Precio registrado y, debajo, lo que ya vino calculado
+                        con cada metodo: nunca se recalcula aca. */}
+                    <div className='flex gap-2 items-center'>
+                      <span className='flex gap-1 items-center' title='Precio del Artículo con Efectivo'>
+                        <PaymentIcon paymentId={1} height={16} />
+                        <span className='text-xs font-medium text-gray-500'>{detalle.precio ?? 0}$</span>
+                      </span>
+                      {metodosConRecargo.map((metodo) => (
+                        <span
+                          key={metodo.id_tipos_de_pago}
+                          className='flex gap-1 items-center text-violet-600'
+                          title={`Precio del Artículo con ${metodo.nombre_tipo_de_pago}`}
+                        >
+                          <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16} />
+                          <span className='text-xs font-medium'>
+                            {detalle.precios_por_metodo[metodo.id_tipos_de_pago] ?? 0}$
+                          </span>
+                        </span>
+                      ))}
+                    </div>
                   </div>
                   <span className='text-sm text-gray-500 shrink-0'>x{detalle.cantidad ?? 0}</span>
-                  <span className='w-24 text-right text-sm font-semibold text-gray-800 shrink-0'>
-                    {(detalle.precio ?? 0) * (detalle.cantidad ?? 0)}$
-                  </span>
+                  <div className='w-24 flex flex-col items-end shrink-0'>
+                    <span className='flex gap-1 items-center' title='Total del Artículo con Efectivo'>   
+                      <span className='text-sm font-semibold text-gray-800'>
+                        {(detalle.precio ?? 0) * (detalle.cantidad ?? 0)}$
+                      </span>
+                      <PaymentIcon paymentId={1} height={16} />
+                    </span>
+                    {metodosConRecargo.map((metodo) => (
+                      <span
+                        key={metodo.id_tipos_de_pago}
+                        className='flex gap-1 items-center text-violet-600'
+                        title={`Total del Artículo con ${metodo.nombre_tipo_de_pago}`}
+                      >   
+                        <span className='text-sm font-semibold'>
+                          {(detalle.precios_por_metodo[metodo.id_tipos_de_pago] ?? 0) *
+                            (detalle.cantidad ?? 0)}
+                          $
+                        </span>
+                        <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16} />
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ))
             )}

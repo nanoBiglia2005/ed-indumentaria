@@ -4,6 +4,7 @@ import BaseModal from '@/components/ui/BaseModal';
 import { estiloLineClamp } from '@/utils/formato';
 import type { ClienteDeVenta } from '@/features/ventas/cliente/useClienteDeVenta';
 import { telefonoLegible } from '@/features/ventas/cliente/formatoCliente';
+import PaymentIcon from '@/components/ui/PaymentIcon';
 
 const MAX_LINEAS_DESCRIPCION = 2;
 
@@ -91,20 +92,38 @@ export default function ConfirmarVentaModal({
                   {articulo.descripcion ?? 'Sin Nombre'}
                 </span>
                 <div className='flex flex-wrap items-center gap-x-3'>
-                  <span className='text-xs font-medium text-gray-500'>{articulo.precio}$</span>
+                  <div className='flex gap-1 items-center w-16' title='Precio del Articulo en Efectivo'>
+                    <PaymentIcon paymentId={1} height={15}/>
+                    <span className='text-xs font-medium text-gray-500'>{articulo.precio}$</span>
+                  </div>   
                   {metodos.map((metodo) => (
                     <span
                       key={metodo.id_tipos_de_pago}
-                      className='text-xs font-medium text-violet-500'
+                      className='text-xs font-medium text-violet-500 flex gap-1 items-center w-16'
+                      title={`Precio del Articulo en ${metodo.nombre_tipo_de_pago}`}
                     >
-                      {articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$
+                      <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={15}/>
+                      <span>{articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$</span>
                     </span>
                   ))}
                 </div>
               </div>
               <span className='text-sm text-gray-500 shrink-0'>x{cantidad ?? 0}</span>
-              <span className='w-24 text-right text-sm font-semibold text-gray-800 shrink-0'>
-                {(articulo.precio * (cantidad ?? 0)).toFixed(2)}$
+              <span className='text-sm font-semibold shrink-0 w-20'>
+                <span className='flex gap-1 justify-end items-center text-gray-800'>
+                  <span>{(articulo.precio * (cantidad ?? 0))}$</span>
+                  <PaymentIcon paymentId={1} height={18}/>
+                </span>
+                {metodos.map((metodo) => (
+                    <span
+                      key={metodo.id_tipos_de_pago}
+                      className='text-violet-500 flex gap-1 items-center justify-end'
+                      title={`Total del Articulo en ${metodo.nombre_tipo_de_pago}`}
+                    > 
+                      <span>{(articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] * (cantidad ?? 0))}$</span>
+                      <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={18}/>
+                    </span>
+                  ))}
               </span>
             </div>
           ))}
@@ -146,15 +165,19 @@ export default function ConfirmarVentaModal({
 
           <div className='mt-auto border-t border-gray-200 pt-3'>
             <p className='text-lg text-gray-500'>Total</p>
-            <p className='text-3xl font-bold text-gray-900 break-words'>{total}$</p>
+            <span className='flex gap-1 items-center text-3xl font-bold text-gray-900 break-words'>
+              <PaymentIcon paymentId={1} height={35}/>
+              <span>{total}$</span>
+            </span>
             {metodos.map((metodo) => (
-              <p
+              <span
                 key={metodo.id_tipos_de_pago}
-                className='text-3xl font-bold text-violet-700 break-words'
+                className='flex gap-1 items-center text-3xl font-bold text-violet-700 break-words'
                 title={`Total con ${metodo.nombre_tipo_de_pago}`}
               >
-                {totalesPorMetodo[metodo.id_tipos_de_pago] ?? 0}$
-              </p>
+                <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={35}/>
+                <span>{totalesPorMetodo[metodo.id_tipos_de_pago] ?? 0}$</span>
+              </span>
             ))}
           </div>
         </div>

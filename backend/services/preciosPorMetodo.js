@@ -35,41 +35,43 @@ const preciosDeArticulo = (precio, metodos) =>
   );
 
 /**
- * Total de un conjunto de lineas ({ precio, cantidad }) con cada metodo:
- * { [id_tipo_de_pago]: total }. Sirve igual para las lineas de un remito ya
- * guardado y para los articulos que se estan cargando en una venta nueva.
+ * Remito + sus lineas, cada una con el precio que tendria con cada metodo
+ * (`precios_por_metodo`), + los totales por metodo.
+ *
+ * Los totales son la SUMA de esos mismos precios por linea, no una cuenta
+ * aparte: es la unica forma de garantizar que el precio que se ve articulo por
+ * articulo y el total de la venta coincidan SIEMPRE, sin importar cuando se
+ * lean. Quien necesite el precio con recargo de un articulo de un remito ya
+ * guardado tiene que leer `precios_por_metodo` de esa linea (la que devuelve
+ * esta funcion), nunca volver a aplicar el recargo por su cuenta: si se
+ * recalculara en otro lugar y en otro momento (por ejemplo con un recargo que
+ * cambio mientras tanto en Configuracion) el precio del articulo podria dejar
+ * de coincidir con el total ya congelado del remito.
  */
-const totalesPorMetodo = (lineas, metodos) =>
-  Object.fromEntries(
+const remitoConTotales = (remito, metodos) => {
+  const detalles = (remito.DETALLES_REMITO ?? []).map((detalle) => ({
+    ...detalle,
+    precios_por_metodo: preciosDeArticulo(detalle.precio ?? 0, metodos),
+  }));
+
+  const totales_por_metodo = Object.fromEntries(
     metodos.map((metodo) => [
       metodo.id_tipos_de_pago,
-      lineas.reduce(
-        (total, linea) =>
-          total + precioConRecargo(linea.precio ?? 0, metodo.recargo) * (linea.cantidad ?? 0),
+      detalles.reduce(
+        (total, detalle) =>
+          total + (detalle.precios_por_metodo[metodo.id_tipos_de_pago] ?? 0) * (detalle.cantidad ?? 0),
         0
       ),
     ])
   );
 
-/** Las lineas de un remito en la forma que espera totalesPorMetodo(). */
-const lineasDeRemito = (remito) =>
-  (remito.DETALLES_REMITO ?? []).map((detalle) => ({
-    precio: detalle.precio ?? 0,
-    cantidad: detalle.cantidad ?? 0,
-  }));
-
-/** Remito + sus totales por metodo, listo para responder al frontend. */
-const remitoConTotales = (remito, metodos) => ({
-  ...remito,
-  totales_por_metodo: totalesPorMetodo(lineasDeRemito(remito), metodos),
-});
+  return { ...remito, DETALLES_REMITO: detalles, totales_por_metodo };
+};
 
 module.exports = {
   redondearPrecio,
   precioConRecargo,
   listarMetodosDePago,
   preciosDeArticulo,
-  totalesPorMetodo,
-  lineasDeRemito,
   remitoConTotales,
 };

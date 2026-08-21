@@ -104,12 +104,28 @@ export const remitosInclude = {
 } as const satisfies Prisma.REMITOSInclude;
 
 /**
+ * Una linea de DETALLES_REMITO con el precio que tendria con cada metodo de
+ * pago. Es el MISMO valor que se sumo para armar `totales_por_metodo` del
+ * remito (services/preciosPorMetodo.js): quien muestre el precio de un
+ * articulo de un remito ya guardado tiene que leer este campo, nunca volver a
+ * aplicar el recargo por su cuenta, o el precio del articulo podria dejar de
+ * coincidir con el total.
+ */
+export type DetalleRemitoConPrecios = Prisma.REMITOSGetPayload<{
+  include: typeof remitosInclude;
+}>['DETALLES_REMITO'][number] & {
+  precios_por_metodo: ImportesPorMetodo;
+};
+
+/**
  * Un REMITO (venta) con sus detalles, el cliente final asignado y los pagos con
  * los que se cobro (vacio mientras siga pendiente).
  */
-export type RemitoConDetalles = Prisma.REMITOSGetPayload<{
-  include: typeof remitosInclude;
-}> & {
+export type RemitoConDetalles = Omit<
+  Prisma.REMITOSGetPayload<{ include: typeof remitosInclude }>,
+  'DETALLES_REMITO'
+> & {
+  DETALLES_REMITO: DetalleRemitoConPrecios[];
   /** Cuanto sale cobrarlo con cada metodo de pago. Lo calcula el backend. */
   totales_por_metodo: ImportesPorMetodo;
 };

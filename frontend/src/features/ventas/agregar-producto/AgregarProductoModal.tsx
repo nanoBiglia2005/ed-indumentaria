@@ -136,6 +136,10 @@ export default function AgregarProductoModal({
 
   const columnas = useMemo(() => crearColumnasVenta(lineas, metodos), [lineas, metodos]);
 
+  // El metodo sin recargo cobra el precio base, que ya se muestra aparte
+  // (mismo criterio que VentasPage/NuevaVentaModal).
+  const metodosConRecargo = useMemo(() => metodos.filter((metodo) => metodo.recargo > 0), [metodos]);
+
   // Filas base: se excluyen los ya agregados a la venta y se aplican el
   // subgrupo elegido y la busqueda global. Los filtros por columna y el orden
   // los maneja useTablaFiltrable.
@@ -368,7 +372,7 @@ export default function AgregarProductoModal({
       <ConfirmarProductoModal
         abierto={productosAConfirmar !== null}
         productos={productosAConfirmar}
-        metodos={metodos}
+        metodosConRecargo={metodosConRecargo}
         onCerrar={() => setProductosAConfirmar(null)}
         onConfirmar={handleConfirmarProductos}
       />

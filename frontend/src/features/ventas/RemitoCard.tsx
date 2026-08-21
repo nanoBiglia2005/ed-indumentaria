@@ -7,6 +7,7 @@ import {
   ESTADO_FACTURADO,
 } from '@backend/types';
 import { formatearFecha } from '@/utils/formato';
+import PaymentIcon from '@/components/ui/PaymentIcon';
 
 // Borde segun el estado del remito (tabla ESTADOS_REMITOS).
 const BORDE_POR_ESTADO: Record<number, string> = {
@@ -54,10 +55,12 @@ function RemitoCard({
         className='w-full flex items-center justify-between gap-4 px-5 py-3 cursor-pointer text-left hover:bg-amber-50 transition-color duration-100 ease-in'
       >
         <div className='flex gap-8'>
-          <div className='flex flex-col'>
-            <span className='text-xs text-gray-400'>Fecha de Emisión</span>
-            <span className='text-black font-medium'>{formatearFecha(remito.fecha_de_emision)}</span>
-          </div>
+          {cobrado ? (
+            <div className='flex flex-col'>
+              <span className='text-xs text-gray-400'>Fecha de Emisión</span>
+              <span className='text-black font-medium'>{formatearFecha(remito.fecha_de_emision)}</span>
+            </div>
+          ) : ''}
           <div className='flex flex-col'>
             <span className='text-xs text-gray-400'>Fecha de Creación</span>
             <span className='text-black font-medium'>{formatearFecha(remito.fecha_de_creacion)}</span>
@@ -90,17 +93,19 @@ function RemitoCard({
           {cobrado ? (
             <span className='text-lg font-semibold text-violet-600'>{remito.total_final ?? 0}$</span>
           ) : (
-            <div className='flex flex-col items-end'>
-              <span className='text-lg font-semibold text-gray-900'>
+            <div className='flex flex-col items-end w-30'>
+              <span className='text-lg font-semibold text-gray-900 flex gap-1 items-center'>
                 {remito.total_efectivo ?? 0}$
+                <PaymentIcon paymentId={1} height={24}/>
               </span>
               {metodosConRecargo.map((metodo) => (
                 <span
                   key={metodo.id_tipos_de_pago}
-                  className='text-lg font-semibold text-violet-600'
+                  className='text-lg font-semibold text-violet-600 flex gap-1 items-center'
                   title={`Total con ${metodo.nombre_tipo_de_pago}`}
                 >
                   {remito.totales_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$
+                  <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={24}/>
                 </span>
               ))}
             </div>
@@ -131,13 +136,36 @@ function RemitoCard({
           ) : (
             remito.DETALLES_REMITO.map((detalle) => (
               <div key={detalle.id_detalle} className='flex items-center justify-between gap-3 py-2 text-sm text-black'>
-                <div className='flex flex-col min-w-[300px]'>
+                <div className='flex flex-col min-w-[300px] font-medium'>
                   <span className='truncate'>{detalle.ARTICULOS?.descripcion ?? `Artículo ${detalle.id_articulo}`}</span>
-                  <span className='font-medium text-gray-500'>{detalle.precio ?? 0}$</span>
+                  <div className='flex gap-x-3'>
+                    <div className='flex gap-1 items-center min-w-18'>
+                      <PaymentIcon paymentId={1} height={16}/>
+                      <span className='text-gray-500'>{detalle.precio ?? 0}$</span>
+                    </div> 
+                    {metodosConRecargo.map((metodo) => (
+                      <div className='text-violet-500 flex gap-1 items-center min-w-18'>
+                        <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16}/>
+                        <span>{detalle.precios_por_metodo[metodo.id_tipos_de_pago]}$</span>
+                      </div>
+                    ))}
+                  </div>       
                 </div>     
                 <div className='flex items-center gap-4 shrink-0 text-gray-600'>
                   <span>x{detalle.cantidad}</span>
-                  <span className='font-medium text-black text-md'>{detalle.precio && detalle.cantidad ? detalle.precio * detalle.cantidad : 0}$</span>
+                  <div className='flex-col text-md'>
+                    <div className='flex gap-1 items-center text-black justify-end'>
+                      <span className='font-medium'>{detalle.precio && detalle.cantidad ? detalle.precio * detalle.cantidad : 0}$</span>
+                      <PaymentIcon paymentId={1} height={16}/>
+                    </div>
+                    {metodosConRecargo.map((metodo) => (
+                    <div className='text-violet-500 flex gap-1 items-center justify-end'>
+                      <span className='font-medium'>{detalle.precios_por_metodo[metodo.id_tipos_de_pago] 
+                      && detalle.cantidad ? detalle.precios_por_metodo[metodo.id_tipos_de_pago] * detalle.cantidad : 0}$</span>
+                      <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16}/>
+                    </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))
