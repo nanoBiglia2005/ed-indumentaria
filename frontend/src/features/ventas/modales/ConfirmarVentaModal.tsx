@@ -1,7 +1,7 @@
 import type { ImportesPorMetodo, TIPOS_DE_PAGO } from '@backend/types';
 import type { ArticuloDeVenta } from '@/types/ventas';
 import BaseModal from '@/components/ui/BaseModal';
-import { estiloLineClamp } from '@/utils/formato';
+import { estiloLineClamp, formatearPesos } from '@/utils/formato';
 import type { ClienteDeVenta } from '@/features/ventas/cliente/useClienteDeVenta';
 import { telefonoLegible } from '@/features/ventas/cliente/formatoCliente';
 import PaymentIcon from '@/components/ui/PaymentIcon';
@@ -91,19 +91,19 @@ export default function ConfirmarVentaModal({
                 >
                   {articulo.descripcion ?? 'Sin Nombre'}
                 </span>
-                <div className='flex flex-wrap items-center gap-x-3'>
-                  <div className='flex gap-1 items-center w-16' title='Precio del Articulo en Efectivo'>
+                <div className='flex flex-wrap items-center gap-x-2'>
+                  <div className='flex gap-1 items-center' title='Precio del Articulo en Efectivo'>
                     <PaymentIcon paymentId={1} height={15}/>
-                    <span className='text-xs font-medium text-gray-500'>{articulo.precio}$</span>
+                    <span className='text-xs font-medium text-gray-500'>{formatearPesos(articulo.precio)}</span>
                   </div>   
                   {metodos.map((metodo) => (
                     <span
                       key={metodo.id_tipos_de_pago}
-                      className='text-xs font-medium text-violet-500 flex gap-1 items-center w-16'
+                      className='text-xs font-medium text-violet-500 flex gap-1 items-center'
                       title={`Precio del Articulo en ${metodo.nombre_tipo_de_pago}`}
                     >
                       <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={15}/>
-                      <span>{articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$</span>
+                      <span>{formatearPesos(articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0)}</span>
                     </span>
                   ))}
                 </div>
@@ -111,7 +111,7 @@ export default function ConfirmarVentaModal({
               <span className='text-sm text-gray-500 shrink-0'>x{cantidad ?? 0}</span>
               <span className='text-sm font-semibold shrink-0 w-20'>
                 <span className='flex gap-1 justify-end items-center text-gray-800'>
-                  <span>{(articulo.precio * (cantidad ?? 0))}$</span>
+                  <span>{formatearPesos((articulo.precio * (cantidad ?? 0)))}</span>
                   <PaymentIcon paymentId={1} height={18}/>
                 </span>
                 {metodos.map((metodo) => (
@@ -120,7 +120,7 @@ export default function ConfirmarVentaModal({
                       className='text-violet-500 flex gap-1 items-center justify-end'
                       title={`Total del Articulo en ${metodo.nombre_tipo_de_pago}`}
                     > 
-                      <span>{(articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] * (cantidad ?? 0))}$</span>
+                      <span>{formatearPesos((articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] * (cantidad ?? 0)))}</span>
                       <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={18}/>
                     </span>
                   ))}
@@ -167,7 +167,7 @@ export default function ConfirmarVentaModal({
             <p className='text-lg text-gray-500'>Total</p>
             <span className='flex gap-1 items-center text-3xl font-bold text-gray-900 break-words'>
               <PaymentIcon paymentId={1} height={35}/>
-              <span>{total}$</span>
+              <span>{formatearPesos(total)}</span>
             </span>
             {metodos.map((metodo) => (
               <span
@@ -176,7 +176,7 @@ export default function ConfirmarVentaModal({
                 title={`Total con ${metodo.nombre_tipo_de_pago}`}
               >
                 <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={35}/>
-                <span>{totalesPorMetodo[metodo.id_tipos_de_pago] ?? 0}$</span>
+                <span>{formatearPesos(totalesPorMetodo[metodo.id_tipos_de_pago] ?? 0)}</span>
               </span>
             ))}
           </div>

@@ -1,7 +1,7 @@
 import type { TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import PaymentIcon from '@/components/ui/PaymentIcon';
-import { formatearPesos } from '@/features/ventas/pago/calculoPago';
+import { formatearPesos } from '@/utils/formato';
 
 /**
  * Un metodo con plata asignada. `inicial` es cuanto del precio de la venta

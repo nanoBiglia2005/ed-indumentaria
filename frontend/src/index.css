@@ -55,3 +55,21 @@ h2{
 .animate-shake {
   animation: shake 0.4s ease-in-out;
 }
+
+@keyframes entrar-desde-derecha {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes entrar-desde-izquierda {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-entrar-derecha {
+  animation: entrar-desde-derecha 0.25s ease-out;
+}
+
+.animate-entrar-izquierda {
+  animation: entrar-desde-izquierda 0.25s ease-out;
+}

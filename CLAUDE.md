@@ -25,6 +25,8 @@
   `constants/<dominio>.js`; el frontend vía `types.ts`. Nunca duplicar el valor literal.
 
 ## Frontend
+- Los precios (En efectivo y con otros métodos de pago) deben SIEMPRE estar formateados utilizando
+  la funcion formatearPesos de `src/utils/formato.ts` excepto cuando se esté editando un campo de precio.
 - El frontend importa del backend SOLO `@backend/types`. Prohibido importar
   `backend/generated/**` y prohibido `fetch()` fuera de `src/api/cliente.ts`.
 - Llamadas HTTP: función en `src/api/<recurso>.ts` usando `request<T>`. Lanzan `ApiError`;

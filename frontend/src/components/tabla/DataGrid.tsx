@@ -256,7 +256,7 @@ export default function DataGrid<T>({
               >
                 <label
                   onClick={onFilaClick ? (e) => e.stopPropagation() : undefined}
-                  className={`${pyHeader} border-black/20 border-b flex items-center justify-center cursor-pointer group-hover:bg-amber-50 transition-color duration-100 ease-in ${
+                  className={`${pyHeader} border-black/20 border-b flex items-center justify-center cursor-pointer group-hover:bg-amber-50 transition-colors duration-100 ease-in ${
                     seleccionada ? 'bg-amber-100' : ''
                   }`}
                 >
@@ -280,7 +280,7 @@ export default function DataGrid<T>({
                     <p
                       key={columna.header}
                       onClick={columna.onClick ? () => columna.onClick!(item) : undefined}
-                      className={`${claseCelda} border-black/20 border-b border-l flex items-center break-words group-hover:bg-amber-50 transition-color duration-100 ease-in ${
+                      className={`${claseCelda} border-black/20 border-b border-l flex items-center break-words group-hover:bg-amber-50 transition-colors duration-100 ease-in ${
                         resaltarFilaSeleccionada && seleccionada ? 'bg-amber-100' : ''
                       } ${columna.onClick ? 'cursor-pointer hover:bg-amber-300' : ''} ${
                         columna.extraClassName ? columna.extraClassName(item) : ''

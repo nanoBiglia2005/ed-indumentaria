@@ -208,12 +208,20 @@ router.post(
       vigente,
       talle,
       cant_reservada,
+      descripcion,
+      detalle,
+      id_linea,
       id_grupo,
       id_subgrupo,
     } = req.body;
 
-    // Si no se manda grupo, el articulo queda en "No Asignado" por el default
-    // de la base.
+    // El grupo es obligatorio al crear: si no se mandara, la base lo dejaria en
+    // "No Asignado" (el default -1), que es un estado reservado para cuando se
+    // borra el grupo de un articulo ya existente, no para altas.
+    if (id_grupo === undefined || id_grupo === null) {
+      throw new HttpError(400, { message: 'El articulo tiene que pertenecer a un grupo.' });
+    }
+
     const agrupacion = await resolverGrupoYSubgrupo({ id_grupo, id_subgrupo });
 
     const nuevoArticulo = await prisma.ARTICULOS.create({
@@ -225,6 +233,9 @@ router.post(
         vigente,
         talle,
         cant_reservada,
+        descripcion,
+        detalle,
+        id_linea,
         ...agrupacion,
       },
     });

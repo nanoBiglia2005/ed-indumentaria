@@ -158,7 +158,7 @@ function ConfiguracionPage() {
                     <button
                       type='button'
                       onClick={() => abrirEdicionRecargo(tipoDePago)}
-                      className='border transition-color duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded w-full py-1 text-sm text-center cursor-pointer'
+                      className='border transition-colors duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded w-full py-1 text-sm text-center cursor-pointer'
                     >
                       Editar
                     </button>

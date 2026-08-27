@@ -1,5 +1,6 @@
 import type { TIPOS_DE_PAGO } from '@backend/types';
-import { formatearPesos, precioConRecargo } from './calculoPago';
+import { precioConRecargo } from '@/utils/precios';
+import { formatearPesos } from '@/utils/formato';
 
 /** Lo tipeado en los dos inputs de un metodo ('' = vacio). */
 export interface ValoresPago {

@@ -17,6 +17,8 @@ interface ListaDeRemitosProps {
   anchoCompleto?: boolean;
   onPagar?: (remito: RemitoConDetalles) => void;
   onAnular?: (remito: RemitoConDetalles) => void;
+  /** Cada tarjeta lo ofrece solo si esa venta esta facturada. */
+  onDevolver?: (remito: RemitoConDetalles) => void;
 }
 
 export default function ListaDeRemitos({
@@ -28,6 +30,7 @@ export default function ListaDeRemitos({
   anchoCompleto = false,
   onPagar,
   onAnular,
+  onDevolver,
 }: ListaDeRemitosProps) {
   // Los metodos se piden una sola vez para toda la lista: cada tarjeta los
   // necesita solo para poner el nombre al lado de cada total.
@@ -78,6 +81,7 @@ export default function ListaDeRemitos({
               onToggle={() => toggleAbierto(remito.id_remito)}
               onPagar={onPagar}
               onAnular={onAnular}
+              onDevolver={onDevolver}
             />
           ))}
         </div>

@@ -81,8 +81,14 @@ const resolverItemsVenta = async (detalles) => {
   return { items };
 };
 
-// Busca un remito y valida que siga pendiente de cobro.
-const buscarRemitoPendiente = async (idParam) => {
+/**
+ * Busca un remito y valida que este en el estado que la accion necesita.
+ * `mensajeEstado` explica por que no se puede seguir (409).
+ *
+ * Devuelve { error } en vez de lanzar porque las rutas validan antes de abrir
+ * su transaccion.
+ */
+const buscarRemitoEnEstado = async (idParam, estadoRequerido, mensajeEstado) => {
   const id_remito = aId(idParam);
   if (id_remito === null) {
     return { error: { status: 400, message: 'El id del remito debe ser un numero.' } };
@@ -96,17 +102,24 @@ const buscarRemitoPendiente = async (idParam) => {
   if (!remito) {
     return { error: { status: 404, message: 'El remito no existe.' } };
   }
-  if (remito.id_estado !== ESTADO_CONFIRMADO) {
-    return {
-      error: { status: 409, message: 'El remito ya no esta pendiente: no se puede modificar.' },
-    };
+  if (remito.id_estado !== estadoRequerido) {
+    return { error: { status: 409, message: mensajeEstado } };
   }
 
   return { remito };
 };
 
+// Pendiente de cobro: es lo que exigen facturar y anular.
+const buscarRemitoPendiente = (idParam) =>
+  buscarRemitoEnEstado(
+    idParam,
+    ESTADO_CONFIRMADO,
+    'El remito ya no esta pendiente: no se puede modificar.'
+  );
+
 module.exports = {
   remitosInclude,
   resolverItemsVenta,
+  buscarRemitoEnEstado,
   buscarRemitoPendiente,
 };

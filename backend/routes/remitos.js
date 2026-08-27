@@ -2,8 +2,18 @@ const express = require('express');
 const prisma = require('../db');
 const { asyncHandler, HttpError } = require('../lib/http');
 const { parseId } = require('../lib/validaciones');
-const { ESTADO_CONFIRMADO, ESTADO_ANULADO } = require('../constants/ventas');
-const { remitosInclude, resolverItemsVenta, buscarRemitoPendiente } = require('../services/remitos');
+const {
+  ESTADO_CONFIRMADO,
+  ESTADO_ANULADO,
+  ESTADO_FACTURADO,
+  ESTADO_DEVUELTO,
+} = require('../constants/ventas');
+const {
+  remitosInclude,
+  resolverItemsVenta,
+  buscarRemitoEnEstado,
+  buscarRemitoPendiente,
+} = require('../services/remitos');
 const { listarMetodosDePago, remitoConTotales } = require('../services/preciosPorMetodo');
 const { parsearPagos, registrarCobro } = require('../services/pagosRemito');
 const { parsearDatosCliente, obtenerCliente } = require('../services/clientesFinales');
@@ -160,24 +170,50 @@ router.put(
   }, 'Error al facturar el remito.')
 );
 
+/**
+ * Cambio de estado de un remito, que es todo lo que hacen anular y devolver:
+ * el remito NO se borra ni se toca por dentro, queda registrado con su nuevo
+ * estado. Los detalles y los pagos se conservan tal cual.
+ */
+const cambiarEstadoDelRemito = async (res, idParam, { desde, mensajeDesde, hacia }) => {
+  const { error, remito } = await buscarRemitoEnEstado(idParam, desde, mensajeDesde);
+  if (error) {
+    throw new HttpError(error.status, { message: error.message });
+  }
+
+  const actualizado = await prisma.REMITOS.update({
+    where: { id_remito: remito.id_remito },
+    data: { id_estado: hacia },
+    include: remitosInclude,
+  });
+
+  const metodos = await listarMetodosDePago();
+  res.status(200).json(remitoConTotales(actualizado, metodos));
+};
+
 // Anula un remito pendiente (no se borra: queda registrado como ANULADO).
 router.put(
   '/:id_remito/anular',
   asyncHandler(async (req, res) => {
-    const { error, remito } = await buscarRemitoPendiente(req.params.id_remito);
-    if (error) {
-      throw new HttpError(error.status, { message: error.message });
-    }
-
-    const remitoAnulado = await prisma.REMITOS.update({
-      where: { id_remito: remito.id_remito },
-      data: { id_estado: ESTADO_ANULADO },
-      include: remitosInclude,
+    await cambiarEstadoDelRemito(res, req.params.id_remito, {
+      desde: ESTADO_CONFIRMADO,
+      mensajeDesde: 'El remito ya no esta pendiente: no se puede modificar.',
+      hacia: ESTADO_ANULADO,
     });
-
-    const metodos = await listarMetodosDePago();
-    res.status(200).json(remitoConTotales(remitoAnulado, metodos));
   }, 'Error al anular el remito.')
+);
+
+// Devuelve una venta ya cobrada. Exige que este FACTURADA: una pendiente se
+// anula, y una ya devuelta o anulada no se puede volver a devolver.
+router.put(
+  '/:id_remito/devolver',
+  asyncHandler(async (req, res) => {
+    await cambiarEstadoDelRemito(res, req.params.id_remito, {
+      desde: ESTADO_FACTURADO,
+      mensajeDesde: 'Solo se puede devolver una venta facturada.',
+      hacia: ESTADO_DEVUELTO,
+    });
+  }, 'Error al devolver la venta.')
 );
 
 module.exports = router;

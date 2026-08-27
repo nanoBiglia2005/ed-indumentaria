@@ -3,7 +3,13 @@
 // paginacion viajan al backend como parametros y vuelven 30 filas + el total
 // que coincide (ver api/articulos.ts y backend/lib/articulosConsulta.js).
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import type { GRUPOS_DE_VENTA, CLIENTES_MAYORISTAS, SUBGRUPOS_DE_VENTA, LINEAS } from '@backend/types';
+import type {
+  GRUPOS_DE_VENTA,
+  CLIENTES_MAYORISTAS,
+  SUBGRUPOS_DE_VENTA,
+  LINEAS,
+  TIPOS_DE_PAGO,
+} from '@backend/types';
 import DataGrid from '@/components/tabla/DataGrid';
 import Paginador from '@/components/tabla/Paginador';
 import { useTablaServidor } from '@/components/tabla/useTablaServidor';
@@ -24,6 +30,7 @@ import {
 } from '@/api/articulos';
 import type { ArticuloListado, ParamsArticulos } from '@/api/articulos';
 import { listarGrupos, listarSubgrupos, listarClientes, listarLineas } from '@/api/agrupaciones';
+import { listarTiposDePago } from '@/api/tiposDePago';
 import CreateArticleModal from '@/features/articulos/modales/CreateArticleModal';
 import EditRelacionesModal from '@/features/articulos/modales/EditRelacionesModal';
 import type { TextosRelacion } from '@/features/articulos/modales/EditRelacionesModal';
@@ -87,6 +94,7 @@ function ArticulosPage() {
   const [clientes, setClientes] = useState<CLIENTES_MAYORISTAS[]>([]);
   const [subgrupos, setSubgrupos] = useState<SUBGRUPOS_DE_VENTA[]>([]);
   const [lineas, setLineas] = useState<LINEAS[]>([]);
+  const [metodosDePago, setMetodosDePago] = useState<TIPOS_DE_PAGO[]>([]);
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<number | null>(null);
@@ -154,6 +162,10 @@ function ArticulosPage() {
     fetchClientes();
     fetchSubgrupos();
     fetchLineas();
+    // Los recargos pueden haber cambiado en Configuracion: se leen al entrar.
+    listarTiposDePago()
+      .then(setMetodosDePago)
+      .catch((error) => console.error('Error al obtener los metodos de pago:', error));
   }, []);
 
   const handleAgrupacionCreada = (opcion: { id: number; nombre: string }) => {
@@ -265,6 +277,7 @@ function ArticulosPage() {
     () =>
       crearColumnasArticulos({
         lineas,
+        metodosDePago,
         grupoDeArticulo,
         subgrupoDeArticulo,
         abrirEdicionGrupo,
@@ -492,7 +505,7 @@ function ArticulosPage() {
             <div className='flex flex-wrap gap-1.5 sm:gap-2 lg:gap-4 select-none'>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className='rounded flex items-center py-1 px-2 sm:py-1.5 sm:px-2.5 lg:py-2 lg:px-3 text-white font-semibold text-sm sm:text-base lg:text-lg border cursor-pointer bg-violet-500 whitespace-nowrap transition-color
+                className='rounded flex items-center py-1 px-2 sm:py-1.5 sm:px-2.5 lg:py-2 lg:px-3 text-white font-semibold text-sm sm:text-base lg:text-lg border cursor-pointer bg-violet-500 whitespace-nowrap transition-colors
             duration-100 ease-in'
               >
                 <span>Nuevo Articulo</span>
@@ -604,7 +617,7 @@ function ArticulosPage() {
                   type='button'
                   onClick={() => handleImprimir(item)}
                   disabled={imprimiendoId === item.id_articulo}
-                  className={`rounded border px-3 py-1 text-sm font-semibold text-white transition-color duration-100 ease-in ${
+                  className={`rounded border px-3 py-1 text-sm font-semibold text-white transition-colors duration-100 ease-in ${
                     imprimiendoId === item.id_articulo || impresoId === item.id_articulo
                       ? 'opacity-100'
                       : 'opacity-0 group-hover:opacity-100'
@@ -623,7 +636,7 @@ function ArticulosPage() {
               </>
             )}
             claseCeldaAccion={(item) =>
-              `py-3 border-black/20 border-l border-b group-hover:bg-amber-50 transition-color duration-100 ease-in flex flex-col items-center justify-center gap-2 ${
+              `py-3 border-black/20 border-l border-b group-hover:bg-amber-50 transition-colors duration-100 ease-in flex flex-col items-center justify-center gap-2 ${
                 seleccionados.has(item.id_articulo) ? 'bg-violet-50' : ''
               }`
             }
@@ -656,7 +669,10 @@ function ArticulosPage() {
         onCerrar={() => setIsModalOpen(false)}
         onExito={handleArticuloActualizado}
         grupos={grupos}
+        subgrupos={subgrupos}
+        lineas={lineas}
         clientes={clientes}
+        metodosDePago={metodosDePago}
       />
 
       <EditGrupoModal
@@ -703,6 +719,7 @@ function ArticulosPage() {
         onExito={handleArticuloActualizado}
         articulo={articuloAEditar}
         campo={campoAEditar}
+        metodosDePago={metodosDePago}
       />
 
       <CrearAgrupacionModal

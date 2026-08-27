@@ -5,15 +5,40 @@ import {
   ESTADO_DEVUELTO,
   ESTADO_FACTURADO,
 } from '@backend/types';
-import { formatearFecha } from '@/utils/formato';
+import { formatearFecha, formatearPesos } from '@/utils/formato';
 import PaymentIcon from '@/components/ui/PaymentIcon';
 
-// Borde segun el estado del remito (tabla ESTADOS_REMITOS).
-const COLOR_POR_ESTADO: Record<number, string> = {
-  [ESTADO_CONFIRMADO]: 'orange-500',
-  [ESTADO_FACTURADO]: 'violet-500',
-  [ESTADO_ANULADO]: 'amber-500',
-  [ESTADO_DEVUELTO]: 'red-500',
+/**
+ * Color segun el estado del remito (tabla ESTADOS_REMITOS).
+ *
+ * Las clases van ENTERAS y no armadas como `'text-' + color`: Tailwind escanea
+ * el codigo buscando nombres de clase completos, asi que una clase concatenada
+ * no se genera nunca. Si alguna parecia funcionar era de rebote, porque ese
+ * mismo texto literal aparecia en otro archivo.
+ */
+type EstiloDeEstado = { borde: string; texto: string; fondo: string };
+
+const ESTILO_POR_ESTADO: Record<number, EstiloDeEstado> = {
+  [ESTADO_CONFIRMADO]: {
+    borde: 'border-orange-400',
+    texto: 'text-orange-400',
+    fondo: 'bg-orange-400',
+  },
+  [ESTADO_FACTURADO]: {
+    borde: 'border-violet-500',
+    texto: 'text-violet-500',
+    fondo: 'bg-violet-500',
+  },
+  [ESTADO_ANULADO]: {
+    borde: 'border-gray-500',
+    texto: 'text-gray-500',
+    fondo: 'bg-gray-500',
+  },
+  [ESTADO_DEVUELTO]: {
+    borde: 'border-red-500',
+    texto: 'text-red-500',
+    fondo: 'bg-red-500',
+  },
 };
 
 const PALABRA_POR_ESTADO: Record<number, string> = {
@@ -33,6 +58,8 @@ interface RemitoCardProps {
   /** Si se pasan, aparecen los botones en el encabezado del detalle. */
   onPagar?: (remito: RemitoConDetalles) => void;
   onAnular?: (remito: RemitoConDetalles) => void;
+  /** Solo se ofrece sobre ventas FACTURADAS (ver `puedeDevolver`). */
+  onDevolver?: (remito: RemitoConDetalles) => void;
 }
 
 function RemitoCard({
@@ -42,32 +69,37 @@ function RemitoCard({
   onToggle,
   onPagar,
   onAnular,
+  onDevolver,
 }: RemitoCardProps) {
   const metodosConRecargo = metodos.filter((metodo) => metodo.recargo > 0);
 
-  const color = COLOR_POR_ESTADO[remito.id_estado ?? ESTADO_FACTURADO] ?? 'violet-500';
+  const estilo =
+    ESTILO_POR_ESTADO[remito.id_estado ?? ESTADO_FACTURADO] ?? ESTILO_POR_ESTADO[ESTADO_FACTURADO];
   const palabra = PALABRA_POR_ESTADO[remito.id_estado ?? ESTADO_FACTURADO] ?? 'Desconocido';
-  const hayAcciones = Boolean(onPagar || onAnular);
+  // Devolver solo tiene sentido sobre una venta ya cobrada: la lista del
+  // historial mezcla estados, asi que se filtra por remito y no por pagina.
+  const puedeDevolver = Boolean(onDevolver) && remito.id_estado === ESTADO_FACTURADO;
+  const hayAcciones = Boolean(onPagar || onAnular) || puedeDevolver;
 
   // shrink-0: dentro de la lista en columna, si no, las tarjetas se aplastan
   // en vez de dejar scrollear cuando hay muchas ventas.
   return (
-    <div className={`w-full shrink-0 border border-${color} rounded-xl shadow select-none overflow-hidden`}>
+    <div className={`w-full shrink-0 border ${estilo.borde} rounded-xl shadow select-none overflow-hidden`}>
       <button
         type='button'
         onClick={onToggle}
-        className='w-full flex items-center justify-between gap-4 pe-5 cursor-pointer text-left hover:bg-amber-50 transition-color duration-100 ease-in'
+        className='w-full flex items-center justify-between gap-4 pe-5 cursor-pointer text-left hover:bg-amber-50 transition-colors duration-100 ease-in'
       > 
-        <div className={`flex gap-3 items-center text-${color}`}>
-          <span className={`text-3xl font-bold px-5 py-3 ${abierto ? ('text-white bg-' + color) : 'text' + color} transition-color duration-100 ease-in border-e-1`}>
+        <div className={`flex gap-3 items-center ${estilo.texto}`}>
+          <span className={`text-2xl font-bold px-5 py-3 ${abierto ? `text-white ${estilo.fondo}` : estilo.texto} transition-colors duration-100 ease-in border-e-1`}>
             <p>{remito.cod_mes}-{remito.cod_remito_final}</p>
           </span>
           
           {remito.id_estado !== ESTADO_CONFIRMADO ? (
             <div className='flex items-center gap-x-5'>
-              <span className='text-xl font-bold w-25'>{remito.total_final ?? remito.total_efectivo}$</span>
+              <span className='text-xl font-bold w-29'>{formatearPesos(remito.total_final ?? remito.total_efectivo)}</span>
               <div className='flex flex-col w-18'>
-                <span className='text-xs text-gray-400'>Estado</span>
+                <span className={`text-xs ${estilo.texto}`}>Estado</span>
                 <span className='font-semibold'>{palabra}</span> 
               </div>
               <div className='flex flex-col'>
@@ -79,7 +111,7 @@ function RemitoCard({
             <div className='flex flex-col w-26'>
               <span className='font-semibold text-gray-900 flex gap-1 items-center'>
                 <PaymentIcon paymentId={1} height={18}/>
-                {remito.total_efectivo ?? 0}$         
+                {formatearPesos(remito.total_efectivo) ?? 0}         
               </span>
               {metodosConRecargo.map((metodo) => (
                 <span
@@ -88,7 +120,7 @@ function RemitoCard({
                   title={`Total con ${metodo.nombre_tipo_de_pago}`}
                 >
                   <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={18}/>
-                  {remito.totales_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$ 
+                  {formatearPesos(remito.totales_por_metodo?.[metodo.id_tipos_de_pago]) ?? 0} 
                 </span>
               ))}
             </div>
@@ -103,26 +135,61 @@ function RemitoCard({
           </div>
         </div>
         <div className='flex items-center gap-4 shrink-0'>
-        {hayAcciones && abierto && (
-          <div className='flex items-center justify-end gap-2'>
-            {onPagar && (
-              <button
-                type='button'
-                onClick={() => onPagar(remito)}
-                className='rounded border border-violet-500 bg-violet-500 px-3 py-1 font-semibold text-white cursor-pointer transition-color duration-100 ease-in hover:bg-violet-600 active:bg-violet-700'
+        {/* Los botones se montan SIEMPRE (si no, no habria nada que animar) y lo
+            que se anima es el ancho de la columna.
+
+            0fr -> 1fr y no max-w-0 -> max-w-[N]: con max-w hay que elegir un
+            tope fijo, y como es mas grande que los botones la animacion termina
+            a mitad de camino y se ve como un salto. `1fr` mide el ancho real,
+            asi que el tiempo es el mismo con uno o con dos botones. */}
+        {hayAcciones && (
+          <div
+            className={`grid transition-[grid-template-columns] duration-300 ease-out ${
+              abierto ? 'grid-cols-[1fr]' : 'grid-cols-[0fr]'
+            }`}
+          >
+            {/* justify-end mantiene los botones pegados al borde derecho y deja
+                que lo que todavia no entra se recorte por la IZQUIERDA: de ahi
+                que aparezcan de derecha a izquierda. */}
+            <div className='flex justify-end overflow-hidden'>
+              {/* La duracion cambia con `abierto`, que es lo que permite que el
+                  fundido no compita con el barrido de arriba:
+
+                  al ABRIR va mas lento que el ancho (500 vs 300) asi el fundido
+                  se sigue viendo despues de que los botones terminaron de
+                  destaparse; al CERRAR va mas rapido (150) para que alcancen a
+                  desvanecerse antes de que el recorte se los coma. */}
+              <div
+                className={`flex items-center gap-2 shrink-0 transition-opacity ease-out ${
+                  abierto ? 'opacity-100 duration-500' : 'opacity-0 duration-150'
+                }`}
               >
-                Pagar Remito
-              </button>
-            )}
-            {onAnular && (
-              <button
-                type='button'
-                onClick={() => onAnular(remito)}
-                className='rounded border border-red-500 px-3 py-1 font-semibold text-red-600 cursor-pointer transition-color duration-100 ease-in hover:bg-red-500 hover:text-white'
-              >
-                Anular Remito
-              </button>
-            )}
+                {onPagar && (
+                  <div
+                    onClick={() => onPagar(remito)}
+                    className='rounded border border-violet-500 bg-violet-500 px-3 py-1 font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 active:bg-violet-700'
+                  >
+                    Pagar Remito
+                  </div>
+                )}
+                {onAnular && (
+                  <div
+                    onClick={() => onAnular(remito)}
+                    className='rounded border border-red-500 px-3 py-1 font-semibold text-red-600 cursor-pointer transition-colors duration-100 ease-in hover:bg-red-500 hover:text-white'
+                  >
+                    Anular Remito
+                  </div>
+                )}
+                {puedeDevolver && (
+                  <div
+                    onClick={() => onDevolver?.(remito)}
+                    className='rounded border border-red-500 px-3 py-1 font-semibold hover:bg-red-600 cursor-pointer transition-colors duration-100 ease-in bg-red-500 text-white'
+                  >
+                    Devolver Venta
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
           <svg
@@ -156,12 +223,12 @@ function RemitoCard({
                   <div className='flex gap-x-3'>
                     <div className='flex gap-1 items-center min-w-18'>
                       <PaymentIcon paymentId={1} height={16}/>
-                      <span className='text-gray-500'>{detalle.precio ?? 0}$</span>
+                      <span className='text-gray-500'>{formatearPesos(detalle.precio ?? 0)}</span>
                     </div> 
                     {metodosConRecargo.map((metodo) => (
-                      <div className='text-violet-500 flex gap-1 items-center min-w-18'>
+                      <div className='text-violet-500 flex gap-1 items-center min-w-18' key={metodo.id_tipos_de_pago}>
                         <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16}/>
-                        <span>{detalle.precios_por_metodo[metodo.id_tipos_de_pago]}$</span>
+                        <span>{formatearPesos(detalle.precios_por_metodo[metodo.id_tipos_de_pago])}</span>
                       </div>
                     ))}
                   </div>       
@@ -170,13 +237,13 @@ function RemitoCard({
                   <span>x{detalle.cantidad}</span>
                   <div className='flex-col text-md'>
                     <div className='flex gap-1 items-center text-black justify-end'>
-                      <span className='font-medium'>{detalle.precio && detalle.cantidad ? detalle.precio * detalle.cantidad : 0}$</span>
+                      <span className='font-medium'>{formatearPesos(detalle.precio && detalle.cantidad ? detalle.precio * detalle.cantidad : 0)}</span>
                       <PaymentIcon paymentId={1} height={16}/>
                     </div>
                     {metodosConRecargo.map((metodo) => (
-                    <div className='text-violet-500 flex gap-1 items-center justify-end'>
-                      <span className='font-medium'>{detalle.precios_por_metodo[metodo.id_tipos_de_pago] 
-                      && detalle.cantidad ? detalle.precios_por_metodo[metodo.id_tipos_de_pago] * detalle.cantidad : 0}$</span>
+                    <div className='text-violet-500 flex gap-1 items-center justify-end' key={metodo.id_tipos_de_pago}>
+                      <span className='font-medium'>{formatearPesos(detalle.precios_por_metodo[metodo.id_tipos_de_pago] 
+                      && detalle.cantidad ? detalle.precios_por_metodo[metodo.id_tipos_de_pago] * detalle.cantidad : 0)}</span>
                       <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16}/>
                     </div>
                     ))}

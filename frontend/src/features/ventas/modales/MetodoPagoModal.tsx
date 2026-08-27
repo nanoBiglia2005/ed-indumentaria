@@ -12,12 +12,13 @@ import SelectorMetodoPago from '@/features/ventas/pago/SelectorMetodoPago';
 import TablaPersonalizado from '@/features/ventas/pago/TablaPersonalizado';
 import type { ValoresPago } from '@/features/ventas/pago/TablaPersonalizado';
 import {
-  formatearPesos,
   montoACobrar,
   montoInicialDesdeFinal,
   repartirEntreVacios,
   soloDigitos,
 } from '@/features/ventas/pago/calculoPago';
+
+import { formatearPesos } from '@/utils/formato';
 
 interface MetodoPagoModalProps {
   abierto: boolean;

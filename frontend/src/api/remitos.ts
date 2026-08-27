@@ -40,3 +40,7 @@ export const facturarRemito = (idRemito: number, pagos: PagoDeRemito[]) =>
 
 export const anularRemito = (idRemito: number) =>
   request<RemitoConDetalles>(`/api/remitos/${idRemito}/anular`, { metodo: 'PUT' });
+
+/** Devuelve una venta ya cobrada: pasa a DEVUELTO (el backend exige FACTURADO). */
+export const devolverRemito = (idRemito: number) =>
+  request<RemitoConDetalles>(`/api/remitos/${idRemito}/devolver`, { metodo: 'PUT' });

@@ -66,7 +66,7 @@ export default function AgrupacionSection({
         <button
           type='button'
           onClick={() => setCrearAbierto(true)}
-          className='rounded flex items-center py-1.5 px-3 text-white font-semibold text-sm border cursor-pointer bg-violet-500 hover:bg-violet-600 transition-color duration-100 ease-in'
+          className='rounded flex items-center py-1.5 px-3 text-white font-semibold text-sm border cursor-pointer bg-violet-500 hover:bg-violet-600 transition-colors duration-100 ease-in'
         >
           + {crearLabel}
         </button>
@@ -127,7 +127,7 @@ export default function AgrupacionSection({
                     e.stopPropagation();
                     setItemAEditar(item);
                   }}
-                  className='px-3 py-1 border transition-color duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded text-sm text-center cursor-pointer'
+                  className='px-3 py-1 border transition-colors duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded text-sm text-center cursor-pointer'
                 >
                   Editar
                 </button>
@@ -137,7 +137,7 @@ export default function AgrupacionSection({
                     e.stopPropagation();
                     setItemAEliminar(item);
                   }}
-                  className='px-3 py-1 border transition-color duration-100 ease-in bg-red-500 hover:bg-red-600 text-white rounded text-sm text-center cursor-pointer'
+                  className='px-3 py-1 border transition-colors duration-100 ease-in bg-red-500 hover:bg-red-600 text-white rounded text-sm text-center cursor-pointer'
                 >
                   Eliminar
                 </button>

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import type { ARTICULOS } from '@backend/types';
+import type { ARTICULOS, TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
 import { actualizarArticulo } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { triggerShake } from '@/utils/formato';
 import { BARCODE_MAX } from '@/utils/barcode';
+import PreciosPorMetodo from '@/components/ui/PreciosPorMetodo';
 
 const DESCRIPCION_MAX = 70;
 const TALLE_MAX = 30;
@@ -40,6 +41,7 @@ interface EditFieldModalProps {
   onExito: () => void;
   articulo: ARTICULOS | null;
   campo: CampoEditable | null;
+  metodosDePago: TIPOS_DE_PAGO[];
 }
 
 export default function EditFieldModal({
@@ -48,6 +50,7 @@ export default function EditFieldModal({
   onExito,
   articulo,
   campo,
+  metodosDePago
 }: EditFieldModalProps) {
   const [valorNumero, setValorNumero] = useState<number | null>(0);
   const [valorTexto, setValorTexto] = useState<string>('');
@@ -187,17 +190,27 @@ export default function EditFieldModal({
           placeholder='0'
           className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
         />
+
       )}
 
       {info.tipo === 'precio' && (
+      <div className='flex flex-col gap-y-3 items-center'>
         <input
           type='number'
-          step='0.01'
+          step='1'
           value={valorNumero === null ? '' : valorNumero}
           onChange={handleNumeroChange}
           placeholder='0.00'
           className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
         />
+        <PreciosPorMetodo
+        precio={valorNumero ?? 0}
+        metodos={metodosDePago}
+        tamanoIcono={20}
+        tamanoTexto='md'
+        claseContenedor='select-none flex items-center w-fit gap-y-1 rounded-md border bg-white border-gray-300 shadow-md divide-x divide-gray-300'
+        />
+      </div>
       )}
 
       {info.tipo === 'barcode' && (

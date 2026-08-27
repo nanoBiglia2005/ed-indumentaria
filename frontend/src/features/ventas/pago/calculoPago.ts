@@ -5,16 +5,7 @@
 // (no confia en los que le manda el navegador). Si cambia una formula, cambiar
 // la otra o se mostraria un importe y se cobraria otro.
 import type { ImportesPorMetodo, TIPOS_DE_PAGO } from '@backend/types';
-
-/**
- * Redondeo comercial: a multiplos de 10. El doble Math.round no sobra: primero
- * lleva a entero y despues a la decena, asi 58825.4 y 58825 dan lo mismo.
- */
-export const redondearPrecio = (valor: number) => Math.round(Math.round(valor) / 10) * 10;
-
-/** Precio base con el recargo de un metodo aplicado. */
-export const precioConRecargo = (precio: number, recargo: number) =>
-  redondearPrecio(precio * (1 + recargo / 100));
+import { redondearPrecio, precioConRecargo } from '@/utils/precios';
 
 /** La vuelta: cuanto de la venta cubre un importe cobrado con ese metodo. */
 export const montoInicialDesdeFinal = (montoFinal: number, recargo: number) =>
@@ -84,9 +75,6 @@ export const montoACobrar = ({
   esMetodoUnico && totalDelMetodo !== undefined
     ? totalDelMetodo
     : precioConRecargo(montoInicial, recargo);
-
-/** Importe como se lee en el mostrador: $128.830. */
-export const formatearPesos = (valor: number) => `$${Math.round(valor).toLocaleString('es-AR')}`;
 
 /** Lo tipeado, sin nada que no sea un digito (los importes son enteros). */
 export const soloDigitos = (valor: string) => valor.replace(/\D/g, '');

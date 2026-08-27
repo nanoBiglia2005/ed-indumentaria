@@ -3,7 +3,8 @@ import type { RemitoConDetalles, RemitoCreado, TIPOS_DE_PAGO } from '@backend/ty
 import { listarTiposDePago } from '@/api/tiposDePago';
 import { useFetchLista } from '@/hooks/useFetchLista';
 import { listarRemitosPendientes } from '@/api/remitos';
-import AnularRemitoModal from '@/features/ventas/modales/AnularRemitoModal';
+import ConfirmarAccionRemitoModal from '@/features/ventas/modales/ConfirmarAccionRemitoModal';
+import { ACCION_ANULAR } from '@/features/ventas/modales/accionesDeRemito';
 import ListaDeRemitos from '@/features/ventas/ListaDeRemitos';
 import MetodoPagoModal from '@/features/ventas/modales/MetodoPagoModal';
 import NuevaVentaModal from '@/features/ventas/modales/NuevaVentaModal';
@@ -101,7 +102,7 @@ function VentasPage() {
         <button
           type='button'
           onClick={() => setIsNuevaVentaOpen(true)}
-          className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-violet-500 hover:bg-violet-600 active:bg-violet-700 transition-color duration-100 ease-in'
+          className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-violet-500 hover:bg-violet-600 active:bg-violet-700 transition-colors duration-100 ease-in'
         >
           Iniciar Nueva Venta
         </button>
@@ -144,11 +145,12 @@ function VentasPage() {
         onFacturado={handleFacturado}
       />
 
-      <AnularRemitoModal
+      <ConfirmarAccionRemitoModal
         abierto={remitoAAnular !== null}
         remito={remitoAAnular}
+        accion={ACCION_ANULAR}
         onCerrar={() => setRemitoAAnular(null)}
-        onAnulado={handleAnulado}
+        onHecho={handleAnulado}
       />
     </SectionWrapper>
   );

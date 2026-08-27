@@ -1,4 +1,6 @@
-import type { LINEAS } from '@backend/types';
+import type { LINEAS , TIPOS_DE_PAGO } from '@backend/types';
+import PreciosPorMetodo from '@/components/ui/PreciosPorMetodo';
+import { formatearPesos } from '@/utils/formato';
 import type { ColumnaTabla, OpcionFiltro } from '@/components/tabla/tipos';
 import type { CampoEditable } from '@/features/articulos/modales/EditFieldModal';
 import type { ArticuloListado } from '@/api/articulos';
@@ -28,7 +30,7 @@ export function ListaDeChips({ nombres, vacioTexto }: { nombres: string[]; vacio
       {visibles.map((nombre) => (
         <span
           key={nombre}
-          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-gray-700'
+          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-gray-700 shadow-sm'
         >
           {nombre}
         </span>
@@ -46,6 +48,7 @@ const formatearListaConLimite = (nombres: string[], maximo = 2) => {
 };
 
 interface DepsColumnas {
+  metodosDePago: TIPOS_DE_PAGO[];
   lineas: LINEAS[];
   /** Grupo del articulo: siempre hay uno (a lo sumo "No Asignado"). */
   grupoDeArticulo: (articulo: ArticuloListado) => OpcionFiltro | null;
@@ -75,6 +78,7 @@ const comoValores = (opcion: OpcionFiltro | null): OpcionFiltro[] => (opcion ? [
  */
 export function crearColumnasArticulos({
   lineas,
+  metodosDePago,
   grupoDeArticulo,
   subgrupoDeArticulo,
   abrirEdicionGrupo,
@@ -198,7 +202,18 @@ export function crearColumnasArticulos({
     },
     {
       header: 'Precio Unitario',
-      render: (item) => `${item.precio}$`,
+      // El precio base es la version texto (busqueda/resaltado); la celda
+      // muestra ademas lo que sale con cada metodo de pago.
+      render: (item) => formatearPesos(item.precio ?? 0),
+      renderCell: (item) => (
+        <PreciosPorMetodo
+          precio={item.precio ?? 0}
+          metodos={metodosDePago}
+          tamanoTexto='xs'
+          tamanoIcono={17}
+          claseContenedor='flex flex-col items-center gap-y-1 rounded-md border bg-white border-gray-300 shadow-md divide-y divide-gray-300'
+        />
+      ),
       onClick: (item) => abrirEdicionCampo(item, 'precio'),
       width: 155,
       filtroKey: 'precio',

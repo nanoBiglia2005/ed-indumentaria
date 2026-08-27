@@ -1,6 +1,6 @@
 import type { RemitoCreado, TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
-import { estiloLineClamp, formatearFecha } from '@/utils/formato';
+import { estiloLineClamp, formatearFecha, formatearPesos } from '@/utils/formato';
 import { codigoRemito } from '@/features/ventas/codigoRemito';
 import { nombreCompleto } from '@/features/ventas/cliente/formatoCliente';
 import PaymentIcon from '@/components/ui/PaymentIcon';
@@ -78,7 +78,7 @@ export default function VentaExitosaModal({
       )}
 
       {remito && (
-        <div className='rounded-xl border border-gray-200 overflow-hidden'>
+        <div className='mt-2 rounded-xl border border-gray-200 overflow-hidden'>
           <div className='flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-4 py-3'>
             <span className='text-3xl font-bold text-violet-600'>{codigo}</span>
 
@@ -99,13 +99,13 @@ export default function VentaExitosaModal({
                 <div className='flex gap-x-3 font-bold'>
                   <div className='flex gap-1 items-center text-black'>
                     <PaymentIcon paymentId={1} height={20}/>
-                    <span>{remito.total_efectivo ?? 0}$</span>
+                    <span>{formatearPesos(remito.total_efectivo ?? 0)}</span>
                   </div>
                   
                   {metodosConRecargo.map((metodo) => (
                     <div className='text-violet-600 flex gap-1 items-center'>
                       <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={20}/>
-                      <span>{remito.totales_por_metodo[metodo.id_tipos_de_pago]}$</span>
+                      <span>{formatearPesos(remito.totales_por_metodo[metodo.id_tipos_de_pago])}</span>
                     </div>
                   ))}                              
                 </div>          
@@ -131,7 +131,7 @@ export default function VentaExitosaModal({
                     <div className='flex gap-2 items-center'>
                       <span className='flex gap-1 items-center' title='Precio del Artículo con Efectivo'>
                         <PaymentIcon paymentId={1} height={16} />
-                        <span className='text-xs font-medium text-gray-500'>{detalle.precio ?? 0}$</span>
+                        <span className='text-xs font-medium text-gray-500'>{formatearPesos(detalle.precio ?? 0)}</span>
                       </span>
                       {metodosConRecargo.map((metodo) => (
                         <span
@@ -141,7 +141,7 @@ export default function VentaExitosaModal({
                         >
                           <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16} />
                           <span className='text-xs font-medium'>
-                            {detalle.precios_por_metodo[metodo.id_tipos_de_pago] ?? 0}$
+                            {formatearPesos(detalle.precios_por_metodo[metodo.id_tipos_de_pago] ?? 0)}
                           </span>
                         </span>
                       ))}
@@ -151,7 +151,7 @@ export default function VentaExitosaModal({
                   <div className='w-24 flex flex-col items-end shrink-0'>
                     <span className='flex gap-1 items-center' title='Total del Artículo con Efectivo'>   
                       <span className='text-sm font-semibold text-gray-800'>
-                        {(detalle.precio ?? 0) * (detalle.cantidad ?? 0)}$
+                        {formatearPesos((detalle.precio ?? 0) * (detalle.cantidad ?? 0))}
                       </span>
                       <PaymentIcon paymentId={1} height={16} />
                     </span>
@@ -162,9 +162,8 @@ export default function VentaExitosaModal({
                         title={`Total del Artículo con ${metodo.nombre_tipo_de_pago}`}
                       >   
                         <span className='text-sm font-semibold'>
-                          {(detalle.precios_por_metodo[metodo.id_tipos_de_pago] ?? 0) *
-                            (detalle.cantidad ?? 0)}
-                          $
+                          {formatearPesos((detalle.precios_por_metodo[metodo.id_tipos_de_pago] ?? 0) *
+                            (detalle.cantidad ?? 0))}
                         </span>
                         <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={16} />
                       </span>

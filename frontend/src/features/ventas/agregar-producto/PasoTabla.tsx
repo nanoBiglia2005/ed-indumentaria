@@ -142,13 +142,13 @@ export default function PasoTabla({
               e.stopPropagation();
               onAgregar(item);
             }}
-            className='rounded border border-violet-500 bg-violet-500 px-3 py-1 text-xs font-semibold text-white cursor-pointer transition-color duration-100 ease-in hover:bg-violet-600 active:bg-violet-700'
+            className='rounded border border-violet-500 bg-violet-500 px-3 py-1 text-xs font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 active:bg-violet-700'
           >
             Agregar
           </button>
         )}
         claseCeldaAccion={() =>
-          'py-2 border-black/20 border-l border-b group-hover:bg-amber-50 transition-color duration-100 ease-in flex items-center justify-center'
+          'py-2 border-black/20 border-l border-b group-hover:bg-amber-50 transition-colors duration-100 ease-in flex items-center justify-center'
         }
         cargando={cargando}
         estadoCargando={<p className='px-3 py-6 text-sm text-gray-400 text-center'>Cargando artículos...</p>}

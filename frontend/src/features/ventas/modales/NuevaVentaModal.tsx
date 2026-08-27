@@ -4,7 +4,7 @@ import type { ArticuloDeVenta, ItemAConfirmar } from '@/types/ventas';
 import BaseModal from '@/components/ui/BaseModal';
 import { crearRemito } from '@/api/remitos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
-import { estiloLineClamp } from '@/utils/formato';
+import { estiloLineClamp, formatearPesos } from '@/utils/formato';
 import AgregarProductoModal from '@/features/ventas/agregar-producto/AgregarProductoModal';
 import BuscarPorCodigoModal from '@/features/ventas/modales/BuscarPorCodigoModal';
 import ConfirmarProductoModal from '@/features/ventas/modales/ConfirmarProductoModal';
@@ -288,10 +288,10 @@ export default function NuevaVentaModal({
                     {articulo.descripcion ?? 'Sin Nombre'}
                   </span>
                   {/* Precio unitario: el base y el de cada metodo, lado a lado. */}
-                  <div className='flex flex-wrap items-center'>
-                    <span className='flex gap-1 items-center text-gray-500 w-20'>
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <span className='flex gap-1 items-center text-gray-500'>
                       <PaymentIcon paymentId={1} height={18}/>
-                      <span className='text-[12px] font-medium'>{articulo.precio}$</span>
+                      <span className='text-[12px] font-medium'>{formatearPesos(articulo.precio)}</span>
                     </span>      
                     {metodosConRecargo.map((metodo) => (
                       <span
@@ -300,7 +300,7 @@ export default function NuevaVentaModal({
                         title={`Precio con ${metodo.nombre_tipo_de_pago}`}
                       >
                         <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={18}/>
-                        <p className='text-[12px] font-medium'>{articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0}$</p>
+                        <p className='text-[12px] font-medium'>{formatearPesos(articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0)}</p>
                       </span>
                     ))}
                   </div>
@@ -340,12 +340,12 @@ export default function NuevaVentaModal({
                 </div>
 
                 {/* Precio x cantidad: el base y el de cada metodo, uno debajo del otro. */}
-                <div className='w-24 flex flex-col items-end shrink-0'>
-                  <span className='flex items-center gap-1 text-gray-800'>
-                    <PaymentIcon paymentId={1} height={20}/>
+                <div className='flex flex-col items-end shrink-0'>
+                  <span className='flex items-center gap-1 text-gray-800'> 
                     <span className='text-sm font-medium min-w-14 text-right'>
-                      {articulo.precio * (cantidad ?? 0)}$
+                      {formatearPesos(articulo.precio * (cantidad ?? 0))}
                     </span>
+                    <PaymentIcon paymentId={1} height={20}/>
                   </span>
                   {metodosConRecargo.map((metodo) => (
                     <span
@@ -353,11 +353,11 @@ export default function NuevaVentaModal({
                       className='flex items-center gap-1 text-sm font-medium text-violet-500'
                       title={`Subtotal con ${metodo.nombre_tipo_de_pago}`}
                     >
-                      <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={20}/>
                       <span className='min-w-14 text-right'>
-                      {(articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0) *
-                        (cantidad ?? 0)}$
+                      {formatearPesos((articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0) *
+                        (cantidad ?? 0))}
                       </span>
+                      <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={20}/>
                     </span>
                   ))}
                 </div>
@@ -382,7 +382,7 @@ export default function NuevaVentaModal({
           <span className='text-xl font-medium text-gray-700'>Total</span>
           <div className='flex flex-col items-end text-2xl font-semibold '>
             <span className='flex gap-2 items-center'>
-              <span className='text-right text-gray-900'>{totalVenta}$</span>
+              <span className='text-right text-gray-900'>{formatearPesos(totalVenta)}</span>
               <PaymentIcon paymentId={1} height={25}/>
             </span>
             {metodosConRecargo.map((metodo) => (
@@ -392,7 +392,7 @@ export default function NuevaVentaModal({
                 title={`Total con ${metodo.nombre_tipo_de_pago}`}
               >
                 <span className='text-right'>
-                  {totalesPorMetodo[metodo.id_tipos_de_pago] ?? 0}$
+                  {formatearPesos(totalesPorMetodo[metodo.id_tipos_de_pago] ?? 0)}
                 </span>
                 <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={25}/>
               </span>

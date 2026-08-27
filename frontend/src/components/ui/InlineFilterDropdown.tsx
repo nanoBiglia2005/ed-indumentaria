@@ -65,7 +65,7 @@ function InlineFilterDropdown({
         type='button'
         disabled={disabled}
         onClick={() => (abierto ? cerrar() : setAbierto(true))}
-        className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded border min-w-[150px] font-semibold text-md transition-color duration-100 ease-in ${
+        className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded border min-w-[150px] font-semibold text-md transition-colors duration-100 ease-in ${
           disabled
             ? 'opacity-50 cursor-not-allowed border-gray-300 text-gray-400'
             : 'cursor-pointer text-violet-500 hover:bg-amber-400 hover:text-white'

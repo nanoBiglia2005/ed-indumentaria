@@ -3,6 +3,7 @@ import type { ArticuloDeVenta } from '@/types/ventas';
 import type { ColumnaTabla } from '@/components/tabla/tipos';
 import { codigoBarcodeCompleto } from '@/utils/barcode';
 import { compararTalles, valorOrdenTalle } from '@/utils/talles';
+import { formatearPesos } from '@/utils/formato';
 
 // Medidas historicas de la tabla del modal de venta (mas compacta que la de
 // ArticulosPage).
@@ -50,7 +51,7 @@ export function crearColumnasVenta(
       // por "Precio", que si es filtrable.
       return {
         header: `Precio ${metodo.nombre_tipo_de_pago}`,
-        render: (item) => `${precioDe(item)}$`,
+        render: (item) => `${formatearPesos(precioDe(item))}`,
         width: 145,
       };
     });
@@ -98,7 +99,7 @@ export function crearColumnasVenta(
     },
     {
       header: 'Precio',
-      render: (item) => `${item.precio}$`,
+      render: (item) => `${formatearPesos(item.precio)}`,
       width: 110,
       filtroKey: 'precio',
       filtro: { tipo: 'rango', getValor: (item) => item.precio },

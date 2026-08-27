@@ -32,3 +32,7 @@ export function estiloLineClamp(lineas: number): CSSProperties {
     overflow: 'hidden',
   };
 }
+
+/** Importe como se lee en el mostrador: $128.830. */
+export const formatearPesos = (valor: number) => `$${Math.round(valor).toLocaleString('es-AR')}`;
+
