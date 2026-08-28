@@ -1,7 +1,0 @@
-2026-08-27 10:02:18,603 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
-2026-08-27 10:02:23,843 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 10s
-2026-08-27 10:02:34,217 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 20s
-2026-08-27 10:02:54,465 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 40s
-2026-08-27 10:03:34,835 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 80s
-2026-08-27 10:04:55,191 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 160s
-2026-08-27 10:07:36,018 INFO Conectado al servidor de impresión

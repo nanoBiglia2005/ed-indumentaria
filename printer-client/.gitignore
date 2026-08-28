@@ -1,3 +1,7 @@
 .venv
 __pycache__/
 .env
+service.log
+service-*.log
+service.log
+service-*.log
