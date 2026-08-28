@@ -26,11 +26,13 @@ export default defineConfig({
         target: 'http://localhost:5000',
         secure: false,
       },
-      // NO BORRAR: este proxy no lo usa el frontend, lo usa el printer-client.
-      // Con ngrok apuntando a este dev server, la PC de la impresora se conecta
-      // a wss://<ngrok>/print-api/ws/printer y Vite lo reenvia al print-service
-      // (por eso `ws: true`). Al migrar a un server real hay que replicar este
-      // reenvio en nginx: en produccion no corre `vite dev` y este proxy no existe.
+      // Este proxy es solo para desarrollo local: permite correr un printer-client
+      // apuntando a ws://localhost:5173/print-api/ws/printer contra el print-service
+      // de esta maquina. En produccion NO corre `vite dev`; el reenvio equivalente
+      // esta en el Vhost Editor de CloudPanel (location /print-api/ con Upgrade/
+      // Connection). Ojo: el printer-client del local apunta al dominio de
+      // produccion, asi que para probar impresion en desarrollo hay que levantar
+      // uno propio.
       '/print-api': {
         target: 'http://localhost:8001',
         changeOrigin: true,

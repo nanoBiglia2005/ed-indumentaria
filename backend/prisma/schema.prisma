@@ -9,46 +9,31 @@ datasource db {
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model ARTICULOS {
-  id_articulo              Int                        @id(map: "articulos_pk") @default(autoincrement())
-  cant                     Int                        @default(0)
-  precio                   Float                      @default(0)
-  barcode_tail             String?                    @unique(map: "articulos_barcode_tail_idx") @db.VarChar(20)
-  stock_minimo             Int                        @default(0) @db.SmallInt
-  vigente                  Boolean?                   @default(true)
-  id_medida                Int                        @default(1)
-  id_proveedor             Int?
-  cant_reservada           Int?
-  fecha_creacion           DateTime                   @default(now()) @db.Timestamptz(6)
-  descripcion              String?                    @db.VarChar(70)
-  detalle                  String?                    @db.VarChar(50)
-  barcode_old              String?                    @db.VarChar(20)
-  talle                    String?                    @db.VarChar(30)
-  id_linea                 Int?
-  id_subgrupo              Int?
-  id_grupo                 Int                        @default(-1)
-  GRUPOS_DE_VENTA          GRUPOS_DE_VENTA            @relation(fields: [id_grupo], references: [id_grupo], onDelete: SetDefault, map: "articulos_grupos_de_venta_fk")
-  LINEAS                   LINEAS?                    @relation(fields: [id_linea], references: [id_linea], map: "articulos_lineas_fk")
-  PROVEEDORES              PROVEEDORES?               @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
-  SUBGRUPOS_DE_VENTA       SUBGRUPOS_DE_VENTA?        @relation(fields: [id_subgrupo], references: [id_subgrupo], map: "articulos_subgrupos_de_venta_fk")
-  TIPOS_DE_MEDIDA          TIPOS_DE_MEDIDA            @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
-  ARTICULOS_X_CLIENTE      ARTICULOS_X_CLIENTE[]
-  ARTICULOS_X_GRUPO_VENTA  ARTICULOS_X_GRUPO_VENTA[]
-  BONIFICACIONES_ARTICULOS BONIFICACIONES_ARTICULOS[] @ignore
-  DETALLES_REMITO          DETALLES_REMITO[]
-  REGISTRO_ARTICULOS       REGISTRO_ARTICULOS?
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model BONIFICACIONES_ARTICULOS {
-  id_articulo     Int?
-  fecha_vigencia  Unsupported("tsrange")?
-  descuento       Float?
-  cantidad_minima Int?                    @db.SmallInt
-  tipo_descuento  String?                 @db.VarChar(10)
-  ARTICULOS       ARTICULOS?              @relation(fields: [id_articulo], references: [id_articulo], map: "bonificaciones_articulos_articulos_fk")
-
-  @@ignore
+  id_articulo             Int                       @id(map: "articulos_pk") @default(autoincrement())
+  cant                    Int                       @default(0)
+  precio                  Float                     @default(0)
+  barcode_tail            String?                   @unique(map: "articulos_barcode_tail_idx") @db.VarChar(20)
+  stock_minimo            Int                       @default(0) @db.SmallInt
+  vigente                 Boolean?                  @default(true)
+  id_medida               Int                       @default(1)
+  id_proveedor            Int?
+  cant_reservada          Int?
+  fecha_creacion          DateTime                  @default(now()) @db.Timestamptz(6)
+  descripcion             String?                   @db.VarChar(70)
+  detalle                 String?                   @db.VarChar(50)
+  barcode_old             String?                   @db.VarChar(20)
+  talle                   String?                   @db.VarChar(30)
+  id_linea                Int?
+  id_subgrupo             Int?
+  id_grupo                Int                       @default(-1)
+  GRUPOS_DE_VENTA         GRUPOS_DE_VENTA           @relation(fields: [id_grupo], references: [id_grupo], onDelete: SetDefault, map: "articulos_grupos_de_venta_fk")
+  LINEAS                  LINEAS?                   @relation(fields: [id_linea], references: [id_linea], map: "articulos_lineas_fk")
+  PROVEEDORES             PROVEEDORES?              @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
+  SUBGRUPOS_DE_VENTA      SUBGRUPOS_DE_VENTA?       @relation(fields: [id_subgrupo], references: [id_subgrupo], map: "articulos_subgrupos_de_venta_fk")
+  TIPOS_DE_MEDIDA         TIPOS_DE_MEDIDA           @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
+  ARTICULOS_X_CLIENTE     ARTICULOS_X_CLIENTE[]
+  ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
+  DETALLES_REMITO         DETALLES_REMITO[]
 }
 
 model DETALLES_REMITO {
@@ -104,25 +89,6 @@ model PROVEEDORES {
   ARTICULOS    ARTICULOS[]
 }
 
-model REGISTRO_ARTICULOS {
-  id_articulo   Int                     @id(map: "registro_articulos_pk") @default(autoincrement())
-  talle         String?                 @db.VarChar(20)
-  cant          Int?
-  precio        Float?
-  barcode       Int?
-  stock_minimo  Int?                    @db.SmallInt
-  vigente       Boolean?
-  fecha_vigente Unsupported("tsrange")?
-  ARTICULOS     ARTICULOS               @relation(fields: [id_articulo], references: [id_articulo], onDelete: SetNull, map: "registro_articulos_articulos_fk")
-}
-
-model REGISTRO_USUARIOS {
-  id_registro  Int                     @id(map: "_registro_usuarios__pk") @default(autoincrement())
-  id_usuario   Int?
-  fecha_sesion Unsupported("tsrange")?
-  USUARIOS     USUARIOS?               @relation(fields: [id_usuario], references: [id_usuario], map: "registro_usuarios_usuarios_fk")
-}
-
 model REMITOS {
   id_remito          Int               @id(map: "_remitos__pk") @default(autoincrement())
   id_sucursal        Int?
@@ -170,12 +136,11 @@ model TIPOS_DE_PAGO {
 }
 
 model USUARIOS {
-  id_usuario        Int                 @id(map: "usuarios_pk") @default(autoincrement())
-  nombre            String?             @db.VarChar(20)
-  apellido          String?             @db.VarChar(20)
-  email             String?             @unique(map: "usuarios_email_key") @db.VarChar(255)
-  rol               rol_usuario?
-  REGISTRO_USUARIOS REGISTRO_USUARIOS[]
+  id_usuario Int          @id(map: "usuarios_pk") @default(autoincrement())
+  nombre     String?      @db.VarChar(20)
+  apellido   String?      @db.VarChar(20)
+  email      String?      @unique(map: "usuarios_email_key") @db.VarChar(255)
+  rol        rol_usuario?
 }
 
 model GRUPOS_DE_VENTA {
