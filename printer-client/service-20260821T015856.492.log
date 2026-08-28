@@ -1,0 +1,169 @@
+2026-08-20 09:55:54,692 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-20 09:56:00,064 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 10s
+2026-08-20 09:56:10,303 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 20s
+2026-08-20 09:56:30,541 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 40s
+2026-08-20 09:57:10,872 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 80s
+2026-08-20 09:58:31,485 INFO Conectado al servidor de impresión
+2026-08-20 11:53:15,884 WARNING Conexión perdida (sent 1011 (internal error) keepalive ping timeout; no close frame received); reintentando en 5s
+2026-08-20 11:53:30,906 WARNING Conexión perdida (timed out during handshake); reintentando en 10s
+2026-08-20 11:53:50,923 WARNING Conexión perdida (timed out during handshake); reintentando en 20s
+2026-08-20 11:54:19,486 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 40s
+2026-08-20 11:54:59,500 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 80s
+2026-08-20 11:56:29,527 WARNING Conexión perdida (timed out during handshake); reintentando en 160s
+2026-08-20 11:59:10,970 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 12:04:20,977 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 12:09:20,989 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 12:14:20,993 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 12:19:31,012 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 12:24:31,020 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 12:29:41,046 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 12:34:51,061 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 12:40:01,079 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 12:45:01,090 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 12:50:11,102 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 12:55:21,131 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 13:00:21,146 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:05:31,155 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 13:10:31,159 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:15:31,165 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:20:31,173 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:25:41,185 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 13:30:51,206 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 13:35:51,225 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:40:51,236 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:45:51,241 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:50:51,249 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 13:55:51,266 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 14:00:51,269 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 14:05:51,283 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 14:11:01,292 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 14:16:01,295 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 14:21:01,647 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-20 14:26:02,039 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-20 14:31:02,449 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-20 14:36:02,829 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-20 14:41:03,222 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-20 14:46:03,578 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-20 14:51:04,167 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-20 14:56:04,194 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 15:01:14,207 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 15:06:24,242 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 15:11:24,260 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 15:16:34,290 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 15:21:44,309 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 15:26:54,330 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 15:32:04,355 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 15:37:04,374 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 15:42:04,393 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 15:47:04,400 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 15:52:04,414 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 15:57:14,438 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 16:02:24,454 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 16:07:24,459 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:12:24,477 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:17:24,488 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:22:24,503 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:27:34,518 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 16:32:34,531 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:37:34,538 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:42:34,550 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:47:34,558 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:52:34,572 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 16:57:34,581 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:02:44,597 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 17:07:44,603 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:12:44,612 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:17:44,619 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:22:54,625 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 17:27:54,640 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:32:54,651 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:37:54,655 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:42:54,669 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 17:48:04,674 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 17:53:14,695 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 17:58:14,700 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:03:24,717 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 18:08:34,728 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 18:13:34,738 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:18:44,741 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 18:23:44,744 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:28:54,762 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 18:33:54,776 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:38:54,785 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:43:54,800 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:48:54,816 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:53:54,827 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 18:58:54,829 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:03:54,843 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:09:04,848 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 19:14:04,859 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:19:04,863 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:24:30,767 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:29:40,779 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 19:34:40,788 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:39:50,810 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 19:44:50,826 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:49:50,831 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 19:54:50,844 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:00:00,859 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 20:05:00,876 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:10:00,883 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:15:00,898 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:20:00,906 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:25:00,918 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:30:00,933 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:35:00,935 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:40:00,937 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:45:00,948 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:50:00,955 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 20:55:00,968 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:00:10,979 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 21:05:10,990 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:10:10,997 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:15:21,019 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 21:20:21,023 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:25:21,039 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:30:21,045 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:35:21,057 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:40:21,059 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:45:31,064 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 21:50:31,070 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 21:55:41,088 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 22:00:41,104 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 22:05:41,110 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 22:10:41,123 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 22:15:51,126 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 22:21:01,125 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 22:26:11,127 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 22:31:21,129 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 22:36:31,137 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 22:41:31,140 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 22:46:31,138 WARNING Conexión perdida ([Errno 11001] getaddrinfo failed); reintentando en 300s
+2026-08-20 22:51:41,143 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+2026-08-20 22:56:51,157 WARNING Conexión perdida (timed out during handshake); reintentando en 300s
+Traceback (most recent call last):
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 83, in run
+    await asyncio.sleep(reconnect_delay)
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 718, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 90, in <module>
+    asyncio.run(run())
+    ~~~~~~~~~~~^^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

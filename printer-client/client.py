@@ -17,6 +17,7 @@ PRINTER_SERVICE_TOKEN = os.environ["PRINTER_SERVICE_TOKEN"]
 PRINTER_NAME = os.environ.get("PRINTER_NAME") or None
 PRINTER_COLUMNS = int(os.environ.get("PRINTER_COLUMNS") or ANCHO_TICKET_POR_DEFECTO)
 RECONNECT_DELAY_SECONDS = 5
+RECONNECT_DELAY_MAX_SECONDS = 300
 
 # Se usa el CA bundle de certifi en vez del almacen de certificados de Windows,
 # que puede quedar desactualizado y rechazar certificados wss:// validos.
@@ -31,7 +32,14 @@ def handle_print_job(payload: dict) -> None:
     tipo = payload.get("tipo") or "barcode"
 
     if tipo == "barcode":
-        imprimir_barcode(payload["barcode"], printer_name=PRINTER_NAME)
+        # "codigo" es lo que manda un backend actualizado. El fallback a
+        # "barcode_tail" es solo para backends viejos que todavia no lo
+        # mandan: se puede borrar cuando el servidor este actualizado.
+        codigo = payload.get("codigo") or payload.get("barcode_tail")
+        if not codigo:
+            raise ValueError("El artículo no tiene código de barra para imprimir")
+
+        imprimir_barcode(codigo, descripcion=payload.get("descripcion"), printer_name=PRINTER_NAME)
     elif tipo == "remito":
         imprimir_remito(payload, printer_name=PRINTER_NAME, columnas=PRINTER_COLUMNS)
     else:
@@ -40,12 +48,14 @@ def handle_print_job(payload: dict) -> None:
 
 async def run() -> None:
     url = f"{PRINT_SERVER_WS_URL}?token={PRINTER_SERVICE_TOKEN}"
+    reconnect_delay = RECONNECT_DELAY_SECONDS
     while True:
         try:
             async with websockets.connect(
                 url, ssl=SSL_CONTEXT, additional_headers={"ngrok-skip-browser-warning": "true"}
             ) as websocket:
                 logger.info("Conectado al servidor de impresión")
+                reconnect_delay = RECONNECT_DELAY_SECONDS
                 async for raw_message in websocket:
                     message = json.loads(raw_message)
                     if message.get("type") != "print_job":
@@ -68,9 +78,12 @@ async def run() -> None:
 
                     await websocket.send(json.dumps(ack))
         except Exception as exc:
-            logger.warning("Conexión perdida (%s); reintentando en %ss", exc, RECONNECT_DELAY_SECONDS)
+            logger.warning("Conexión perdida (%s); reintentando en %ss", exc, reconnect_delay)
 
-        await asyncio.sleep(RECONNECT_DELAY_SECONDS)
+        await asyncio.sleep(reconnect_delay)
+        # Backoff exponencial hasta un tope: si el servicio esta caido por un
+        # buen rato, no tiene sentido seguir golpeandolo cada 5 segundos.
+        reconnect_delay = min(reconnect_delay * 2, RECONNECT_DELAY_MAX_SECONDS)
 
 
 if __name__ == "__main__":

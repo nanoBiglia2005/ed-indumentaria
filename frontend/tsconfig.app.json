@@ -7,6 +7,11 @@
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@backend/*": ["../backend/*"]
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",

@@ -1,0 +1,75 @@
+2026-08-26 10:21:26,645 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 5s
+2026-08-26 10:21:31,984 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 10s
+2026-08-26 10:21:42,229 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 20s
+2026-08-26 10:22:02,488 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 40s
+2026-08-26 10:22:42,866 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 80s
+2026-08-26 10:24:03,193 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 160s
+2026-08-26 10:26:43,848 INFO Conectado al servidor de impresión
+2026-08-26 20:55:30,530 WARNING Conexión perdida (no close frame received or sent); reintentando en 5s
+2026-08-26 20:55:35,856 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 10s
+2026-08-26 20:55:46,106 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 20s
+2026-08-26 20:56:06,330 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 40s
+2026-08-26 20:56:46,622 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 80s
+2026-08-26 20:58:06,925 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 160s
+2026-08-26 21:00:47,231 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:05:47,500 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:10:47,765 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:15:48,028 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:20:48,301 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:25:48,591 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:30:48,897 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:35:49,180 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:40:49,471 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:45:49,757 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:50:50,053 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 21:55:50,343 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:00:50,631 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:05:50,924 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:10:51,229 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:15:51,510 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:20:51,817 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:25:52,126 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:30:52,433 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:35:52,713 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:40:53,001 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:45:53,295 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:50:53,619 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 22:55:53,903 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:00:54,173 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:05:54,455 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:10:54,751 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:15:55,048 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:20:55,332 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:25:55,619 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:30:55,909 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:35:56,220 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:40:56,532 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:45:56,828 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:50:57,105 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+2026-08-26 23:55:57,393 WARNING Conexión perdida (server rejected WebSocket connection: HTTP 404); reintentando en 300s
+Traceback (most recent call last):
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 83, in run
+    await asyncio.sleep(reconnect_delay)
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 718, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\nanou\Desktop\testing\ed_test\ed-indumentaria-test\printer-client\client.py", line 90, in <module>
+    asyncio.run(run())
+    ~~~~~~~~~~~^^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\nanou\AppData\Local\Programs\Python\Python313\Lib\asyncio\runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
