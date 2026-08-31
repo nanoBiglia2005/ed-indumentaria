@@ -1,0 +1,71 @@
+name: Deploy a producción
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # permite dispararlo a mano desde la pestaña Actions
+
+concurrency:
+  group: deploy-produccion
+  cancel-in-progress: false  # nunca cancelar un deploy a mitad de camino
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: produccion  # exige la aprobación configurada en el paso 0.8c
+
+    steps:
+      - name: Desplegar por SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          port:     ${{ secrets.VPS_PORT }}   # 5299 en DonWeb, NO el 22 por defecto
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true        # aborta al primer comando que falle
+          command_timeout: 15m     # el build del frontend puede tardar
+          script: |
+            set -euo pipefail
+            SITIO=$HOME
+            DOMINIO="<dominio>"
+
+            cd "$SITIO/app"
+
+            # Deja el working tree EXACTAMENTE igual a origin/main.
+            # Los .env estan gitignored, asi que no se tocan.
+            git fetch --all
+            git reset --hard origin/main
+
+            # ORDEN OBLIGATORIO (riesgo #7): el frontend typecheckea contra
+            # backend/generated/prisma, que genera el postinstall del backend.
+            cd backend
+            npm install
+
+            # Aplica las migraciones PENDIENTES antes de reiniciar el backend
+            # (Fase 3.7). "deploy" nunca resetea ni pide confirmacion; si una
+            # migracion falla, script_stop corta aca y el backend sigue corriendo
+            # con el codigo viejo, que es lo correcto.
+            npx prisma migrate deploy
+
+            cd ../frontend
+            npm install
+            npm run build
+
+            # Publicacion (riesgo #13): vite vacia dist/ antes de escribir, asi que
+            # se compila aparte y se copia. La ventana de inconsistencia pasa de
+            # varios segundos a una fraccion.
+            rsync -a --delete dist/ "$SITIO/htdocs/$DOMINIO/"
+
+            sudo systemctl restart ed-backend
+
+      - name: Verificar que quedó sano
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          port:     ${{ secrets.VPS_PORT }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            sleep 5
+            curl -fsS http://127.0.0.1:5000/api/health
+            curl -fsS http://127.0.0.1:8001/health

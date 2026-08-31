@@ -9,7 +9,12 @@ const app = express();
 app.set('trust proxy', true); // necesario para que Auth.js detecte https detrás de ngrok/un proxy
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// En produccion el frontend y la API viven en el mismo origen (nginx sirve el
+// build y proxea /api y /auth), asi que CORS no hace falta. Se deja restringido
+// al dominio propio; sin AUTH_URL (desarrollo local) mantiene el comportamiento
+// permisivo de siempre.
+app.use(cors({ origin: process.env.AUTH_URL ?? true, credentials: true }));
+
 app.use(express.json());
 
 app.get('/api/health', async (req, res) => {
@@ -53,6 +58,6 @@ app.get('/', (req, res) => {
   res.send('Servidor Express corriendo correctamente.');
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '127.0.0.1', () => {
   console.log(`Servidor corriendo en el puerto http://localhost:${PORT}`);
 });
