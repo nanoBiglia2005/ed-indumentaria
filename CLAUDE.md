@@ -1,8 +1,14 @@
 # ED Indumentaria — Convenciones
 
 ## Stack
-- Backend: Node CommonJS + Express 5 + Prisma 7 (JS, sin TS). DB-first: la base se edita directo
-  y se sincroniza con `npm run db:sync` (NO tocar `scripts/db-sync.js` ni `prisma.config.ts`).
+- Backend: Node CommonJS + Express 5 + Prisma 7 (JS, sin TS). El esquema se versiona con
+  **Prisma Migrate**: los cambios se hacen con `npx prisma migrate dev --name <descripcion>`
+  desde `backend/`, NUNCA editando la base a mano. El deploy aplica lo pendiente con
+  `npx prisma migrate deploy`.
+- Los triggers y funciones plpgsql viven como SQL crudo dentro de las migraciones
+  (`prisma/migrations/0_init/migration.sql`); Prisma no los modela y no los toca.
+- `prisma migrate dev` puede ofrecer RESETEAR la base: solo se corre en desarrollo.
+  Contra producción va únicamente `migrate deploy`.
 - Frontend: React 19 + TypeScript + Vite + Tailwind v4 (clases inline) + Headless UI.
   Sin librerías nuevas sin justificación.
 - Identificadores y textos en español. Componentes PascalCase, hooks `useCosa`, resto camelCase.
@@ -55,22 +61,8 @@
   elementos de la página deben adaptarse a resoluciones más pequeñas (Celular).
 - Al crear una nueva pagina se debe crear un botón en la sidebar para acceder a esta.
 
-## Flujo de trabajo
-- ¡IMPORTANTE! La aplicación está EN USO mientras se desarrolla: modificar un módulo en uso
-  interrumpe el trabajo de otro usuario. Nunca editar directamente un módulo en producción:
-  crear una COPIA DE PRUEBA con sufijo `Prueba` (`<Pagina>Prueba.tsx`,
-  `routes/<dominio>Prueba.js`) y trabajar sobre ella.
-- Los módulos genuinamente nuevos (que no sombrean nada en uso) van con su nombre definitivo.
-- El ambiente de prueba vive en rutas paralelas (`/api/<dominio>-prueba`,
-  `/gestion/<pagina>-prueba`), de forma que la página original siga funcionando idéntica.
-- De los archivos originales solo se toca el cableado mínimo y ADITIVO que hace alcanzable la
-  copia: montar el router en `index.js`, agregar la `<Route>` en `main.tsx`. Nada más.
-- El reemplazo de los originales por las copias lo indica el usuario EXPLÍCITAMENTE. Hasta
-  entonces no se borran ni se sobrescriben los originales.
-  -Las páginas de prueba deberán ser accesibles solo por usuarios con rol de "superadmin"
-
 ## General
-- ¡IMPORTANTE! La aplicación será hosteada en una máquina de Ubuntu en la nube (DonWeb), realizar el desarrollo teniendo en cuenta que vaya a funcionar al migrar. 
+- ¡IMPORTANTE! La aplicación está siendo hosteada en una maquina de Ubuntu en la web.
 - Aplicar buenas practicas de seguridad al manejar funcionalidades bloqueadas por el rol del usuario.
 - Priorizar la reusabilidad en el desarrollo del codigo.
 

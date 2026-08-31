@@ -7,6 +7,7 @@ import ssl
 import certifi
 import websockets
 from dotenv import load_dotenv
+from urllib.parse import quote
 
 from imprimir_barcode import ANCHO_TICKET_POR_DEFECTO, imprimir_barcode, imprimir_remito
 
@@ -47,13 +48,11 @@ def handle_print_job(payload: dict) -> None:
 
 
 async def run() -> None:
-    url = f"{PRINT_SERVER_WS_URL}?token={PRINTER_SERVICE_TOKEN}"
+    url = f"{PRINT_SERVER_WS_URL}?token={quote(PRINTER_SERVICE_TOKEN, safe='')}"
     reconnect_delay = RECONNECT_DELAY_SECONDS
     while True:
         try:
-            async with websockets.connect(
-                url, ssl=SSL_CONTEXT, additional_headers={"ngrok-skip-browser-warning": "true"}
-            ) as websocket:
+            async with websockets.connect(url, ssl=SSL_CONTEXT) as websocket:
                 logger.info("Conectado al servidor de impresión")
                 reconnect_delay = RECONNECT_DELAY_SECONDS
                 async for raw_message in websocket:
