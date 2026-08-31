@@ -22,12 +22,11 @@ jobs:
           port:     ${{ secrets.VPS_PORT }}   # 5299 en DonWeb, NO el 22 por defecto
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
-          script_stop: true        # aborta al primer comando que falle
           command_timeout: 15m     # el build del frontend puede tardar
           script: |
             set -euo pipefail
             SITIO=$HOME
-            DOMINIO="<dominio>"
+            DOMINIO="edindumentaria.store"
 
             cd "$SITIO/app"
 
@@ -66,6 +65,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
             sleep 5
             curl -fsS http://127.0.0.1:5000/api/health
             curl -fsS http://127.0.0.1:8001/health
