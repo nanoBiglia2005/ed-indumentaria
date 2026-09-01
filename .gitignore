@@ -1,0 +1,13 @@
+# Volcados de la base de datos.
+#
+# NUNCA deben entrar al repositorio: contienen todos los datos del negocio,
+# incluidos los datos personales de los clientes (nombre, DNI, email, telefono).
+# Guardalos fuera del repo o en ~/backups del servidor, que ya va a Dropbox.
+*.dump
+*.sql.gz
+*.backup
+
+# Variables de entorno (cada subproyecto tiene ademas su propio .gitignore)
+.env
+.env.*
+!.env.example

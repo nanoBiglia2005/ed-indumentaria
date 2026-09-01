@@ -11,7 +11,58 @@
   Contra producción va únicamente `migrate deploy`.
 - Frontend: React 19 + TypeScript + Vite + Tailwind v4 (clases inline) + Headless UI.
   Sin librerías nuevas sin justificación.
+- **Node 24 LTS** en desarrollo y en el servidor. npm viene con Node: no se actualiza por separado.
 - Identificadores y textos en español. Componentes PascalCase, hooks `useCosa`, resto camelCase.
+
+## Base de datos
+- **Dos bases**: `db_ed_indumentaria_dev` (local, desarrollo) y `db_ed_indumentaria` (VPS,
+  producción). La estructura se declara en `schema.prisma`; Prisma genera la migración.
+- Cambio de esquema: editar `schema.prisma` → `npx prisma migrate dev --name <descripcion>` desde
+  `backend/` → **revisar el SQL generado antes de commitear** (un `DROP COLUMN` o un `ALTER TYPE`
+  que pierda datos hay que verlo) → commitear el código junto con la carpeta de la migración.
+- Lo que Prisma no modela (triggers, funciones, vistas, constraints raros):
+  `npx prisma migrate dev --create-only --name <descripcion>`, se escribe el SQL a mano en el
+  `migration.sql` generado, y recién después `npx prisma migrate dev` para aplicarlo.
+- **Las migraciones son aditivas**: agregar columnas y tablas, nunca renombrar ni borrar.
+  `migrate deploy` no tiene "deshacer" y revertir el código NO revierte la base, así que una base
+  "adelantada" tiene que poder convivir con código viejo. Para eliminar algo van **dos deploys**:
+  primero el código deja de usar la columna, después una migración la borra.
+- Nunca `migrate dev` contra producción. El riesgo real es correrlo por costumbre estando
+  conectado por SSH: verificar siempre en qué máquina se está parado.
+- Traer datos de producción a local: restaurar un dump de `~/backups` del VPS. Después del
+  restore, `npx prisma migrate status` (el dump trae la `_prisma_migrations` de producción) y
+  volver a fijar la zona horaria de la base recreada.
+
+## Tests
+- Backend: **`node --test`** (runner nativo, sin dependencias), archivos en `backend/test/*.test.js`.
+  Frontend: **Vitest**, archivos `*.test.ts` **junto al módulo** que prueban.
+  Correr con `npm test` desde `backend/` o desde `frontend/`.
+- **Si se modifica un módulo que tiene tests, se actualizan sus tests en el mismo cambio.**
+  Un test que ya no refleja el comportamiento real es peor que no tener test: da confianza falsa.
+- Qué está cubierto hoy (lógica pura; no hay tests de componentes ni de integración):
+  `lib/validaciones.js`, `lib/http.js`, `lib/roles.js`, `services/preciosPorMetodo.js`,
+  `services/impresion.js`, `services/pagosRemito.js`, `src/utils/precios.ts`, `src/utils/talles.ts`,
+  `src/api/cliente.ts`, `src/features/ventas/pago/calculoPago.ts`,
+  `src/features/ventas/codigoRemito.ts`, `src/features/ventas/cliente/formatoCliente.ts`.
+- **Los tests del frontend NO se typechequean**: Vitest transpila con esbuild sin verificar tipos, y
+  los `*.test.ts` están excluidos de `tsconfig.app.json` (con `noUnusedLocals`, una variable sin usar
+  en un test rompería el build y por lo tanto el deploy). Un error de tipos en un test es invisible.
+- Al arreglar un bug, primero escribir el test que lo reproduce y verlo fallar. Un test que nunca se
+  vio fallar no probó nada.
+- Los tests son también documentación de las reglas de negocio: el comentario de cabecera de cada
+  archivo explica QUÉ regla protege y por qué importa. Mantener ese hábito.
+
+### Tres contratos que los tests congelan (romper uno no falla en este repo)
+- **El redondeo de precios está DUPLICADO** en `backend/services/preciosPorMetodo.js` y
+  `frontend/src/utils/precios.ts`, con la misma tabla de casos en los dos archivos de test. Si se
+  toca una implementación hay que tocar **las cuatro**: si divergen, el precio que se muestra deja
+  de coincidir con el que se cobra.
+- **La asimetría del recargo 0 es deliberada**: el backend redondea siempre (es lo que cobra), el
+  frontend devuelve el precio crudo cuando `recargo === 0` (redondearlo mostraría un número
+  distinto al que se tipeó mientras se edita). Hay un test en cada lado que la fija: no "unificar".
+- **`construirPayloadTicket` es un contrato con otra máquina**: el `printer-client` lee claves fijas
+  (`precio_efectivo`, `subtotal_tarjeta`, `total_tarjeta`). Renombrar una rompe la impresión en
+  producción sin que nada acá falle. El test de forma del payload existe para eso.
 
 ## Backend
 - Todas las llamadas a la API deben verificar si el usuario está loggeado antes de realizarse.
@@ -26,8 +77,10 @@
   se descartó un factory genérico porque los cuatro desvían en validaciones reales
   (filtros, campos extra, chequeos de padre). No introducir un factory con flags.
 - Lógica de negocio (precios, remitos, impresión) va en `services/`, nunca en el handler.
+  Si la lógica es pura, **exportarla** aunque solo la use ese archivo: si no, no es testeable.
 - Constantes compartidas con el frontend: un JSON por dominio en `shared/`
-  (`ventas.json`, `agrupaciones.json`, `barcode.json`) es la única fuente. CJS las lee vía
+  (`ventas.json`, `agrupaciones.json`, `barcode.json`, `roles.json`, `precios.json`,
+  `clientes.json`, `metodosPago.json`) es la única fuente. CJS las lee vía
   `constants/<dominio>.js`; el frontend vía `types.ts`. Nunca duplicar el valor literal.
 
 ## Frontend
@@ -35,6 +88,9 @@
   la funcion formatearPesos de `src/utils/formato.ts` excepto cuando se esté editando un campo de precio.
 - El frontend importa del backend SOLO `@backend/types`. Prohibido importar
   `backend/generated/**` y prohibido `fetch()` fuera de `src/api/cliente.ts`.
+- `@backend/types` reexporta tipos de `backend/generated/prisma`, que está gitignoreado y lo produce
+  el `postinstall` del backend. **Orden obligatorio**: `npm install` en `backend/` antes de compilar
+  o typechequear el frontend, o `tsc -b` falla.
 - Llamadas HTTP: función en `src/api/<recurso>.ts` usando `request<T>`. Lanzan `ApiError`;
   el llamador maneja el error.
 - Estructura: páginas y sus modales viven en `features/<feature>/` (articulos, ventas,
@@ -44,39 +100,77 @@
   Convención de apertura: `abierto: boolean` + payload como prop separada.
   Acciones async con `useAccionAsync`; confirmación demorada con `useCuentaRegresiva`.
 - Nueva columna de tabla: agregar una `ColumnaTabla<T>` en el `columnas.tsx` de la feature.
-  El motor (`useTablaFiltrable`) y la grilla (`DataGrid`) no se modifican para casos puntuales.
+  El motor (`useTablaServidor`) y la grilla (`DataGrid`) no se modifican para casos puntuales.
+  *(Algunos comentarios del código todavía lo llaman `useTablaFiltrable`: es un nombre histórico.)*
 - Asociaciones muchos-a-muchos de un artículo: usar `EditRelacionesModal` con un objeto
   de textos + funciones de api, no crear un modal nuevo por entidad.
 - Tipos compartidos en `src/types/` ({id, nombre} = `Opcion`). Los tipos de dominio no viven
   dentro de componentes.
 - Compartido entre features → `components/`, `hooks/`, `utils/`. De una sola feature → dentro
   de la feature. Ante la duda, dejarlo en la feature (extraer recién con el segundo uso).
+- **Un módulo que define un componente no puede exportar además constantes o funciones**: rompe Fast
+  Refresh (`react-refresh/only-export-components`). Si hace falta, el componente va a su propio
+  archivo (ver `features/articulos/ListaDeChips.tsx`, separado de `columnas.tsx`).
+- **Resetear estado cuando cambia una prop va con `useResetAlCambiar`**, que ajusta durante el render
+  (patrón oficial de React), no con `useEffect` + `setState`. Quedan ~23 advertencias de
+  `react-hooks/set-state-in-effect` de código anterior a esta regla: al tocar un archivo que las
+  tenga, migrarlo. Cuando no queden, subir la regla a `error` en `eslint.config.js`.
 - No cambiar comportamiento al refactorizar. Bug encontrado = se documenta y se pregunta;
   no se arregla en silencio.
 - Priorizar la claridad visual y simpleza de uso para todas las partes de la pagina ya que
   esta no será utilizada por un cliente técnico.
-- Los colores principales de la página son violeta (violet en tailwind) y amarillo (amber 
+- Los colores principales de la página son violeta (violet en tailwind) y amarillo (amber
   en tailwind). Utilizar estos colores para botones, hovers, borders, etc.
 - El desarrollo debe ser enfocado en uso en resoluciones de pantalla altas (PC) pero los
   elementos de la página deben adaptarse a resoluciones más pequeñas (Celular).
 - Al crear una nueva pagina se debe crear un botón en la sidebar para acceder a esta.
 
+## Ramas y deploy
+- **`main` = producción, protegida.** No acepta push directo: todo entra por Pull Request.
+  `testing` es la rama de trabajo diaria.
+- Mergear a `main` dispara el deploy automático, que **queda pausado esperando aprobación manual**
+  en GitHub. El deploy reinterrumpe el backend unos segundos: aprobarlo en un momento sin ventas.
+- El CI (`.github/workflows/ci.yml`) corre en cada PR a `main` y en cada push a `testing`:
+  tests de backend, typecheck, tests de frontend y lint. **Bloquea el merge si falla.**
+  El lint bloquea ante errores; las advertencias pendientes no frenan el merge.
+- **Si el cambio toca la base**, la migración se genera y se commitea ANTES de abrir el PR. El
+  workflow corre `prisma migrate deploy` solo, antes de reiniciar el backend.
+- **Nunca editar archivos en el VPS.** El deploy hace `git reset --hard origin/main` y borra
+  cualquier cambio local. Las únicas excepciones, fuera del control de git a propósito, son los
+  `.env` y `~/backup-db.sh`.
+- **El `printer-client` NO se despliega con el CI.** Vive en la PC del comercio (es Windows-only por
+  `pywin32`). Si se toca su código, hay que hacer `git pull` y reiniciar el servicio
+  `ImpresionCliente` a mano en esa máquina.
+- Nunca commitear `.env` ni volcados de la base (`*.dump`): contienen secretos y datos personales
+  de los clientes. Ya están en `.gitignore`.
+
+## Infraestructura (DonWeb)
+- La aplicación corre en un Cloud Server Ubuntu administrado con CloudPanel, en
+  `edindumentaria.store`. Tres servicios: `ed-backend` (Express, :5000), `ed-print` (FastAPI, :8001)
+  y nginx (:443). Postgres y los dos servicios escuchan solo en localhost.
+- El frontend son archivos estáticos servidos por nginx: no hay proceso que reiniciar. La config de
+  nginx se toca **desde el Vhost Editor de CloudPanel**, nunca editando `/etc/nginx/`: el panel
+  regenera esos archivos.
+- `ed-print` guarda la conexión con la impresora **en memoria**: reiniciarlo la desconecta. Por eso
+  el deploy automático no lo toca.
+- Backups automáticos a las 03:00 y 15:00 a `~/backups/<fecha>/` y de ahí a Dropbox vía rclone.
+  Incluyen los `.env`, así que la cuenta de Dropbox es parte de la superficie de seguridad.
+
+### Zona horaria (resuelto, pero sigue importando)
+- La base de producción y el SO del servidor están en `America/Buenos_Aires`. Verificable con
+  `SHOW TimeZone;` y con `date` (debe terminar en `-03`); el smoke test del deploy lo comprueba.
+- **Por qué importa para cualquier cambio nuevo**: con la base en UTC, todo lo que se sella con la
+  fecha del servidor se corre un día para las operaciones posteriores a las 21:00 hora argentina.
+  Afecta a `REMITOS.fecha_de_creacion` (default `now()`), al trigger `trg_fecha_de_emision` y sobre
+  todo a `REMITOS.cod_mes` (default `EXTRACT(month FROM now())`), que entra en el código visible del
+  remito: un remito del 31 a la noche quedaría numerado en el mes siguiente.
+- Vale para cualquier `now()` / `CURRENT_DATE` que se agregue en la base, y para cualquier
+  `new Date()` en el backend, donde manda el TZ del sistema operativo. Si una función nueva depende
+  de la fecha, fijar la zona explícitamente
+  (`(now() AT TIME ZONE 'America/Buenos_Aires')::date`) en vez de confiar en la configuración.
+
 ## General
-- ¡IMPORTANTE! La aplicación está siendo hosteada en una maquina de Ubuntu en la web.
 - Aplicar buenas practicas de seguridad al manejar funcionalidades bloqueadas por el rol del usuario.
+  El rol se lee SIEMPRE de la sesión del servidor (`res.locals.session`), nunca de un header ni del
+  body: el frontend esconde secciones, pero eso es cosmético y la API tiene que negarse igual.
 - Priorizar la reusabilidad en el desarrollo del codigo.
-
-## Migración a DonWeb: zona horaria (PENDIENTE)
-- ANTES de facturar nada en el servidor nuevo, fijar la zona horaria de la base:
-  `ALTER DATABASE <base> SET TimeZone = 'America/Buenos_Aires';` y verificar con `SHOW TimeZone;`.
-  La base actual ya está en `America/Buenos_Aires`; el default de Postgres en un server
-  limpio suele ser UTC.
-- Por qué: con la base en UTC, todo lo que se sella con la fecha del servidor se corre un día
-  para las operaciones posteriores a las 21:00 hora argentina. Afecta a `REMITOS.fecha_de_creacion`
-  (default `now()`), al trigger `trg_fecha_de_emision`, y sobre todo a `REMITOS.cod_mes`
-  (default `EXTRACT(month FROM now())`), que entra en el código visible del remito: un remito
-  del 31 a la noche quedaría numerado en el mes siguiente.
-- Vale para cualquier `now()` / `CURRENT_DATE` que se agregue en la base. En código JS usar
-  fechas del servidor de Node tiene el mismo problema: ahí el que manda es el TZ del SO.
-
-

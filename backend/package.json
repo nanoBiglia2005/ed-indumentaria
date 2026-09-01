@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "db:sync": "node scripts/db-sync.js",
+    "test": "node --test",
     "postinstall": "prisma generate"
   },
   "keywords": [],

@@ -1,5 +1,5 @@
 import { Navigate, useSearchParams } from 'react-router-dom';
-import { useSession, useCsrfToken } from '@/context/SessionContext';
+import { useSession, useCsrfToken } from '@/hooks/useSession';
 
 function LoginPage() {
   const { status } = useSession();

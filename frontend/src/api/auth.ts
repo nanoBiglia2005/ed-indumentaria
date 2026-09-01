@@ -1,6 +1,6 @@
 // Endpoints de Auth.js (montados en /auth por el backend).
 import { request } from './cliente';
-import type { SessionUser } from '@/context/SessionContext';
+import type { SessionUser } from '@/context/sesionContexto';
 
 export const obtenerSesion = () => request<{ user?: SessionUser } | null>('/auth/session');
 

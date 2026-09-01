@@ -65,7 +65,55 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
           script: |
-            set -e
+            set -euo pipefail
             sleep 5
-            curl -fsS http://127.0.0.1:5000/api/health
-            curl -fsS http://127.0.0.1:8001/health
+
+            # psql se autentica con ~/.pgpass (el mismo que usa backup-db.sh).
+            export PGUSER=ed_app PGHOST=localhost PGDATABASE=db_ed_indumentaria
+
+            # ------------------------------------------------------------------
+            #  Estas fallan el deploy
+            # ------------------------------------------------------------------
+
+            echo "-> backend responde y llega a Postgres"
+            curl -fsS http://127.0.0.1:5000/api/health > /dev/null
+
+            echo "-> print-service responde"
+            curl -fsS http://127.0.0.1:8001/health > /dev/null
+
+            echo "-> el frontend se sirve de verdad (no un 403 ni un index vacio)"
+            curl -fsS https://edindumentaria.store/ | grep -q 'id="root"'
+
+            echo "-> no quedaron migraciones sin aplicar"
+            cd ~/app/backend && npx prisma migrate status
+
+            # Si esto se rompe, los remitos se numeran mal despues de las 21:00
+            # (cod_mes sale del mes del servidor) y nadie se entera hasta fin de mes.
+            echo "-> zona horaria de la base"
+            psql -tAc "SHOW TimeZone;" | grep -qx "America/Buenos_Aires"
+
+            # Prisma no modela los triggers: si se pierden en una migracion, los
+            # articulos dejan de recibir barcode y los remitos, codigo.
+            echo "-> los 3 triggers siguen vivos"
+            test "$(psql -tAc 'SELECT count(*) FROM information_schema.triggers;')" = "3"
+
+            # Una secuencia desincronizada hace que el proximo INSERT choque
+            # contra la primary key. Es silencioso hasta la primera venta.
+            #
+            # El nombre esta escrito a mano porque en esta base son inconsistentes
+            # (REMITOS_id_remito_seq va en mayusculas, articulos_id_articulo_seq
+            # en minusculas). Para re-derivarlo:
+            #   SELECT pg_get_serial_sequence('"ARTICULOS"','id_articulo');
+            # Es >= y no >: recien despues de un alta, last_value == MAX(id).
+            echo "-> la secuencia de ARTICULOS no quedo atras de los datos"
+            test "$(psql -tAc 'SELECT (SELECT last_value FROM public.articulos_id_articulo_seq) >= (SELECT COALESCE(MAX(id_articulo),0) FROM "ARTICULOS");')" = "t"
+
+            # ------------------------------------------------------------------
+            #  Estas solo avisan: son condiciones del local, no defectos del deploy
+            # ------------------------------------------------------------------
+
+            curl -fsS http://127.0.0.1:8001/health | grep -q '"printer_connected":true' \
+              && echo "-> impresora conectada" \
+              || echo "AVISO: la impresora del local esta desconectada"
+
+            echo "Deploy verificado."

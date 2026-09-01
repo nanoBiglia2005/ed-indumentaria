@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useSession } from '@/context/SessionContext';
+import { useSession } from '@/hooks/useSession';
 
 /**
  * Deja pasar solo a los roles indicados. Va DENTRO de AuthGuard (que ya

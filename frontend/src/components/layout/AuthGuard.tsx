@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useSession } from '@/context/SessionContext';
+import { useSession } from '@/hooks/useSession';
 
 function AuthGuard() {
   const { status } = useSession();
