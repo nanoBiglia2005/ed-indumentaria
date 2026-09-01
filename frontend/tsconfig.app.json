@@ -27,5 +27,9 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Los tests se typechequean con Vitest, no con el build de produccion: con
+  // noUnusedLocals activo, una variable sin usar en un test romperia
+  // `npm run build` y por lo tanto el deploy.
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }

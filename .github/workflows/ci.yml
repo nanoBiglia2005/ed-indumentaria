@@ -1,0 +1,59 @@
+name: CI
+
+# Corre antes de que nada llegue a produccion: en cada PR hacia main y en cada
+# push a testing. El deploy (deploy.yml) solo se dispara despues del merge, asi
+# que este workflow es el unico control previo.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [testing]
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+
+    env:
+      # prisma generate exige DATABASE_URL para parsear la config, pero NO abre
+      # ninguna conexion: no hace falta un Postgres en CI. Es un valor de descarte.
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci?schema=public"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # ORDEN OBLIGATORIO: el postinstall del backend corre `prisma generate` y
+      # produce backend/generated/prisma, que esta gitignoreado. El typecheck del
+      # frontend lo necesita porque @backend/types importa de ahi. Si este paso
+      # va despues, `tsc -b` falla con "Cannot find module ./generated/prisma".
+      - name: Instalar backend (genera el cliente Prisma)
+        working-directory: backend
+        run: npm install
+
+      - name: Tests del backend
+        working-directory: backend
+        run: npm test
+
+      - name: Instalar frontend
+        working-directory: frontend
+        run: npm install
+
+      - name: Typecheck del frontend
+        working-directory: frontend
+        run: npx tsc -b
+
+      - name: Tests del frontend
+        working-directory: frontend
+        run: npm test
+
+      # Bloquea ante ERRORES. Quedan 24 advertencias pendientes de
+      # react-hooks/set-state-in-effect (ver el comentario de eslint.config.js):
+      # eslint sale con codigo 0 si solo hay warnings, asi que siguen visibles en
+      # cada corrida sin frenar el merge. Cuando esas 24 esten resueltas, subir la
+      # regla a 'error' en eslint.config.js y agregar --max-warnings 0 aca.
+      - name: Lint del frontend
+        working-directory: frontend
+        run: npm run lint

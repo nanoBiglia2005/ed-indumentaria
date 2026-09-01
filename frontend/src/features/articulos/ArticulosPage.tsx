@@ -289,6 +289,11 @@ function ArticulosPage() {
       }),
     [
       lineas,
+      // metodosDePago se carga async al montar (arranca en []). Sin esta
+      // dependencia, el memo devolvia las columnas calculadas con la lista
+      // vacia y las columnas de precio por metodo no aparecian; solo se veian
+      // si `lineas` resolvia despues y forzaba el recalculo por casualidad.
+      metodosDePago,
       grupoDeArticulo,
       subgrupoDeArticulo,
       abrirEdicionGrupo,

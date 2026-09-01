@@ -5,6 +5,7 @@ import type { ColumnaTabla, OpcionFiltro } from '@/components/tabla/tipos';
 import type { CampoEditable } from '@/features/articulos/modales/EditFieldModal';
 import type { ArticuloListado } from '@/api/articulos';
 import { codigoBarcodeCompleto } from '@/utils/barcode';
+import ListaDeChips from '@/features/articulos/ListaDeChips';
 
 // Medidas historicas de la tabla de articulos.
 export const ALTO_LINEA = 20;
@@ -14,33 +15,7 @@ export const MAX_LINEAS_CELDA = 4;
 export const ROW_HEIGHT = MAX_LINEAS_CELDA * ALTO_LINEA + PADDING_VERTICAL_FILA + BORDE_FILA;
 export const ANCHO_COL_SELECCION = 44;
 
-const CHIP_MAXIMO = 2;
-
-/** Chips con limite: muestra los primeros y un "+N" con el resto. */
-export function ListaDeChips({ nombres, vacioTexto }: { nombres: string[]; vacioTexto: string }) {
-  if (nombres.length === 0) {
-    return <span className='text-gray-400 text-sm italic'>{vacioTexto}</span>;
-  }
-
-  const visibles = nombres.slice(0, CHIP_MAXIMO);
-  const restantes = nombres.length - visibles.length;
-
-  return (
-    <span className='flex flex-wrap items-center gap-1'>
-      {visibles.map((nombre) => (
-        <span
-          key={nombre}
-          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-gray-700 shadow-sm'
-        >
-          {nombre}
-        </span>
-      ))}
-      {restantes > 0 && <span className='text-gray-500 font-medium'>+{restantes}</span>}
-    </span>
-  );
-}
-
-/** Version texto de la misma regla, para busqueda/orden. */
+/** Version texto de la misma regla que aplica ListaDeChips, para busqueda/orden. */
 const formatearListaConLimite = (nombres: string[], maximo = 2) => {
   if (nombres.length === 0) return null;
   if (nombres.length <= maximo) return nombres.join(', ');

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { ROLES_PRECIOS } from '@backend/types';
-import { useCsrfToken, useSession } from '@/context/SessionContext';
+import { useCsrfToken, useSession } from '@/hooks/useSession';
 
 type ItemId = 'articulos' | 'precios' | 'ventas' | 'configuracion' | 'historial';
 
