@@ -57,11 +57,17 @@ const construirPayloadTicket = (items, metodos, { id_remito = null, fecha = new 
   };
 };
 
+// El print-service espera hasta 10s el ack de la impresora
+// (JOB_ACK_TIMEOUT_SECONDS en print-service/main.py:13). Se corta un poco
+// despues para no dejar colgada la request del usuario si no responde nada.
+const TIMEOUT_IMPRESION_MS = 15000;
+
 const enviarTrabajoDeImpresion = async (payload) => {
   const respuesta = await fetch(`${PRINT_SERVICE_URL}/jobs`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ payload }),
+    signal: AbortSignal.timeout(TIMEOUT_IMPRESION_MS),
   });
 
   const resultado = await respuesta.json().catch(() => ({}));
