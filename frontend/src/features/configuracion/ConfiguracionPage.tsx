@@ -19,8 +19,16 @@ import EditRecargoModal from '@/features/configuracion/modales/EditRecargoModal'
 import SectionWrapper from '@/components/layout/SectionWrapper';
 import AgrupacionSection from '@/features/configuracion/AgrupacionSection';
 import type { ItemAgrupacion } from '@/features/configuracion/AgrupacionSection';
+import ImpresorasSection from '@/features/configuracion/ImpresorasSection';
+import { useSession } from '@/hooks/useSession';
+import { ROLES_ELIGEN_IMPRESORA } from '@backend/types';
 
 function ConfiguracionPage() {
+  // Esconder la seccion es cosmetico: la API rechaza igual a quien no puede
+  // administrar impresoras (routes/impresoras.js con requireRol).
+  const { user } = useSession();
+  const puedeAdministrarImpresoras = ROLES_ELIGEN_IMPRESORA.includes(user?.rol ?? '');
+
   const {
     datos: tiposDePago,
     cargando,
@@ -166,6 +174,12 @@ function ConfiguracionPage() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {puedeAdministrarImpresoras && (
+          <div className='mb-10'>
+            <ImpresorasSection />
           </div>
         )}
 

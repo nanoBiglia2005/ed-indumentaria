@@ -72,6 +72,11 @@ test('construirPayloadTicket devuelve exactamente las claves que lee el printer-
     'subtotal_efectivo',
     'subtotal_tarjeta',
   ]);
+
+  // A que impresora va el trabajo NO es parte del ticket: viaja en el body de
+  // /jobs (services/impresion.js). Meterlo en el payload obligaria a tocar el
+  // printer-client, que es justo lo que este contrato evita.
+  assert.equal(payload.id_impresora, undefined);
 });
 
 test('construirPayloadTicket calcula las dos columnas de precio', () => {

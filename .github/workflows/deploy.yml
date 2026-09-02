@@ -112,8 +112,17 @@ jobs:
             #  Estas solo avisan: son condiciones del local, no defectos del deploy
             # ------------------------------------------------------------------
 
-            curl -fsS http://127.0.0.1:8001/health | grep -q '"printer_connected":true' \
-              && echo "-> impresora conectada" \
-              || echo "AVISO: la impresora del local esta desconectada"
+            # El sistema soporta varias impresoras: se avisa si NINGUNA esta
+            # conectada. Que falte una en particular no se puede saber desde
+            # aca (puede estar apagada a proposito), por eso se imprime el
+            # estado completo para poder leerlo en el log del deploy.
+            ESTADO_IMPRESORAS=$(curl -fsS http://127.0.0.1:8001/health || echo '{}')
+            echo "-> estado del print-service: $ESTADO_IMPRESORAS"
+
+            echo "$ESTADO_IMPRESORAS" | grep -q '"conectada": *true' \
+              && echo "-> hay al menos una impresora conectada" \
+              || echo "AVISO: ninguna impresora del local esta conectada"
+
+            echo "-> impresoras activas registradas: $(psql -tAc 'SELECT count(*) FROM "IMPRESORAS" WHERE activa;' || echo '?')"
 
             echo "Deploy verificado."

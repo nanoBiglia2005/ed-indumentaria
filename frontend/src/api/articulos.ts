@@ -86,8 +86,13 @@ export const quitarCliente = (idArticulo: number, idCliente: number) =>
 
 // --- Impresion de etiquetas ---
 
-export const imprimirBarcode = (idArticulo: number, cantidad: number) =>
+/** `idImpresora` es opcional: el backend lo ignora si el rol no puede elegir. */
+export const imprimirBarcode = (
+  idArticulo: number,
+  cantidad: number,
+  idImpresora?: number | null
+) =>
   request<unknown>('/api/print', {
     metodo: 'POST',
-    cuerpo: { id_articulo: idArticulo, cantidad },
+    cuerpo: { id_articulo: idArticulo, cantidad, id_impresora: idImpresora ?? null },
   });

@@ -11,6 +11,17 @@ const { precioConRecargo } = require('./preciosPorMetodo');
 
 const PRINT_SERVICE_URL = process.env.PRINT_SERVICE_URL || 'http://localhost:8001';
 
+// Secreto compartido con el print-service (mismo valor en los dos .env). El
+// print-service escucha solo en localhost, pero /jobs sin autenticar significa
+// que cualquier proceso del VPS puede imprimir en el local; y el mismo secreto
+// protege el endpoint interno que el print-service usa para validar tokens.
+const PRINT_SERVICE_SECRET = process.env.PRINT_SERVICE_SECRET || '';
+
+const cabecerasDeServicio = () => ({
+  'Content-Type': 'application/json',
+  'X-Print-Secret': PRINT_SERVICE_SECRET,
+});
+
 const formatearFecha = (fecha) => {
   const valor = fecha ? new Date(fecha) : new Date();
   const dia = String(valor.getUTCDate()).padStart(2, '0');
@@ -62,11 +73,22 @@ const construirPayloadTicket = (items, metodos, { id_remito = null, fecha = new 
 // despues para no dejar colgada la request del usuario si no responde nada.
 const TIMEOUT_IMPRESION_MS = 15000;
 
-const enviarTrabajoDeImpresion = async (payload) => {
+// Las consultas de estado no esperan a ninguna impresora, solo a ed-print
+// contestando por localhost: si tarda mas que esto, esta caido.
+const TIMEOUT_ESTADO_MS = 2000;
+
+/**
+ * `id_impresora` viaja FUERA del payload, en el body de /jobs: el payload es un
+ * contrato congelado con el printer-client (ver el comentario de arriba y
+ * test/impresion.test.js), y a que impresora va el trabajo es cosa del
+ * print-service, no del ticket. Quien decide ese id es
+ * services/impresoras.js, con el rol de la sesion.
+ */
+const enviarTrabajoDeImpresion = async (payload, { id_impresora }) => {
   const respuesta = await fetch(`${PRINT_SERVICE_URL}/jobs`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ payload }),
+    headers: cabecerasDeServicio(),
+    body: JSON.stringify({ payload, id_impresora }),
     signal: AbortSignal.timeout(TIMEOUT_IMPRESION_MS),
   });
 
@@ -74,9 +96,49 @@ const enviarTrabajoDeImpresion = async (payload) => {
   return { respuesta, resultado };
 };
 
+/**
+ * Que impresoras tienen ahora mismo su printer-client conectado. Es informativo
+ * (lo muestra el ABM), asi que NUNCA puede hacer fallar la request: si ed-print
+ * no responde en 2s se devuelve la lista vacia y todas figuran desconectadas.
+ */
+const estadoDeImpresoras = async () => {
+  try {
+    const respuesta = await fetch(`${PRINT_SERVICE_URL}/health`, {
+      signal: AbortSignal.timeout(TIMEOUT_ESTADO_MS),
+    });
+    if (!respuesta.ok) return [];
+
+    const { impresoras } = await respuesta.json();
+    return Array.isArray(impresoras) ? impresoras : [];
+  } catch (error) {
+    console.error('No se pudo consultar el estado de las impresoras:', error.message);
+    return [];
+  }
+};
+
+/**
+ * Corta el websocket de una impresora. Se llama al regenerar su token: el
+ * print-service cachea la validacion 60s, asi que sin esto el printer-client
+ * viejo seguiria imprimiendo un rato con el token que ya no vale.
+ * Es best-effort: que falle no puede impedir la regeneracion.
+ */
+const desconectarImpresora = async (id_impresora) => {
+  try {
+    await fetch(`${PRINT_SERVICE_URL}/printers/${id_impresora}/disconnect`, {
+      method: 'POST',
+      headers: cabecerasDeServicio(),
+      signal: AbortSignal.timeout(TIMEOUT_ESTADO_MS),
+    });
+  } catch (error) {
+    console.error('No se pudo desconectar la impresora del print-service:', error.message);
+  }
+};
+
 module.exports = {
   formatearFecha,
   metodoConRecargo,
   construirPayloadTicket,
   enviarTrabajoDeImpresion,
+  estadoDeImpresoras,
+  desconectarImpresora,
 };

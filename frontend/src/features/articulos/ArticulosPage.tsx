@@ -16,6 +16,8 @@ import { useTablaServidor } from '@/components/tabla/useTablaServidor';
 import { SIN_ASIGNAR_ID } from '@/components/tabla/tipos';
 import type { OpcionFiltro } from '@/components/tabla/tipos';
 import SearchInput from '@/components/ui/SearchInput';
+import SelectorImpresora from '@/components/ui/SelectorImpresora';
+import { useImpresoras } from '@/hooks/useImpresoras';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToggleSet } from '@/hooks/useToggleSet';
 import { ApiError, mensajeDetallesPrimero } from '@/api/cliente';
@@ -123,6 +125,9 @@ function ArticulosPage() {
   const [imprimirMasivoAbierto, setImprimirMasivoAbierto] = useState(false);
 
   // --- Acciones por fila / masivas ---
+  // Solo para OFRECER la eleccion de impresora: el destino real lo resuelve el
+  // backend con el rol de la sesion.
+  const impresoras = useImpresoras();
   const [imprimiendoId, setImprimiendoId] = useState<number | null>(null);
   const [impresoId, setImpresoId] = useState<number | null>(null);
   const [actualizandoMasivo, setActualizandoMasivo] = useState(false);
@@ -216,7 +221,11 @@ function ArticulosPage() {
   const handleImprimir = async (articulo: ArticuloListado) => {
     setImprimiendoId(articulo.id_articulo);
     try {
-      const resultado = (await imprimirBarcode(articulo.id_articulo, 1)) as {
+      const resultado = (await imprimirBarcode(
+        articulo.id_articulo,
+        1,
+        impresoras.seleccionada
+      )) as {
         status?: string;
         message?: string;
         detail?: string;
@@ -465,7 +474,9 @@ function ArticulosPage() {
     let fallidos = 0;
     for (const id of ids) {
       try {
-        const resultado = (await imprimirBarcode(id, 1)) as { status?: string } | null;
+        const resultado = (await imprimirBarcode(id, 1, impresoras.seleccionada)) as {
+          status?: string;
+        } | null;
         if (resultado?.status === 'error') fallidos++;
       } catch {
         fallidos++;
@@ -491,14 +502,16 @@ function ArticulosPage() {
     }
   };
 
-  useEffect(() => {
-    if (
-      subgrupoSeleccionado !== null &&
-      !subgruposFiltrados.some((subgrupo) => subgrupo.id_subgrupo === subgrupoSeleccionado)
-    ) {
-      setSubgrupoSeleccionado(null);
-    }
-  }, [subgruposFiltrados, subgrupoSeleccionado]);
+  // Si al cambiar de grupo el subgrupo elegido ya no pertenece, se limpia. Va
+  // ajustado DURANTE el render (patron oficial de React, como el reset de
+  // pagina de mas arriba) y no con useEffect + setState: asi no hay un render
+  // intermedio mostrando un filtro que no corresponde.
+  if (
+    subgrupoSeleccionado !== null &&
+    !subgruposFiltrados.some((subgrupo) => subgrupo.id_subgrupo === subgrupoSeleccionado)
+  ) {
+    setSubgrupoSeleccionado(null);
+  }
 
   const idsClientesDelArticulo = articuloAEditar ? articuloAEditar.clientes.map((c) => c.id) : [];
 
@@ -559,12 +572,25 @@ function ArticulosPage() {
                 />
               </div>
             </div>
-            <SearchInput
-              valor={busquedaInput}
-              onCambio={setBusquedaInput}
-              placeholder='Buscar articulo...'
-              claseContenedor='relative w-72 flex items-center py-2'
-            />
+            <div className='flex items-end gap-3'>
+              {/* No se muestra a quien no puede elegir: sus etiquetas salen por
+                  la impresora predeterminada. */}
+              <div className='w-52'>
+                <SelectorImpresora
+                  impresoras={impresoras.impresoras}
+                  valor={impresoras.seleccionada}
+                  onChange={impresoras.setSeleccionada}
+                  puedeElegir={impresoras.puedeElegir}
+                  etiqueta='Etiquetas en'
+                />
+              </div>
+              <SearchInput
+                valor={busquedaInput}
+                onCambio={setBusquedaInput}
+                placeholder='Buscar articulo...'
+                claseContenedor='relative w-72 flex items-center py-2'
+              />
+            </div>
           </div>
 
           <DataGrid<ArticuloListado>

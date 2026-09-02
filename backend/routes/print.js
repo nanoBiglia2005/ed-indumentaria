@@ -5,6 +5,7 @@ const { asyncHandler, HttpError } = require('../lib/http');
 const { parseId } = require('../lib/validaciones');
 const { codigoBarcodeCompleto } = require('../lib/barcode');
 const { enviarTrabajoDeImpresion } = require('../services/impresion');
+const { resolverDestinoParaSesion } = require('../services/impresoras');
 
 const router = express.Router();
 
@@ -27,18 +28,28 @@ router.post(
       throw new HttpError(400, { message: 'El articulo no tiene codigo de barra para imprimir.' });
     }
 
+    // A que impresora va lo decide el servidor con el rol de la sesion: si este
+    // usuario no puede elegir, el id_impresora del body se ignora.
+    const { id_impresora } = await resolverDestinoParaSesion(
+      res.locals.session,
+      req.body.id_impresora ?? null
+    );
+
     // barcode_tail sigue viajando para los printer-client viejos, que arman el
     // codigo por su cuenta.
-    const { respuesta: printResponse, resultado: printResult } = await enviarTrabajoDeImpresion({
-      tipo: 'barcode',
-      id_articulo: articulo.id_articulo,
-      codigo,
-      barcode_tail: articulo.barcode_tail,
-      descripcion: articulo.descripcion,
-      precio: articulo.precio,
-      talle: articulo.talle,
-      cantidad,
-    });
+    const { respuesta: printResponse, resultado: printResult } = await enviarTrabajoDeImpresion(
+      {
+        tipo: 'barcode',
+        id_articulo: articulo.id_articulo,
+        codigo,
+        barcode_tail: articulo.barcode_tail,
+        descripcion: articulo.descripcion,
+        precio: articulo.precio,
+        talle: articulo.talle,
+        cantidad,
+      },
+      { id_impresora }
+    );
 
     if (!printResponse.ok) {
       return res.status(printResponse.status).json(printResult);

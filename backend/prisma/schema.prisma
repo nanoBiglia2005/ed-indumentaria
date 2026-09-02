@@ -136,11 +136,33 @@ model TIPOS_DE_PAGO {
 }
 
 model USUARIOS {
-  id_usuario Int          @id(map: "usuarios_pk") @default(autoincrement())
-  nombre     String?      @db.VarChar(20)
-  apellido   String?      @db.VarChar(20)
-  email      String?      @unique(map: "usuarios_email_key") @db.VarChar(255)
-  rol        rol_usuario?
+  id_usuario   Int          @id(map: "usuarios_pk") @default(autoincrement())
+  nombre       String?      @db.VarChar(20)
+  apellido     String?      @db.VarChar(20)
+  email        String?      @unique(map: "usuarios_email_key") @db.VarChar(255)
+  rol          rol_usuario?
+  /// Impresora preseleccionada de este usuario. Solo la usan los roles que
+  /// pueden elegir impresora (shared/impresion.json); el resto imprime siempre
+  /// en la predeterminada global.
+  id_impresora Int?
+  IMPRESORAS   IMPRESORAS?  @relation(fields: [id_impresora], references: [id_impresora], onDelete: SetNull, map: "usuarios_impresoras_fk")
+}
+
+/// Una fila por cada PC del comercio que corre un printer-client. El
+/// print-service rutea cada trabajo al websocket de la impresora que le indica
+/// el backend: nunca broadcast.
+model IMPRESORAS {
+  id_impresora      Int        @id(map: "impresoras_pk") @default(autoincrement())
+  nombre            String     @unique(map: "impresoras_nombre_key") @db.VarChar(40)
+  /// sha256 hex del token del printer-client. El token en claro no se guarda:
+  /// se muestra UNA sola vez, al crear la impresora o al regenerarlo.
+  token_hash        String     @unique(map: "impresoras_token_hash_key") @db.VarChar(64)
+  activa            Boolean    @default(true)
+  /// Destino de todo trabajo que no elige impresora (todos los empleados).
+  /// Un indice unico parcial garantiza que haya una sola en true.
+  es_predeterminada Boolean    @default(false)
+  fecha_creacion    DateTime   @default(now()) @db.Timestamptz(6)
+  USUARIOS          USUARIOS[]
 }
 
 model GRUPOS_DE_VENTA {

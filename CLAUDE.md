@@ -43,7 +43,8 @@
   `lib/validaciones.js`, `lib/http.js`, `lib/roles.js`, `services/preciosPorMetodo.js`,
   `services/impresion.js`, `services/pagosRemito.js`, `src/utils/precios.ts`, `src/utils/talles.ts`,
   `src/api/cliente.ts`, `src/features/ventas/pago/calculoPago.ts`,
-  `src/features/ventas/codigoRemito.ts`, `src/features/ventas/cliente/formatoCliente.ts`.
+  `src/features/ventas/codigoRemito.ts`, `src/features/ventas/cliente/formatoCliente.ts`,
+  `services/impresoras.js`, `services/remitos.js` (`itemsDeRemito`), `src/utils/impresoras.ts`.
 - **Los tests del frontend NO se typechequean**: Vitest transpila con esbuild sin verificar tipos, y
   los `*.test.ts` están excluidos de `tsconfig.app.json` (con `noUnusedLocals`, una variable sin usar
   en un test rompería el build y por lo tanto el deploy). Un error de tipos en un test es invisible.
@@ -63,6 +64,34 @@
 - **`construirPayloadTicket` es un contrato con otra máquina**: el `printer-client` lee claves fijas
   (`precio_efectivo`, `subtotal_tarjeta`, `total_tarjeta`). Renombrar una rompe la impresión en
   producción sin que nada acá falle. El test de forma del payload existe para eso.
+
+## Impresión (multi-impresora)
+- **Hay N impresoras**: una fila en `IMPRESORAS` por cada PC del local que corre un `printer-client`.
+  El `print-service` mantiene un `dict[id_impresora → WebSocket]` y rutea cada trabajo a ese socket:
+  **nunca broadcast**. Un ticket que sale en la impresora equivocada expone datos de otra venta y
+  nadie se entera.
+- **El destino se resuelve en el servidor**, en `services/impresoras.js` (`resolverImpresora`), con el
+  rol de `res.locals.session`. Si el rol no está en `ROLES_ELIGEN_IMPRESORA`, el `id_impresora` del
+  body se **ignora** (no es un 403: el trabajo sale por la predeterminada igual). El selector del
+  frontend es comodidad, no permiso. Hay un test que congela esto: es la regla central del módulo.
+- **`id_impresora` va FUERA del payload del ticket**, en el body de `POST /jobs`. Meterlo adentro
+  obligaría a tocar el `printer-client`, que es justo lo que el contrato congelado evita.
+- **Un token por impresora**, guardado hasheado (sha256) en `IMPRESORAS.token_hash`. Se muestra en
+  claro **una sola vez**; si se pierde, se regenera. El `print-service` no conoce los tokens: los
+  valida contra `POST /interno/impresoras/validar-token`, con caché de 60s.
+- **`/interno` se monta ANTES de `requireAuth`** en `index.js` (lo llama el print-service, no un
+  usuario) y se protege con `X-Print-Secret`. Nginx solo proxea `/api` y `/auth`, y Express escucha
+  en 127.0.0.1: no sale del VPS. Lo mismo protege `POST /jobs`.
+- **La impresora asignada a un usuario se lee de la base en cada impresión, NUNCA del JWT**: la sesión
+  de Auth.js cachea el usuario hasta el próximo login. (El `rol` sí viene del JWT y arrastra ese
+  problema, pero es preexistente de todo el sistema de roles.)
+- **Gana el último socket que conecta**: si una impresora reconecta, se cierra la conexión anterior. El
+  guard viejo hacía lo contrario y un socket medio abierto la dejaba afuera hasta reiniciar `ed-print`
+  — que es justo lo que el deploy no hace.
+- **`ed-print` se reinicia a mano** y eso desconecta a TODOS los printer-client unos segundos. El
+  `printer-client` de cada PC también se actualiza a mano, una por una.
+- **Ni el `print-service` ni el `printer-client` tienen tests automáticos** (no hay CI de Python): lo
+  que se toque ahí se verifica a mano con dos clientes conectados.
 
 ## Backend
 - Todas las llamadas a la API deben verificar si el usuario está loggeado antes de realizarse.

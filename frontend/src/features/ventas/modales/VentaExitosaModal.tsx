@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { RemitoCreado, TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
+import ReimprimirRemitoModal from '@/features/ventas/modales/ReimprimirRemitoModal';
 import { estiloLineClamp, formatearFecha, formatearPesos } from '@/utils/formato';
 import { codigoRemito } from '@/features/ventas/codigoRemito';
 import { nombreCompleto } from '@/features/ventas/cliente/formatoCliente';
@@ -36,6 +38,11 @@ export default function VentaExitosaModal({
   onCerrar,
   onSeguirAlPago,
 }: VentaExitosaModalProps) {
+  // El caso mas frecuente de reimpresion es este: la impresora estaba
+  // desconectada justo al vender. Se ofrece aca para no obligar a ir al
+  // historial a buscar el remito.
+  const [reintentando, setReintentando] = useState(false);
+
   // Los remitos anteriores al trigger de la base no tienen numero: se cae al id.
   const codigo = remito
     ? codigoRemito(remito.cod_mes, remito.cod_remito_final) ?? `#${remito.id_remito}`
@@ -71,9 +78,18 @@ export default function VentaExitosaModal({
       </p>
 
       {remito?.impresion?.status === 'error' && (
-        <div className='mb-4 flex flex-col rounded border border-amber-400 bg-amber-100 p-3 text-amber-800'>
-          <span>La venta se guardó, pero no se pudo imprimir el remito.</span>
-          <span className='text-xs text-amber-700'>{remito.impresion.message}</span>
+        <div className='mb-4 flex flex-wrap items-center justify-between gap-3 rounded border border-amber-400 bg-amber-100 p-3 text-amber-800'>
+          <div className='flex flex-col'>
+            <span>La venta se guardó, pero no se pudo imprimir el remito.</span>
+            <span className='text-xs text-amber-700'>{remito.impresion.message}</span>
+          </div>
+          <button
+            type='button'
+            onClick={() => setReintentando(true)}
+            className='shrink-0 cursor-pointer rounded bg-amber-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-amber-600'
+          >
+            Reintentar impresión
+          </button>
         </div>
       )}
 
@@ -175,6 +191,12 @@ export default function VentaExitosaModal({
           </div>
         </div>
       )}
+
+      <ReimprimirRemitoModal
+        abierto={reintentando}
+        onCerrar={() => setReintentando(false)}
+        remito={remito}
+      />
     </BaseModal>
   );
 }

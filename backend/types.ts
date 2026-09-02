@@ -6,6 +6,7 @@ import roles from './shared/roles.json';
 import precios from './shared/precios.json';
 import clientes from './shared/clientes.json';
 import metodosPago from './shared/metodosPago.json';
+import impresion from './shared/impresion.json';
 
 /**
  * FACHADA de tipos del backend para el frontend.
@@ -49,6 +50,19 @@ export const BARCODE_MAX = barcode.BARCODE_MAX;
  * shared/roles.json (el backend CommonJS lo lee via constants/roles.js).
  */
 export const ROLES_PRECIOS: readonly string[] = roles.ROLES_PRECIOS;
+
+/**
+ * Roles que pueden ELEGIR a que impresora va un trabajo (y administrar el
+ * registro de impresoras). El resto imprime siempre en la predeterminada
+ * global. El frontend la usa para esconder el selector; QUIEN DECIDE de verdad
+ * es services/impresoras.js con el rol de la sesion: si un empleado manda
+ * `id_impresora` a mano, el backend lo ignora. Fuente unica:
+ * shared/impresion.json (el backend CommonJS lo lee via constants/impresion.js).
+ */
+export const ROLES_ELIGEN_IMPRESORA: readonly string[] = impresion.ROLES_ELIGEN_IMPRESORA;
+
+/** Largo maximo del nombre de una impresora (columna IMPRESORAS.nombre). */
+export const NOMBRE_IMPRESORA_MAX = impresion.NOMBRE_IMPRESORA_MAX;
 
 /**
  * Limites de la actualizacion masiva de precios: el input de la pagina y la
