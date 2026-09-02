@@ -117,9 +117,27 @@ const buscarRemitoPendiente = (idParam) =>
     'El remito ya no esta pendiente: no se puede modificar.'
   );
 
+/**
+ * Lineas de un remito YA guardado, con la forma que espera
+ * construirPayloadTicket. Es lo que usa la reimpresion.
+ *
+ * Usa el precio CONGELADO del detalle, nunca el precio actual del articulo:
+ * reimprimir un remito viejo tiene que dar el mismo ticket que se imprimio ese
+ * dia. Si el articulo cambio de precio (o lo borraron) eso no puede alterar un
+ * comprobante ya emitido.
+ */
+const itemsDeRemito = (remito) =>
+  (remito.DETALLES_REMITO ?? []).map((detalle) => ({
+    id_articulo: detalle.id_articulo,
+    descripcion: detalle.ARTICULOS?.descripcion ?? `Articulo ${detalle.id_articulo}`,
+    cantidad: detalle.cantidad,
+    precio: detalle.precio,
+  }));
+
 module.exports = {
   remitosInclude,
   resolverItemsVenta,
   buscarRemitoEnEstado,
   buscarRemitoPendiente,
+  itemsDeRemito,
 };

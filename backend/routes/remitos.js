@@ -13,13 +13,40 @@ const {
   resolverItemsVenta,
   buscarRemitoEnEstado,
   buscarRemitoPendiente,
+  itemsDeRemito,
 } = require('../services/remitos');
 const { listarMetodosDePago, remitoConTotales } = require('../services/preciosPorMetodo');
 const { parsearPagos, registrarCobro } = require('../services/pagosRemito');
 const { parsearDatosCliente, obtenerCliente } = require('../services/clientesFinales');
 const { construirPayloadTicket, enviarTrabajoDeImpresion } = require('../services/impresion');
+const { resolverDestinoParaSesion } = require('../services/impresoras');
 
 const router = express.Router();
+
+/**
+ * Manda el ticket de un remito e interpreta la respuesta del print-service.
+ * Lanza si no se pudo imprimir; cada llamador decide que hacer con eso (la
+ * venta lo traga y avisa, la reimpresion lo propaga como error de la request).
+ */
+const imprimirTicketDeRemito = async ({ session, idImpresoraPedida, items, metodos, remito }) => {
+  const { id_impresora } = await resolverDestinoParaSesion(session, idImpresoraPedida);
+
+  const { respuesta, resultado } = await enviarTrabajoDeImpresion(
+    construirPayloadTicket(items, metodos, {
+      id_remito: remito.id_remito,
+      fecha: remito.fecha_de_creacion,
+    }),
+    { id_impresora }
+  );
+
+  if (!respuesta.ok || resultado.status === 'error') {
+    const error = new Error(
+      resultado.message ?? resultado.detail ?? 'No se pudo imprimir el remito.'
+    );
+    error.status = respuesta.status;
+    throw error;
+  }
+};
 
 // Todo remito viaja con `totales_por_metodo`: cuanto costaria cobrarlo con cada
 // metodo de pago. NO esta guardado en la base, se calcula con el recargo
@@ -125,16 +152,13 @@ router.post(
     if (req.body.imprimir !== false) {
       impresion = { status: 'ok' };
       try {
-        const { respuesta, resultado } = await enviarTrabajoDeImpresion(
-          construirPayloadTicket(items, metodos, {
-            id_remito: nuevoRemito.id_remito,
-            fecha: nuevoRemito.fecha_de_creacion,
-          })
-        );
-
-        if (!respuesta.ok || resultado.status === 'error') {
-          throw new Error(resultado.message ?? resultado.detail ?? 'No se pudo imprimir el remito.');
-        }
+        await imprimirTicketDeRemito({
+          session: res.locals.session,
+          idImpresoraPedida: req.body.id_impresora ?? null,
+          items,
+          metodos,
+          remito: nuevoRemito,
+        });
       } catch (errorImpresion) {
         console.error('Error al imprimir el remito:', errorImpresion);
         impresion = { status: 'error', message: errorImpresion.message };
@@ -214,6 +238,55 @@ router.put(
       hacia: ESTADO_DEVUELTO,
     });
   }, 'Error al devolver la venta.')
+);
+
+/**
+ * Reimprime el ticket de un remito ya guardado. Existe porque la impresion de
+ * la venta es best-effort: si la impresora estaba desconectada, o si se eligio
+ * la equivocada, hasta ahora no habia forma de volver a emitirlo.
+ *
+ * NO se puede reimprimir un remito anulado ni devuelto: esa venta ya no existe
+ * comercialmente y un ticket suyo circulando es peor que ninguno.
+ */
+router.post(
+  '/:id_remito/reimprimir',
+  asyncHandler(async (req, res) => {
+    const id_remito = parseId(req.params.id_remito, 'El id del remito debe ser un numero.');
+
+    const remito = await prisma.REMITOS.findUnique({
+      where: { id_remito },
+      include: remitosInclude,
+    });
+
+    if (!remito) {
+      throw new HttpError(404, { message: 'El remito no existe.' });
+    }
+    if (remito.id_estado !== ESTADO_CONFIRMADO && remito.id_estado !== ESTADO_FACTURADO) {
+      throw new HttpError(409, {
+        message: 'No se puede reimprimir una venta anulada o devuelta.',
+      });
+    }
+
+    const metodos = await listarMetodosDePago();
+
+    try {
+      await imprimirTicketDeRemito({
+        session: res.locals.session,
+        idImpresoraPedida: req.body.id_impresora ?? null,
+        items: itemsDeRemito(remito),
+        metodos,
+        remito,
+      });
+    } catch (errorImpresion) {
+      // A diferencia de la venta, aca imprimir ES la accion: si falla, falla la
+      // request. Se propaga el status del print-service (503 desconectada, 504
+      // sin respuesta) para que el frontend distinga el motivo.
+      if (errorImpresion instanceof HttpError) throw errorImpresion;
+      throw new HttpError(errorImpresion.status ?? 502, { message: errorImpresion.message });
+    }
+
+    res.status(200).json({ status: 'ok' });
+  }, 'Error al reimprimir el remito.')
 );
 
 module.exports = router;

@@ -19,7 +19,22 @@ export const crearRemito = (cuerpo: {
   imprimir: boolean;
   id_cliente: number | null;
   cliente?: DatosClienteAPI;
+  /** A que impresora va el ticket. El backend lo ignora si el rol no puede elegir. */
+  id_impresora?: number | null;
 }) => request<RemitoCreado>('/api/remitos', { metodo: 'POST', cuerpo });
+
+/**
+ * Vuelve a imprimir el ticket de un remito ya guardado. Existe porque la
+ * impresion de la venta es best-effort: si la impresora estaba desconectada, o
+ * si se eligio la equivocada, no habia forma de reemitirlo.
+ *
+ * A diferencia de crearRemito, aca imprimir ES la accion: si falla, lanza.
+ */
+export const reimprimirRemito = (idRemito: number, idImpresora?: number | null) =>
+  request<{ status: 'ok' }>(`/api/remitos/${idRemito}/reimprimir`, {
+    metodo: 'POST',
+    cuerpo: { id_impresora: idImpresora ?? null },
+  });
 
 /** Un metodo de pago con lo que se le imputa del precio de la venta. */
 export interface PagoDeRemito {

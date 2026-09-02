@@ -14,6 +14,8 @@ import { aDatosAPI } from '@/features/ventas/cliente/formatoCliente';
 import { useClienteDeVenta } from '@/features/ventas/cliente/useClienteDeVenta';
 import { totalesDeLineas } from '@/features/ventas/pago/calculoPago';
 import PaymentIcon from '@/components/ui/PaymentIcon';
+import SelectorImpresora from '@/components/ui/SelectorImpresora';
+import { useImpresoras } from '@/hooks/useImpresoras';
 
 const MAX_LINEAS_DESCRIPCION = 3;
 
@@ -60,8 +62,16 @@ export default function NuevaVentaModal({
   const [error, setError] = useState<string | null>(null);
 
   const cliente = useClienteDeVenta();
+  // Solo se usa para OFRECER la eleccion: quien decide el destino real es el
+  // backend con el rol de la sesion.
+  const impresoras = useImpresoras();
 
   const isLoading = accionEnCurso !== null;
+
+  const impresoraElegida =
+    impresoras.impresoras.find(
+      (impresora) => impresora.id_impresora === impresoras.seleccionada
+    ) ?? null;
 
   const resetForm = () => {
     setProductos([]);
@@ -199,6 +209,9 @@ export default function NuevaVentaModal({
         })),
         imprimir,
         id_cliente: cliente.asignado?.id_cliente ?? null,
+        // Solo lo mira el backend si este rol puede elegir impresora; si no,
+        // el ticket sale por la predeterminada igual.
+        id_impresora: impresoras.seleccionada,
         ...(cliente.asignado && cliente.hayCambios ? { cliente: aDatosAPI(cliente.borrador) } : {}),
       });
 
@@ -238,7 +251,16 @@ export default function NuevaVentaModal({
         clasePanel='select-none'
         error={error ? { titulo: 'Error al registrar la venta', detalle: error } : null}
         footer={
-          <div className='flex w-full flex-col gap-3 sm:flex-row'>
+          <div className='flex w-full flex-col gap-3 sm:flex-row sm:items-end'>
+            <div className='sm:w-56'>
+              <SelectorImpresora
+                impresoras={impresoras.impresoras}
+                valor={impresoras.seleccionada}
+                onChange={impresoras.setSeleccionada}
+                puedeElegir={impresoras.puedeElegir}
+                deshabilitado={isLoading}
+              />
+            </div>
             <button
               onClick={() => handlePedirConfirmacion(true)}
               disabled={isLoading}
@@ -433,6 +455,7 @@ export default function NuevaVentaModal({
         metodos={metodosConRecargo}
         cargando={isLoading}
         conImpresion={ventaAConfirmar === 'con-impresion'}
+        nombreImpresora={impresoras.puedeElegir ? impresoraElegida?.nombre ?? null : null}
         onCerrar={() => setVentaAConfirmar(null)}
         onConfirmar={handleConfirmar}
       />

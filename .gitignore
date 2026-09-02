@@ -11,3 +11,11 @@
 .env
 .env.*
 !.env.example
+
+# printer-client: cliente de impresion para Windows.
+#
+# Vive en la PC del comercio y NO se despliega con el CI (es Windows-only por
+# pywin32): se actualiza a mano, maquina por maquina. Queda fuera del repo a
+# proposito. Git no entra al directorio, asi que ninguna regla de mas abajo
+# puede volver a incluir un archivo de adentro (ni siquiera un .env.example).
+printer-client/

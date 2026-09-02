@@ -26,6 +26,8 @@ interface ConfirmarVentaModalProps {
   cargando: boolean;
   /** true = confirmar tambien imprime el ticket. */
   conImpresion: boolean;
+  /** Nombre de la impresora de destino; null si el usuario no elige (empleado). */
+  nombreImpresora?: string | null;
   onCerrar: () => void;
   onConfirmar: () => void;
 }
@@ -44,6 +46,7 @@ export default function ConfirmarVentaModal({
   metodos,
   cargando,
   conImpresion,
+  nombreImpresora = null,
   onCerrar,
   onConfirmar,
 }: ConfirmarVentaModalProps) {
@@ -60,23 +63,30 @@ export default function ConfirmarVentaModal({
       z='z-[60]'
       clasePanel='select-none'
       footer={
-        <div className='flex w-full flex-col gap-3 sm:flex-row'>
-          <button
-            type='button'
-            onClick={onCerrar}
-            disabled={cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60'
-          >
-            Cancelar
-          </button>
-          <button
-            type='button'
-            onClick={onConfirmar}
-            disabled={cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-700 rounded-md hover:bg-violet-800 disabled:bg-violet-400 disabled:cursor-not-allowed transition-colors cursor-pointer'
-          >
-            {cargando ? (conImpresion ? 'Imprimiendo...' : 'Registrando...') : 'Confirmar'}
-          </button>
+        <div className='flex w-full flex-col gap-3'>
+          {conImpresion && nombreImpresora && (
+            <p className='text-center text-sm text-gray-500'>
+              Se imprime en <span className='font-semibold text-gray-700'>{nombreImpresora}</span>
+            </p>
+          )}
+          <div className='flex w-full flex-col gap-3 sm:flex-row'>
+            <button
+              type='button'
+              onClick={onCerrar}
+              disabled={cargando}
+              className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60'
+            >
+              Cancelar
+            </button>
+            <button
+              type='button'
+              onClick={onConfirmar}
+              disabled={cargando}
+              className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-700 rounded-md hover:bg-violet-800 disabled:bg-violet-400 disabled:cursor-not-allowed transition-colors cursor-pointer'
+            >
+              {cargando ? (conImpresion ? 'Imprimiendo...' : 'Registrando...') : 'Confirmar'}
+            </button>
+          </div>
         </div>
       }
     >

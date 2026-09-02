@@ -60,6 +60,8 @@ interface RemitoCardProps {
   onAnular?: (remito: RemitoConDetalles) => void;
   /** Solo se ofrece sobre ventas FACTURADAS (ver `puedeDevolver`). */
   onDevolver?: (remito: RemitoConDetalles) => void;
+  /** Solo sobre ventas vigentes (ver `puedeReimprimir`): una anulada no se reimprime. */
+  onReimprimir?: (remito: RemitoConDetalles) => void;
 }
 
 function RemitoCard({
@@ -70,6 +72,7 @@ function RemitoCard({
   onPagar,
   onAnular,
   onDevolver,
+  onReimprimir,
 }: RemitoCardProps) {
   const metodosConRecargo = metodos.filter((metodo) => metodo.recargo > 0);
 
@@ -79,7 +82,12 @@ function RemitoCard({
   // Devolver solo tiene sentido sobre una venta ya cobrada: la lista del
   // historial mezcla estados, asi que se filtra por remito y no por pagina.
   const puedeDevolver = Boolean(onDevolver) && remito.id_estado === ESTADO_FACTURADO;
-  const hayAcciones = Boolean(onPagar || onAnular) || puedeDevolver;
+  // Un remito anulado o devuelto ya no existe comercialmente: un ticket suyo
+  // circulando es peor que ninguno.
+  const puedeReimprimir =
+    Boolean(onReimprimir) &&
+    (remito.id_estado === ESTADO_CONFIRMADO || remito.id_estado === ESTADO_FACTURADO);
+  const hayAcciones = Boolean(onPagar || onAnular) || puedeDevolver || puedeReimprimir;
 
   // shrink-0: dentro de la lista en columna, si no, las tarjetas se aplastan
   // en vez de dejar scrollear cuando hay muchas ventas.
@@ -164,6 +172,14 @@ function RemitoCard({
                   abierto ? 'opacity-100 duration-500' : 'opacity-0 duration-150'
                 }`}
               >
+                {puedeReimprimir && (
+                  <div
+                    onClick={() => onReimprimir?.(remito)}
+                    className='rounded border border-amber-500 px-3 py-1 font-semibold text-amber-600 cursor-pointer transition-colors duration-100 ease-in hover:bg-amber-500 hover:text-white'
+                  >
+                    Reimprimir
+                  </div>
+                )}
                 {onPagar && (
                   <div
                     onClick={() => onPagar(remito)}

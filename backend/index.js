@@ -35,6 +35,11 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Servicio-a-servicio: lo llama el print-service por localhost, sin sesion de
+// Auth.js. Va antes de requireAuth y se protege con su propio secreto
+// (routes/interno.js); nginx no proxea /interno.
+app.use('/interno', require('./routes/interno'));
+
 app.use('/auth', async (req, res, next) => (await authModule).authHandler(req, res, next));
 app.use('/api', async (req, res, next) => (await authModule).requireAuth(req, res, next));
 
@@ -45,6 +50,7 @@ app.use('/api/venta', require('./routes/venta'));
 app.use('/api/tipos-de-pago', require('./routes/tiposDePago'));
 app.use('/api/remitos', require('./routes/remitos'));
 app.use('/api/print', require('./routes/print'));
+app.use('/api/impresoras', require('./routes/impresoras'));
 app.use('/api/articulos', require('./routes/articulos'));
 app.use('/api/grupos', require('./routes/grupos'));
 app.use('/api/subgrupos', require('./routes/subgrupos'));
