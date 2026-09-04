@@ -15,20 +15,18 @@ jobs:
     environment: produccion  # exige la aprobación configurada en el paso 0.8c
 
     steps:
-      - name: Desplegar por SSH
+      - name: Actualizar código e instalar dependencias del backend
         uses: appleboy/ssh-action@v1
         with:
           host:     ${{ secrets.VPS_HOST }}
           port:     ${{ secrets.VPS_PORT }}   # 5299 en DonWeb, NO el 22 por defecto
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
-          command_timeout: 15m     # el build del frontend puede tardar
+          script_stop: true
+          command_timeout: 5m
           script: |
             set -euo pipefail
-            SITIO=$HOME
-            DOMINIO="edindumentaria.store"
-
-            cd "$SITIO/app"
+            cd ~/app
 
             # Deja el working tree EXACTAMENTE igual a origin/main.
             # Los .env estan gitignored, asi que no se tocan.
@@ -40,13 +38,48 @@ jobs:
             cd backend
             npm install
 
-            # Aplica las migraciones PENDIENTES antes de reiniciar el backend
-            # (Fase 3.7). "deploy" nunca resetea ni pide confirmacion; si una
-            # migracion falla, script_stop corta aca y el backend sigue corriendo
-            # con el codigo viejo, que es lo correcto.
+      # Paso aislado a proposito, con timeout corto (incidente 2026-09-02: un
+      # ALTER TABLE quedo encolado 57 min detras de conexiones de ed-backend,
+      # colgando logins e impresiones porque USUARIOS es una tabla caliente).
+      # Con este step aparte, un deploy que choca contra un lock falla en
+      # minutos -y libera el advisory lock de Prisma- en vez de agotar los
+      # 15 minutos del step de build y dejar un proceso zombie del otro lado
+      # de un SSH ya cortado.
+      #
+      # La defensa de fondo es a nivel de rol: `ALTER ROLE ed_app SET
+      # lock_timeout = '5s'` (aplicado a mano en el VPS, no versionado —
+      # Postgres no tiene "migracion de rol"). Cualquier DDL que esa cuenta
+      # no pueda tomar en 5s aborta solo, sin depender de que cada migracion
+      # futura se acuerde de declararlo.
+      - name: Aplicar migraciones de la base
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          port:     ${{ secrets.VPS_PORT }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          command_timeout: 2m
+          script: |
+            set -euo pipefail
+            cd ~/app/backend
             npx prisma migrate deploy
 
-            cd ../frontend
+      - name: Compilar y publicar el frontend, reiniciar el backend
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          port:     ${{ secrets.VPS_PORT }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          command_timeout: 10m     # el build del frontend puede tardar
+          script: |
+            set -euo pipefail
+            SITIO=$HOME
+            DOMINIO="edindumentaria.store"
+
+            cd "$SITIO/app/frontend"
             npm install
             npm run build
 
@@ -56,6 +89,14 @@ jobs:
             rsync -a --delete dist/ "$SITIO/htdocs/$DOMINIO/"
 
             sudo systemctl restart ed-backend
+
+            # Mantiene el venv al dia con requirements.txt SIN reiniciar el
+            # servicio (ed-print no se reinicia en cada deploy a proposito:
+            # cortaria las impresoras conectadas sin necesidad, ver el
+            # comentario de ed-print.service). Que la dependencia ya este
+            # instalada evita repetir el ModuleNotFoundError del 2026-09-02
+            # la proxima vez que alguien reinicie el servicio a mano.
+            "$SITIO/app/print-service/.venv/bin/pip" install -q -r "$SITIO/app/print-service/requirements.txt"
 
       - name: Verificar que quedó sano
         uses: appleboy/ssh-action@v1

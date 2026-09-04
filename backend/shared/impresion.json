@@ -1,4 +1,5 @@
 {
   "ROLES_ELIGEN_IMPRESORA": ["admin", "superadmin"],
+  "ROLES_ADMINISTRAN_IMPRESORAS": ["superadmin"],
   "NOMBRE_IMPRESORA_MAX": 40
 }

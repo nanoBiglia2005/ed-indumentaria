@@ -2,8 +2,15 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { aId, parseId, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
+const { requireRol } = require('../lib/roles');
+const { ROLES_ARTICULOS } = require('../constants/roles');
 
 const router = express.Router();
+
+// ABM de colegios/clubes: Articulos/Configuracion. Ventas resuelve el cliente
+// de una venta con sus propios endpoints (/api/venta/clientes, crearCliente y
+// actualizarCliente de ese mismo router), nunca por aca.
+router.use(requireRol(...ROLES_ARTICULOS));
 
 router.get(
   '/',

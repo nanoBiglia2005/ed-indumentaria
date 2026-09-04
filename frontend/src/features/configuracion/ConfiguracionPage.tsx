@@ -21,13 +21,15 @@ import AgrupacionSection from '@/features/configuracion/AgrupacionSection';
 import type { ItemAgrupacion } from '@/features/configuracion/AgrupacionSection';
 import ImpresorasSection from '@/features/configuracion/ImpresorasSection';
 import { useSession } from '@/hooks/useSession';
-import { ROLES_ELIGEN_IMPRESORA } from '@backend/types';
+import { ROLES_ADMINISTRAN_IMPRESORAS } from '@backend/types';
 
 function ConfiguracionPage() {
   // Esconder la seccion es cosmetico: la API rechaza igual a quien no puede
-  // administrar impresoras (routes/impresoras.js con requireRol).
+  // administrar impresoras (routes/impresoras.js con requireRol). Un admin
+  // sigue pudiendo ELEGIR a que impresora imprime en Articulos/Ventas
+  // (ROLES_ELIGEN_IMPRESORA); administrar el registro es superadmin-only.
   const { user } = useSession();
-  const puedeAdministrarImpresoras = ROLES_ELIGEN_IMPRESORA.includes(user?.rol ?? '');
+  const puedeAdministrarImpresoras = ROLES_ADMINISTRAN_IMPRESORAS.includes(user?.rol ?? '');
 
   const {
     datos: tiposDePago,

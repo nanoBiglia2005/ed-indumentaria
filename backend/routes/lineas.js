@@ -4,9 +4,13 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
+const { requireRol } = require('../lib/roles');
+const { ROLES_ARTICULOS } = require('../constants/roles');
 
 const router = express.Router();
 
+// El listado NO se restringe: el modal de agregar producto en Ventas tambien
+// lo usa para filtrar por linea (AgregarProductoModal, via /api/lineas).
 router.get(
   '/',
   asyncHandler(async (req, res) => {
@@ -17,8 +21,10 @@ router.get(
 
 // Crear una nueva linea. El nombre no puede repetirse (sin distinguir
 // mayusculas/minusculas ni espacios al principio/final).
+// El ABM (crear/editar/eliminar) si es exclusivo de Articulos/Configuracion.
 router.post(
   '/',
+  requireRol(...ROLES_ARTICULOS),
   asyncHandler(async (req, res) => {
     const nombre_linea = normalizarNombre(req.body.nombre_linea);
     if (!nombre_linea) {
@@ -38,6 +44,7 @@ router.post(
 // excluyendose a si misma de la comparacion.
 router.put(
   '/:id_linea',
+  requireRol(...ROLES_ARTICULOS),
   asyncHandler(async (req, res) => {
     const id_linea = parseId(req.params.id_linea, 'El id de la línea debe ser un numero.');
 
@@ -67,6 +74,7 @@ router.put(
 // asociaciones en GRUPOS_X_LINEAS son ON DELETE CASCADE.
 router.delete(
   '/:id_linea',
+  requireRol(...ROLES_ARTICULOS),
   asyncHandler(async (req, res) => {
     const id_linea = parseId(req.params.id_linea, 'El id de la línea debe ser un numero.');
 

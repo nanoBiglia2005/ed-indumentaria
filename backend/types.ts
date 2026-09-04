@@ -52,14 +52,52 @@ export const BARCODE_MAX = barcode.BARCODE_MAX;
 export const ROLES_PRECIOS: readonly string[] = roles.ROLES_PRECIOS;
 
 /**
- * Roles que pueden ELEGIR a que impresora va un trabajo (y administrar el
- * registro de impresoras). El resto imprime siempre en la predeterminada
- * global. El frontend la usa para esconder el selector; QUIEN DECIDE de verdad
- * es services/impresoras.js con el rol de la sesion: si un empleado manda
- * `id_impresora` a mano, el backend lo ignora. Fuente unica:
- * shared/impresion.json (el backend CommonJS lo lee via constants/impresion.js).
+ * Roles que pueden entrar a la pagina de Articulos y a su ABM completo
+ * (grupos, subgrupos, colegios/clubes, alta/baja de lineas, imprimir
+ * etiquetas). El rol "empleado" queda afuera: solo tiene acceso a Ventas.
+ * QUIEN DECIDE de verdad es el backend (articulos.js, grupos.js, subgrupos.js,
+ * clientes.js, print.js y asociaciones.js, todos con requireRol; el GET de
+ * lineas.js es la unica excepcion, porque Ventas tambien lo necesita). Fuente
+ * unica: shared/roles.json.
+ */
+export const ROLES_ARTICULOS: readonly string[] = roles.ROLES_ARTICULOS;
+
+/**
+ * Roles que pueden entrar a Configuracion y editar el recargo de un medio de
+ * pago. Ni "empleado" ni "ventas" estan en la lista. QUIEN DECIDE de verdad
+ * es el backend (routes/tiposDePago.js con requireRol). Fuente unica:
+ * shared/roles.json.
+ */
+export const ROLES_CONFIGURACION: readonly string[] = roles.ROLES_CONFIGURACION;
+
+/**
+ * Roles que pueden ver el listado historico de remitos. Los pendientes de
+ * cobro (pagina de Ventas) no usan esta lista: todos los roles los siguen
+ * viendo. QUIEN DECIDE de verdad es el backend (routes/remitos.js con
+ * requireRol). Fuente unica: shared/roles.json.
+ */
+export const ROLES_HISTORIAL: readonly string[] = roles.ROLES_HISTORIAL;
+
+/**
+ * Roles que pueden ELEGIR a que impresora va UN TRABAJO puntual (un ticket o
+ * una etiqueta), en Articulos/Ventas. El resto imprime siempre en la
+ * predeterminada o en la asignada. El frontend la usa para esconder el
+ * selector; QUIEN DECIDE de verdad es services/impresoras.js con el rol de la
+ * sesion: si alguien manda `id_impresora` a mano, el backend lo ignora si no
+ * corresponde. Fuente unica: shared/impresion.json (el backend CommonJS lo lee
+ * via constants/impresion.js).
  */
 export const ROLES_ELIGEN_IMPRESORA: readonly string[] = impresion.ROLES_ELIGEN_IMPRESORA;
+
+/**
+ * Roles que pueden administrar el REGISTRO de impresoras en Configuracion
+ * (verla, crear, editar, desactivar, regenerar token, elegir su propia
+ * impresora predeterminada). Es un permiso mas restrictivo y DISTINTO de
+ * ROLES_ELIGEN_IMPRESORA: un admin elige a donde imprime un trabajo, pero ya
+ * no administra el registro. QUIEN DECIDE de verdad es el backend
+ * (routes/impresoras.js con requireRol). Fuente unica: shared/impresion.json.
+ */
+export const ROLES_ADMINISTRAN_IMPRESORAS: readonly string[] = impresion.ROLES_ADMINISTRAN_IMPRESORAS;
 
 /** Largo maximo del nombre de una impresora (columna IMPRESORAS.nombre). */
 export const NOMBRE_IMPRESORA_MAX = impresion.NOMBRE_IMPRESORA_MAX;

@@ -2,6 +2,8 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId, parseIds } = require('../lib/validaciones');
+const { requireRol } = require('../lib/roles');
+const { ROLES_ARTICULOS } = require('../constants/roles');
 const { ID_GRUPO_NO_ASIGNADO } = require('../constants/agrupaciones');
 const {
   parsearConsultaArticulos,
@@ -11,6 +13,10 @@ const {
 } = require('../lib/articulosConsulta');
 
 const router = express.Router();
+
+// Todo el router es de la pagina Articulos: Ventas lee sus propios productos
+// via /api/venta/articulos*, nunca por aca.
+router.use(requireRol(...ROLES_ARTICULOS));
 
 /**
  * Resuelve el par (id_grupo, id_subgrupo) que se va a guardar en el articulo.

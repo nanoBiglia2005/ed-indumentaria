@@ -2,9 +2,15 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
+const { requireRol } = require('../lib/roles');
+const { ROLES_ARTICULOS } = require('../constants/roles');
 const { ID_GRUPO_NO_ASIGNADO } = require('../constants/agrupaciones');
 
 const router = express.Router();
+
+// Subgrupos de Articulos/Configuracion: Ventas lee sus propios subgrupos via
+// /api/venta/subgrupos, nunca por aca.
+router.use(requireRol(...ROLES_ARTICULOS));
 
 // "No Asignado" es el grupo al que caen los articulos huerfanos: no se le
 // cuelgan subgrupos.
