@@ -6,11 +6,17 @@ const { parseId } = require('../lib/validaciones');
 const { codigoBarcodeCompleto } = require('../lib/barcode');
 const { enviarTrabajoDeImpresion } = require('../services/impresion');
 const { resolverDestinoParaSesion } = require('../services/impresoras');
+const { requireRol } = require('../lib/roles');
+const { ROLES_ARTICULOS } = require('../constants/roles');
 
 const router = express.Router();
 
+// Etiquetas de codigo de barra: solo desde Articulos. El ticket de una venta
+// se imprime por otro camino (services/impresion.js, llamado directo desde
+// routes/remitos.js), no por aca.
 router.post(
   '/',
+  requireRol(...ROLES_ARTICULOS),
   asyncHandler(async (req, res) => {
     const id_articulo = parseId(req.body.id_articulo, 'El id del articulo debe ser un numero.');
     const cantidad = parseInt(req.body.cantidad, 10) || 1;

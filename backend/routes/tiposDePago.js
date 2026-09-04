@@ -2,6 +2,8 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId } = require('../lib/validaciones');
+const { requireRol } = require('../lib/roles');
+const { ROLES_CONFIGURACION } = require('../constants/roles');
 
 const router = express.Router();
 
@@ -13,8 +15,11 @@ router.get(
   }, 'Error al obtener los tipos de pago.')
 );
 
+// Editar el recargo es una accion de Configuracion: Articulos y Ventas solo
+// leen esta lista (el precio con recargo que muestran), nunca la modifican.
 router.put(
   '/:id_tipos_de_pago',
+  requireRol(...ROLES_CONFIGURACION),
   asyncHandler(async (req, res) => {
     const id_tipos_de_pago = parseId(req.params.id_tipos_de_pago, 'El id del tipo de pago debe ser un numero.');
 

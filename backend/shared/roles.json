@@ -2,5 +2,18 @@
   "ROLES_PRECIOS": [
     "admin",
     "superadmin"
+  ],
+  "ROLES_ARTICULOS": [
+    "admin",
+    "superadmin",
+    "ventas"
+  ],
+  "ROLES_CONFIGURACION": [
+    "admin",
+    "superadmin"
+  ],
+  "ROLES_HISTORIAL": [
+    "admin",
+    "superadmin"
   ]
 }

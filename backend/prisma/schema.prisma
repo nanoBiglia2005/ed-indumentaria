@@ -258,4 +258,5 @@ enum rol_usuario {
   empleado
   admin
   superadmin
+  ventas
 }

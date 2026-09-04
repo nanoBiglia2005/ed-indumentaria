@@ -2,6 +2,8 @@ const express = require('express');
 const prisma = require('../db');
 const { asyncHandler, HttpError } = require('../lib/http');
 const { parseId } = require('../lib/validaciones');
+const { requireRol } = require('../lib/roles');
+const { ROLES_HISTORIAL } = require('../constants/roles');
 const {
   ESTADO_CONFIRMADO,
   ESTADO_ANULADO,
@@ -56,9 +58,11 @@ const responderRemitos = async (res, remitos) => {
   res.status(200).json(remitos.map((remito) => remitoConTotales(remito, metodos)));
 };
 
-// Historial: todo MENOS los pendientes de cobro, que viven en la pagina de Ventas.
+// Historial: todo MENOS los pendientes de cobro, que viven en la pagina de
+// Ventas (y por eso /pendientes, mas abajo, no lleva este gate).
 router.get(
   '/',
+  requireRol(...ROLES_HISTORIAL),
   asyncHandler(async (req, res) => {
     const remitos = await prisma.REMITOS.findMany({
       where: { NOT: { id_estado: ESTADO_CONFIRMADO } },

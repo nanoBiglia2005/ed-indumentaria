@@ -8,7 +8,7 @@
  */
 import { createContext } from 'react';
 
-export type Rol = 'empleado' | 'admin' | 'superadmin';
+export type Rol = 'empleado' | 'admin' | 'superadmin' | 'ventas';
 
 export type SessionUser = {
   id_usuario: number;

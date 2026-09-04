@@ -8,7 +8,7 @@ const prisma = require('../db');
 const { asyncHandler, HttpError } = require('../lib/http');
 const { parseId, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
 const { requireRol } = require('../lib/roles');
-const { ROLES_ELIGEN_IMPRESORA, NOMBRE_IMPRESORA_MAX } = require('../constants/impresion');
+const { ROLES_ADMINISTRAN_IMPRESORAS, NOMBRE_IMPRESORA_MAX } = require('../constants/impresion');
 const {
   generarToken,
   hashToken,
@@ -21,9 +21,12 @@ const { estadoDeImpresoras, desconectarImpresora } = require('../services/impres
 
 const router = express.Router();
 
-// Solo estos roles administran impresoras. Coincide con quienes pueden elegir
-// impresora al imprimir: son los mismos que entienden que la decision existe.
-const requireAdmin = requireRol(...ROLES_ELIGEN_IMPRESORA);
+// Administrar el REGISTRO de impresoras (crear, editar, elegir la propia
+// predeterminada, regenerar token) es superadmin-only. Distinto de poder
+// ELEGIR a que impresora va un trabajo puntual al imprimir desde
+// Articulos/Ventas, que sigue siendo admin+superadmin
+// (ROLES_ELIGEN_IMPRESORA, sin tocar: ver services/impresoras.js).
+const requireAdmin = requireRol(...ROLES_ADMINISTRAN_IMPRESORAS);
 
 // Fuera token_hash. Se aplica a TODA respuesta de este router.
 const aRespuesta = (impresora, conectadas = new Set()) => ({

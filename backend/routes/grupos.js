@@ -2,9 +2,15 @@ const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
 const { parseId, parseIds, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
+const { requireRol } = require('../lib/roles');
+const { ROLES_ARTICULOS } = require('../constants/roles');
 const { ID_GRUPO_NO_ASIGNADO, IDS_GRUPOS_DE_CLIENTES } = require('../constants/agrupaciones');
 
 const router = express.Router();
+
+// Grupos de Articulos/Configuracion: Ventas lee sus propios grupos via
+// /api/venta/grupos, nunca por aca.
+router.use(requireRol(...ROLES_ARTICULOS));
 
 // "No Asignado" lo administra la base: no se puede renombrar ni borrar (si se
 // borrara, los articulos huerfanos se quedarian sin default al que caer).

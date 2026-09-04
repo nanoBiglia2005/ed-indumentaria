@@ -6,8 +6,13 @@
 const express = require('express');
 const prisma = require('../db');
 const { asyncHandler } = require('../lib/http');
+const { requireRol } = require('../lib/roles');
+const { ROLES_ARTICULOS } = require('../constants/roles');
 
 const router = express.Router();
+
+// Ambos dumps son de Articulos: no los usa la pagina de Ventas.
+router.use(requireRol(...ROLES_ARTICULOS));
 
 router.get(
   '/articulos-x-cliente',

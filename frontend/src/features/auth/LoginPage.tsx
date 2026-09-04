@@ -8,7 +8,9 @@ function LoginPage() {
   const error = searchParams.get('error');
 
   if (status === 'authenticated') {
-    return <Navigate to='/gestion/articulos' replace />;
+    // Ventas es la unica pagina que ven los cuatro roles (empleado, ventas,
+    // admin, superadmin): es el unico destino valido sin saber el rol todavia.
+    return <Navigate to='/gestion/ventas' replace />;
   }
 
   return (
@@ -22,7 +24,7 @@ function LoginPage() {
 
         <form method='POST' action='/auth/signin/google'>
           <input type='hidden' name='csrfToken' value={csrfToken ?? ''} />
-          <input type='hidden' name='callbackUrl' value='/gestion/articulos' />
+          <input type='hidden' name='callbackUrl' value='/gestion/ventas' />
           <button
             type='submit'
             disabled={!csrfToken}
