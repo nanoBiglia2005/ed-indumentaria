@@ -40,10 +40,17 @@ const router = express.Router();
 const imprimirTicketDeRemito = async ({ session, idImpresoraPedida, items, metodos, remito }) => {
   const { id_impresora } = await resolverDestinoParaSesion(session, idImpresoraPedida);
 
+  const clienteCompleto = remito.CLIENTES
+    ? `${remito.CLIENTES.nombre} ${remito.CLIENTES.apellido}`.trim()
+    : null;
+
   const { respuesta, resultado } = await enviarTrabajoDeImpresion(
     construirPayloadTicket(items, metodos, {
       id_remito: remito.id_remito,
       fecha: remito.fecha_de_creacion,
+      cod_mes: remito.cod_mes,
+      cod_remito_final: remito.cod_remito_final,
+      cliente: clienteCompleto,
     }),
     { id_impresora }
   );

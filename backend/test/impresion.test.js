@@ -51,10 +51,19 @@ test('construirPayloadTicket devuelve exactamente las claves que lee el printer-
   const payload = construirPayloadTicket(
     [{ descripcion: 'Remera', cantidad: 1, precio: 1000 }],
     [EFECTIVO, TARJETA],
-    { id_remito: 42, fecha: new Date(Date.UTC(2026, 0, 5)) }
+    {
+      id_remito: 42,
+      fecha: new Date(Date.UTC(2026, 0, 5)),
+      cod_mes: 9,
+      cod_remito_final: 5,
+      cliente: 'Stefano Biglia',
+    }
   );
 
   assert.deepEqual(Object.keys(payload).sort(), [
+    'cliente',
+    'cod_mes',
+    'cod_remito_final',
     'fecha',
     'id_remito',
     'items',
