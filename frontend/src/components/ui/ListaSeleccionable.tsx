@@ -46,44 +46,44 @@ export default function ListaSeleccionable({
   }, [opciones, busqueda]);
 
   return (
-    <div className='border border-gray-200 rounded-md overflow-hidden'>
-      {cargando && <p className='text-sm text-gray-400 px-3 py-6 text-center'>{mensajeCargando}</p>}
+    <div className='border border-neutro-200 rounded overflow-hidden'>
+      {cargando && <p className='text-sm text-neutro-400 px-3 py-6 text-center'>{mensajeCargando}</p>}
 
       {!cargando && opciones.length === 0 && (
-        <p className='text-sm text-gray-400 italic px-3 py-6 text-center'>{mensajeVacio}</p>
+        <p className='text-sm text-neutro-400 italic px-3 py-6 text-center'>{mensajeVacio}</p>
       )}
 
       {!cargando && opciones.length > 0 && (
         <>
-          <div className='p-2 border-b border-gray-100'>
+          <div className='p-2 border-b border-neutro-100'>
             <input
               type='text'
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder={placeholder}
-              className='w-full rounded border border-gray-300 bg-white py-1.5 px-3 text-sm text-gray-700 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30'
+              className='w-full rounded border border-neutro-200 bg-white py-1.5 px-3 text-sm text-neutro-600 placeholder:text-neutro-400 focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30'
             />
           </div>
-          <ul className={`${claseLista} overflow-y-auto divide-y divide-gray-100`}>
+          <ul className={`${claseLista} overflow-y-auto divide-y divide-neutro-100`}>
             {/* Va fuera del filtrado: "Todos" tiene que seguir a mano aunque
                 se este buscando algo puntual. */}
             {opcionTodos && (
               <li
                 onClick={opcionTodos.onSeleccionar}
-                className='px-4 py-2.5 text-sm font-semibold text-violet-600 cursor-pointer hover:bg-violet-50 transition-colors duration-100 ease-in'
+                className='px-4 py-2.5 text-sm font-semibold text-marca-600 cursor-pointer hover:bg-marca-50 transition-colors duration-100 ease-in'
               >
                 {opcionTodos.nombre}
               </li>
             )}
 
             {opcionesFiltradas.length === 0 ? (
-              <li className='px-4 py-3 text-sm text-gray-400 italic'>Sin resultados</li>
+              <li className='px-4 py-3 text-sm text-neutro-400 italic'>Sin resultados</li>
             ) : (
               opcionesFiltradas.map((opcion) => (
                 <li
                   key={opcion.id}
                   onClick={() => onSeleccionar(opcion)}
-                  className='px-4 py-2.5 text-sm text-gray-700 cursor-pointer hover:bg-amber-50 transition-colors duration-100 ease-in'
+                  className='px-4 py-2.5 text-sm text-neutro-600 cursor-pointer hover:bg-neutro-100 transition-colors duration-100 ease-in'
                 >
                   {opcion.nombre}
                 </li>

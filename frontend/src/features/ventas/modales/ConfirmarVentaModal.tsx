@@ -8,6 +8,14 @@ import PaymentIcon from '@/components/ui/PaymentIcon';
 
 const MAX_LINEAS_DESCRIPCION = 2;
 
+/**
+ * Columnas del repaso de articulos: articulo | cantidad | subtotal.
+ * Compartida entre encabezado y filas para que los rotulos queden alineados.
+ * El subtotal conserva el ancho de antes (5rem) como MINIMO, asi un importe
+ * largo agranda la columna en vez de recortarse.
+ */
+const COLUMNAS = 'grid grid-cols-[minmax(0,1fr)_2.5rem_minmax(5rem,auto)] items-center gap-3 px-3';
+
 export interface LineaVenta {
   articulo: ArticuloDeVenta;
   cantidad: number | null;
@@ -58,15 +66,15 @@ export default function ConfirmarVentaModal({
       abierto={abierto}
       onCerrar={cargando ? () => {} : onCerrar}
       titulo='¿Desea confirmar esta Venta?'
-      claseTitulo='text-2xl font-semibold leading-7 text-gray-900 mb-5 text-center'
+      claseTitulo='text-2xl font-semibold leading-7 text-neutro-900 mb-5 text-center'
       ancho='2xl'
       z='z-[60]'
       clasePanel='select-none'
       footer={
         <div className='flex w-full flex-col gap-3'>
           {conImpresion && nombreImpresora && (
-            <p className='text-center text-sm text-gray-500'>
-              Se imprime en <span className='font-semibold text-gray-700'>{nombreImpresora}</span>
+            <p className='text-center text-sm text-neutro-600'>
+              Se imprime en <span className='font-semibold text-neutro-900'>{nombreImpresora}</span>
             </p>
           )}
           <div className='flex w-full flex-col gap-3 sm:flex-row'>
@@ -74,7 +82,7 @@ export default function ConfirmarVentaModal({
               type='button'
               onClick={onCerrar}
               disabled={cargando}
-              className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60'
+              className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 border border-neutro-200 rounded hover:bg-neutro-50 transition-colors cursor-pointer disabled:opacity-60'
             >
               Cancelar
             </button>
@@ -82,7 +90,7 @@ export default function ConfirmarVentaModal({
               type='button'
               onClick={onConfirmar}
               disabled={cargando}
-              className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-700 rounded-md hover:bg-violet-800 disabled:bg-violet-400 disabled:cursor-not-allowed transition-colors cursor-pointer'
+              className='flex-1 px-4 py-2 text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 disabled:cursor-not-allowed transition-colors cursor-pointer'
             >
               {cargando ? (conImpresion ? 'Imprimiendo...' : 'Registrando...') : 'Confirmar'}
             </button>
@@ -91,12 +99,24 @@ export default function ConfirmarVentaModal({
       }
     >
       <div className='grid grid-cols-1 gap-5 sm:grid-cols-5'>
-        <div className='sm:col-span-3 max-h-64 overflow-y-auto rounded-md border border-gray-200 divide-y divide-gray-100'>
+        <div className='sm:col-span-3 max-h-64 overflow-y-auto rounded border border-neutro-200 divide-y divide-neutro-100'>
+          {productos.length > 0 && (
+            /* Encabezado de columnas con LA MISMA plantilla que las filas
+               (`COLUMNAS`): es lo que hace que "Cant." y "Subtotal" caigan
+               sobre sus valores. Sticky porque la lista scrollea. */
+            <div
+              className={`${COLUMNAS} sticky top-0 z-10 bg-white py-2 text-[10px] font-semibold uppercase tracking-wide text-neutro-400`}
+            >
+              <span>Artículo / precio unitario</span>
+              <span className='text-center'>Cant.</span>
+              <span className='text-right'>Subtotal</span>
+            </div>
+          )}
           {productos.map(({ articulo, cantidad }) => (
-            <div key={articulo.id_articulo} className='flex items-center gap-3 px-3 py-2'>
-              <div className='flex-1 min-w-0 flex flex-col text-left'>
+            <div key={articulo.id_articulo} className={`${COLUMNAS} py-2`}>
+              <div className='min-w-0 flex flex-col text-left'>
                 <span
-                  className='text-sm font-semibold text-gray-800 break-words'
+                  className='text-sm font-semibold text-neutro-900 break-words'
                   style={estiloLineClamp(MAX_LINEAS_DESCRIPCION)}
                 >
                   {articulo.descripcion ?? 'Sin Nombre'}
@@ -104,12 +124,12 @@ export default function ConfirmarVentaModal({
                 <div className='flex flex-wrap items-center gap-x-2'>
                   <div className='flex gap-1 items-center' title='Precio del Articulo en Efectivo'>
                     <PaymentIcon paymentId={1} height={15}/>
-                    <span className='text-xs font-medium text-gray-500'>{formatearPesos(articulo.precio)}</span>
+                    <span className='text-xs font-medium text-neutro-600'>{formatearPesos(articulo.precio)}</span>
                   </div>   
                   {metodos.map((metodo) => (
                     <span
                       key={metodo.id_tipos_de_pago}
-                      className='text-xs font-medium text-violet-500 flex gap-1 items-center'
+                      className='text-xs font-medium text-marca-500 flex gap-1 items-center'
                       title={`Precio del Articulo en ${metodo.nombre_tipo_de_pago}`}
                     >
                       <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={15}/>
@@ -118,16 +138,16 @@ export default function ConfirmarVentaModal({
                   ))}
                 </div>
               </div>
-              <span className='text-sm text-gray-500 shrink-0'>x{cantidad ?? 0}</span>
-              <span className='text-sm font-semibold shrink-0 w-20'>
-                <span className='flex gap-1 justify-end items-center text-gray-800'>
+              <span className='text-sm text-center text-neutro-600'>x{cantidad ?? 0}</span>
+              <span className='text-sm font-semibold'>
+                <span className='flex gap-1 justify-end items-center text-neutro-900'>
                   <span>{formatearPesos((articulo.precio * (cantidad ?? 0)))}</span>
                   <PaymentIcon paymentId={1} height={18}/>
                 </span>
                 {metodos.map((metodo) => (
                     <span
                       key={metodo.id_tipos_de_pago}
-                      className='text-violet-500 flex gap-1 items-center justify-end'
+                      className='text-marca-500 flex gap-1 items-center justify-end'
                       title={`Total del Articulo en ${metodo.nombre_tipo_de_pago}`}
                     > 
                       <span>{formatearPesos((articulo.precios_por_metodo?.[metodo.id_tipos_de_pago] * (cantidad ?? 0)))}</span>
@@ -141,48 +161,48 @@ export default function ConfirmarVentaModal({
 
         <div className='sm:col-span-2 flex flex-col gap-4'>
           <div>
-            <p className='text-lg font-semibold text-gray-800'>Cliente</p>
+            <p className='text-lg font-semibold text-neutro-900'>Cliente</p>
 
             {asignado ? (
               <div className='mt-1 flex flex-col gap-2'>
                 <div className='flex flex-col'>
-                  <span className='text-xs text-gray-400'>Nombre</span>
-                  <span className='text-sm font-semibold text-gray-800 break-words'>
+                  <span className='text-xs text-neutro-400'>Nombre</span>
+                  <span className='text-sm font-semibold text-neutro-900 break-words'>
                     {`${borrador.nombre.trim()} ${borrador.apellido.trim()}`.trim()}
                   </span>
                 </div>
                 <div className='flex flex-col'>
-                  <span className='text-xs text-gray-400'>DNI</span>
-                  <span className='text-sm font-semibold text-gray-800'>{borrador.dni}</span>
+                  <span className='text-xs text-neutro-400'>DNI</span>
+                  <span className='text-sm font-semibold text-neutro-900'>{borrador.dni}</span>
                 </div>
                 {telefono !== '' && (
                   <div className='flex flex-col'>
-                    <span className='text-xs text-gray-400'>Teléfono</span>
-                    <span className='text-sm font-semibold text-gray-800'>{telefono}</span>
+                    <span className='text-xs text-neutro-400'>Teléfono</span>
+                    <span className='text-sm font-semibold text-neutro-900'>{telefono}</span>
                   </div>
                 )}
 
                 {hayCambios && (
-                  <p className='rounded border border-amber-300 bg-amber-50 px-2 py-1 text-xs text-amber-700'>
+                  <p className='rounded border border-acento-500 bg-acento-100 px-2 py-1 text-xs text-acento-800'>
                     Al confirmar se actualizan los datos editados del cliente.
                   </p>
                 )}
               </div>
             ) : (
-              <p className='mt-1 text-sm italic text-gray-400'>Sin cliente asignado</p>
+              <p className='mt-1 text-sm italic text-neutro-400'>Sin cliente asignado</p>
             )}
           </div>
 
-          <div className='mt-auto border-t border-gray-200 pt-3'>
-            <p className='text-lg text-gray-500'>Total</p>
-            <span className='flex gap-1 items-center text-3xl font-bold text-gray-900 break-words'>
+          <div className='mt-auto border-t border-neutro-200 pt-3'>
+            <p className='text-lg text-neutro-600'>Total</p>
+            <span className='flex gap-1 items-center text-3xl font-bold text-neutro-900 break-words'>
               <PaymentIcon paymentId={1} height={35}/>
               <span>{formatearPesos(total)}</span>
             </span>
             {metodos.map((metodo) => (
               <span
                 key={metodo.id_tipos_de_pago}
-                className='flex gap-1 items-center text-3xl font-bold text-violet-700 break-words'
+                className='flex gap-1 items-center text-3xl font-bold text-marca-700 break-words'
                 title={`Total con ${metodo.nombre_tipo_de_pago}`}
               >
                 <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={35}/>

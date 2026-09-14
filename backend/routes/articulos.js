@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
-const { parseId, parseIds } = require('../lib/validaciones');
+const { aId, parseId, parseIds } = require('../lib/validaciones');
 const { requireRol } = require('../lib/roles');
 const { ROLES_ARTICULOS } = require('../constants/roles');
 const { ID_GRUPO_NO_ASIGNADO } = require('../constants/agrupaciones');
@@ -307,6 +307,58 @@ router.put(
       P2025: { status: 404, message: 'El articulo no existe.' },
     },
   })
+);
+
+/**
+ * Ajuste ATOMICO de stock: suma (o resta, con delta negativo) sobre el valor
+ * que tenga la fila en el momento del UPDATE, a diferencia de PUT /:id_articulo
+ * que escribe un valor absoluto calculado en el cliente. Existe para el modo
+ * "Entrada y salida de stock" del frontend, donde dos cajas pueden ajustar el
+ * mismo articulo casi al mismo tiempo: leer-sumar-escribir en dos pasos
+ * reintroduciria la carrera que este endpoint evita.
+ *
+ * El `updateMany` con `cant: { gte: -delta }` en el WHERE hace que la condicion
+ * "no quedar en negativo" se verifique sobre el MISMO valor que se va a
+ * incrementar, en la misma query: un `update` simple no puede condicionar
+ * sobre el valor actual de la fila que esta actualizando. Si no matchea
+ * ninguna fila (count === 0), se distingue "no existe" de "no alcanza el
+ * stock" con una consulta de solo lectura aparte, que no compite con nada
+ * porque ya sabemos que la escritura no se aplico.
+ */
+router.patch(
+  '/:id_articulo/ajustar-cantidad',
+  asyncHandler(async (req, res) => {
+    const id_articulo = parseId(req.params.id_articulo, 'El id del articulo debe ser un numero.');
+
+    const delta = aId(req.body.delta);
+    if (delta === null) {
+      throw new HttpError(400, { message: 'El delta debe ser un numero entero.' });
+    }
+    if (delta === 0) {
+      throw new HttpError(400, { message: 'El delta no puede ser cero.' });
+    }
+
+    const { count } = await prisma.ARTICULOS.updateMany({
+      where: { id_articulo, cant: { gte: -delta } },
+      data: { cant: { increment: delta } },
+    });
+
+    if (count === 0) {
+      const actual = await prisma.ARTICULOS.findUnique({
+        where: { id_articulo },
+        select: { cant: true },
+      });
+      if (!actual) {
+        throw new HttpError(404, { message: 'El articulo no existe.' });
+      }
+      throw new HttpError(409, {
+        message: `No hay stock suficiente: quedan ${actual.cant} y se intento restar ${-delta}.`,
+      });
+    }
+
+    const articuloActualizado = await prisma.ARTICULOS.findUnique({ where: { id_articulo } });
+    res.status(200).json(articuloActualizado);
+  }, 'Error al ajustar la cantidad del articulo.')
 );
 
 // El grupo y el subgrupo del articulo son campos propios (ARTICULOS.id_grupo /

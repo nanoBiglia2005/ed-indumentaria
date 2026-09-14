@@ -159,7 +159,7 @@ export default function ColumnFilterModal({
           // ofrece cancelar, no hay nada pendiente que "Aplicar".
           <button
             onClick={onCerrar}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
           >
             Cancelar
           </button>
@@ -167,13 +167,13 @@ export default function ColumnFilterModal({
           <>
             <button
               onClick={onCerrar}
-              className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+              className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
             >
               Cancelar
             </button>
             <button
               onClick={handleAplicar}
-              className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 transition-colors'
+              className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 transition-colors'
             >
               Aplicar
             </button>
@@ -194,30 +194,30 @@ export default function ColumnFilterModal({
           value={valorTexto}
           onChange={(e) => setValorTexto(e.target.value)}
           placeholder={`Buscar en ${titulo}...`}
-          className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+          className='w-full px-3 py-2 border border-neutro-200 rounded text-neutro-600 focus:outline-none focus:ring-2 focus:ring-marca-500'
         />
       )}
 
       {tipo === 'rango' && (
         <div className='flex gap-3'>
           <div className='flex-1'>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>Desde</label>
+            <label className='block text-sm font-medium text-neutro-600 mb-1'>Desde</label>
             <input
               type='number'
               value={desde}
               onChange={(e) => setDesde(e.target.value)}
               placeholder='Sin límite'
-              className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+              className='w-full px-3 py-2 border border-neutro-200 rounded text-neutro-600 focus:outline-none focus:ring-2 focus:ring-marca-500'
             />
           </div>
           <div className='flex-1'>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>Hasta</label>
+            <label className='block text-sm font-medium text-neutro-600 mb-1'>Hasta</label>
             <input
               type='number'
               value={hasta}
               onChange={(e) => setHasta(e.target.value)}
               placeholder='Sin límite'
-              className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+              className='w-full px-3 py-2 border border-neutro-200 rounded text-neutro-600 focus:outline-none focus:ring-2 focus:ring-marca-500'
             />
           </div>
         </div>
@@ -230,7 +230,7 @@ export default function ColumnFilterModal({
               key={preset.id}
               type='button'
               onClick={() => handleAplicarPreset(preset.desde, preset.hasta)}
-              className='w-full px-3 py-2 text-left text-sm font-medium text-gray-700 border border-gray-200 rounded-md hover:bg-violet-50 hover:border-violet-300 hover:text-violet-700 transition-colors cursor-pointer'
+              className='w-full px-3 py-2 text-left text-sm font-medium text-neutro-600 border border-neutro-200 rounded hover:bg-marca-50 hover:border-marca-400 hover:text-marca-700 transition-colors cursor-pointer'
             >
               {preset.etiqueta}
             </button>
@@ -238,7 +238,7 @@ export default function ColumnFilterModal({
           <button
             type='button'
             onClick={() => setMostrarPersonalizado(true)}
-            className='w-full px-3 py-2 text-left text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 transition-colors cursor-pointer'
+            className='w-full px-3 py-2 text-left text-sm font-medium text-marca-600 border border-marca-600 rounded hover:bg-marca-50 transition-colors cursor-pointer'
           >
             Personalizado
           </button>
@@ -248,21 +248,21 @@ export default function ColumnFilterModal({
       {tipo === 'fecha' && mostrarPersonalizado && (
         <div className='flex gap-3'>
           <div className='flex-1'>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>Desde</label>
+            <label className='block text-sm font-medium text-neutro-600 mb-1'>Desde</label>
             <input
               type='date'
               value={desde}
               onChange={(e) => setDesde(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+              className='w-full px-3 py-2 border border-neutro-200 rounded text-neutro-600 focus:outline-none focus:ring-2 focus:ring-marca-500'
             />
           </div>
           <div className='flex-1'>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>Hasta</label>
+            <label className='block text-sm font-medium text-neutro-600 mb-1'>Hasta</label>
             <input
               type='date'
               value={hasta}
               onChange={(e) => setHasta(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+              className='w-full px-3 py-2 border border-neutro-200 rounded text-neutro-600 focus:outline-none focus:ring-2 focus:ring-marca-500'
             />
           </div>
         </div>
@@ -280,18 +280,18 @@ export default function ColumnFilterModal({
           <button
             type='button'
             onClick={() => setIdsSeleccionados(new Set(opciones.map((o) => o.id)))}
-            className='w-full mb-3 px-3 py-1.5 text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 transition-colors cursor-pointer'
+            className='w-full mb-3 px-3 py-1.5 text-sm font-medium text-marca-600 border border-marca-600 rounded hover:bg-marca-50 transition-colors cursor-pointer'
           >
             Ver todos
           </button>
 
           {opciones.length === 0 ? (
-            <p className='text-sm text-gray-400 italic'>No hay opciones disponibles.</p>
+            <p className='text-sm text-neutro-400 italic'>No hay opciones disponibles.</p>
           ) : opcionesVisibles.length === 0 ? (
-            <p className='text-sm text-gray-400 italic'>Sin resultados para "{busqueda}".</p>
+            <p className='text-sm text-neutro-400 italic'>Sin resultados para "{busqueda}".</p>
           ) : (
             <div className='h-60'>
-            <ul className='max-h-60 overflow-y-auto divide-y divide-gray-100 border border-gray-200 rounded-md'>
+            <ul className='max-h-60 overflow-y-auto divide-y divide-neutro-200 border border-neutro-200 rounded'>
               {opcionesVisibles.map((opcion) => (
                 <li key={opcion.id}>
                   <label
@@ -299,13 +299,13 @@ export default function ColumnFilterModal({
                       e.preventDefault();
                       setIdsSeleccionados(new Set([opcion.id]));
                     }}
-                    className='flex items-center gap-2 px-3 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-50'
+                    className='flex items-center gap-2 px-3 py-2 text-sm text-neutro-600 cursor-pointer hover:bg-neutro-50'
                   >
                     <input
                       type='checkbox'
                       checked={idsSeleccionados.has(opcion.id)}
                       onChange={() => toggleId(opcion.id)}
-                      className='cursor-pointer accent-violet-600'
+                      className='cursor-pointer accent-marca-600'
                     />
                     {opcion.nombre}
                   </label>

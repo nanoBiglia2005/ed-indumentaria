@@ -40,20 +40,20 @@ export default function TablaPersonalizado({
   deshabilitado = false,
 }: TablaPersonalizadoProps) {
   const claseInput =
-    'w-28 rounded-md border px-3 py-1.5 text-center text-sm transition-colors duration-100 ease-in focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60';
+    'w-28 rounded border px-3 py-1.5 text-center text-sm transition-colors duration-100 ease-in focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60';
 
   return (
-    <div className='overflow-x-auto rounded-b-md border border-gray-200'>
+    <div className='overflow-x-auto rounded-b border border-neutro-200'>
       <table className='w-full min-w-[28rem]'>
         <thead>
-          <tr className='border-b border-gray-200 bg-gray-50 text-sm text-gray-700'>
+          <tr className='border-b border-neutro-200 bg-neutro-100 text-sm text-neutro-600'>
             <th className='px-4 py-3 text-left font-semibold'>Método de Pago</th>
             <th className='px-4 py-2 text-center font-semibold'>
               <span className='block'>Monto Inicial</span>
               {/* Lo que todavia falta imputar: mientras no sea 0 no se puede cobrar. */}
               <span
                 className={`block text-xs font-medium ${
-                  restante === 0 ? 'text-green-600' : 'text-gray-500'
+                  restante === 0 ? 'text-green-600' : 'text-neutro-400'
                 }`}
               >
                 ({formatearPesos(restante)} Restantes)
@@ -63,7 +63,7 @@ export default function TablaPersonalizado({
           </tr>
         </thead>
 
-        <tbody className='divide-y divide-gray-200'>
+        <tbody className='divide-y divide-neutro-200'>
           {tipos.map((tipo) => {
             const id = tipo.id_tipos_de_pago;
             const valor = valores[id] ?? { inicial: '', final: '' };
@@ -72,8 +72,8 @@ export default function TablaPersonalizado({
             const vacia = valor.inicial === '';
 
             return (
-              <tr key={id} className={vacia ? 'bg-gray-50/60' : ''}>
-                <td className='px-4 py-3 text-left font-semibold text-gray-800'>
+              <tr key={id} className={vacia ? 'bg-neutro-50/60' : ''}>
+                <td className='px-4 py-3 text-left font-semibold text-neutro-900'>
                   {tipo.nombre_tipo_de_pago}{' '}
                   {tipo.recargo > 0 && <span>({tipo.recargo}% de Recargo)</span>}
                 </td>
@@ -88,7 +88,7 @@ export default function TablaPersonalizado({
                     onChange={(e) => onCambiarInicial(id, e.target.value)}
                     placeholder={String(sugerido)}
                     aria-label={`Monto inicial en ${tipo.nombre_tipo_de_pago}`}
-                    className={`${claseInput} border-gray-400 text-gray-800 placeholder:text-gray-400 hover:border-amber-400 focus:border-amber-400 focus:ring-amber-400/40`}
+                    className={`${claseInput} border-neutro-400 text-neutro-900 placeholder:text-neutro-400 hover:border-acento-500 focus:border-acento-500 focus:ring-acento-500/40`}
                   />
                 </td>
 
@@ -103,7 +103,7 @@ export default function TablaPersonalizado({
                     onBlur={() => onSalirDeFinal(id)}
                     placeholder={String(precioConRecargo(sugerido, tipo.recargo))}
                     aria-label={`Monto a cobrar en ${tipo.nombre_tipo_de_pago}`}
-                    className={`${claseInput} border-violet-400 font-semibold text-violet-700 placeholder:font-normal placeholder:text-violet-300 hover:border-violet-500 focus:border-violet-500 focus:ring-violet-500/30`}
+                    className={`${claseInput} border-marca-400 font-semibold text-marca-700 placeholder:font-normal placeholder:text-marca-400 hover:border-marca-500 focus:border-marca-500 focus:ring-marca-500/30`}
                   />
                 </td>
               </tr>

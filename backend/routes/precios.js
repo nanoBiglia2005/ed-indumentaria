@@ -95,7 +95,8 @@ router.get(
 
 /**
  * Paso 2: los talles distintos del recorte linea + grupo + subgrupo, cada uno
- * con los ids de los articulos que lo tienen.
+ * con los ids de los articulos que lo tienen y el detalle (id, descripcion,
+ * precio) de cada uno para poder desplegarlo en pantalla.
  *
  * La consulta se rehace contra la base (no se reusa la lista del paso 1) para
  * que los talles sean los del momento en que se abre la tabla. Los ids viajan
@@ -121,7 +122,7 @@ router.get(
 
     const articulos = await prisma.ARTICULOS.findMany({
       where: { id_linea, id_grupo, id_subgrupo },
-      select: { id_articulo: true, talle: true, precio: true },
+      select: { id_articulo: true, talle: true, precio: true, descripcion: true },
       orderBy: { id_articulo: 'asc' },
     });
 
@@ -138,16 +139,24 @@ router.get(
       const talle = articulo.talle?.trim() ? articulo.talle.trim() : null;
       const grupo = porTalle.get(talle);
 
+      const articuloDetalle = {
+        id: articulo.id_articulo,
+        descripcion: articulo.descripcion,
+        precio: articulo.precio,
+      };
+
       if (grupo) {
         grupo.ids.push(articulo.id_articulo);
         grupo.precioMin = Math.min(grupo.precioMin, articulo.precio);
         grupo.precioMax = Math.max(grupo.precioMax, articulo.precio);
+        grupo.articulos.push(articuloDetalle);
       } else {
         porTalle.set(talle, {
           talle,
           ids: [articulo.id_articulo],
           precioMin: articulo.precio,
           precioMax: articulo.precio,
+          articulos: [articuloDetalle],
         });
       }
     }

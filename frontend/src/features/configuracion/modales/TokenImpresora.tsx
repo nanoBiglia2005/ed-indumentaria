@@ -27,25 +27,25 @@ export default function TokenImpresora({ token }: { token: string }) {
 
   return (
     <div className='flex flex-col gap-3'>
-      <div className='rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-700'>
+      <div className='rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700'>
         Copiá este token ahora: <span className='font-semibold'>no se puede volver a ver</span>. Si
         se pierde, hay que generar uno nuevo.
       </div>
 
       <div className='flex items-center gap-2'>
-        <code className='flex-1 select-all break-all rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-800'>
+        <code className='flex-1 select-all break-all rounded border border-neutro-200 bg-neutro-50 px-3 py-2 font-mono text-xs text-neutro-900'>
           {token}
         </code>
         <button
           type='button'
           onClick={copiar}
-          className='shrink-0 cursor-pointer rounded-md bg-violet-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700'
+          className='shrink-0 cursor-pointer rounded bg-marca-500 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-marca-600'
         >
           {copiado ? 'Copiado' : 'Copiar'}
         </button>
       </div>
 
-      <p className='text-xs text-gray-500'>
+      <p className='text-xs text-neutro-400'>
         Pegalo en <code className='font-mono'>PRINTER_TOKEN</code> del archivo{' '}
         <code className='font-mono'>.env</code> del printer-client, en la PC donde está esa
         impresora, y volvé a correr <code className='font-mono'>install-service.ps1</code>.

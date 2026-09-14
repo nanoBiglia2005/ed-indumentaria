@@ -18,7 +18,11 @@ export default function RolGuard({ roles }: { roles: readonly string[] }) {
   const { status, user } = useSession();
 
   if (status === 'loading') {
-    return <div className='flex h-full w-full items-center justify-center text-gray-400'>Cargando...</div>;
+    return (
+      <div className='flex h-full w-full items-center justify-center text-neutro-400'>
+        Cargando...
+      </div>
+    );
   }
 
   if (!user?.rol || !roles.includes(user.rol)) {

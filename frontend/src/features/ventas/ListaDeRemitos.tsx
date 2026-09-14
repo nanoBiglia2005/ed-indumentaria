@@ -112,7 +112,7 @@ export default function ListaDeRemitos({
   const claseEstado = anchoCompleto ? ' w-full' : '';
 
   return (
-    <div className='border-1 px-3 pb-2 rounded-xl border-black/20 w-full flex-1 min-h-0 overflow-y-auto'>
+    <div className='border-1 px-3 pb-2 rounded border-black/20 w-full flex-1 min-h-0 overflow-y-auto'>
       <div className={`sticky top-0 z-10 bg-white pt-2 pb-1${anchoCompleto ? ' w-full' : ''}`}>
         <FiltrosVentasToolbar
           campos={campos}
@@ -129,12 +129,12 @@ export default function ListaDeRemitos({
         />
       </div>
 
-      {cargando && <span className={`text-gray-400${claseEstado}`}>{textoCargando}</span>}
+      {cargando && <span className={`text-neutro-400${claseEstado}`}>{textoCargando}</span>}
 
       {!cargando && error && <span className={`text-red-500${claseEstado}`}>{error}</span>}
 
       {!cargando && !error && remitos.length === 0 && (
-        <span className={`text-gray-400${claseEstado}`}>{textoVacio}</span>
+        <span className={`text-neutro-400${claseEstado}`}>{textoVacio}</span>
       )}
 
       {!cargando && !error && remitos.length > 0 && (

@@ -56,21 +56,21 @@ export default function ConfirmarPreciosModal({
           <button
             onClick={handleCerrar}
             disabled={cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-60'
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirmar}
             disabled={cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-500 rounded-md hover:bg-violet-600 transition-colors cursor-pointer disabled:bg-violet-300 disabled:cursor-not-allowed'
+            className='flex-1 px-4 py-2 text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 transition-colors cursor-pointer disabled:bg-marca-400 disabled:cursor-not-allowed'
           >
             {cargando ? 'Actualizando...' : 'Confirmar'}
           </button>
         </>
       }
     >
-      <p className='text-sm text-gray-700'>
+      <p className='text-sm text-neutro-600'>
         Se va a fijar el precio de{' '}
         <span className='font-semibold'>
           {cantidadArticulos} {cantidadArticulos === 1 ? 'artículo' : 'artículos'}

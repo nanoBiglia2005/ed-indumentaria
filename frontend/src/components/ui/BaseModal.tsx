@@ -69,7 +69,7 @@ export default function BaseModal({
   error,
   ancho = 'sm',
   z = 'z-50',
-  colorTitulo = 'text-gray-900',
+  colorTitulo = 'text-neutro-900',
   claseTitulo,
   clasePanel = '',
   permitirDesborde = false,
@@ -77,7 +77,9 @@ export default function BaseModal({
   encabezado = null,
   debajoDelTitulo = null,
 }: BaseModalProps) {
-  const entrada = transicionLenta ? 'ease-out duration-300' : 'ease-out duration-100';
+  // Entrada un poco mas larga que la salida: aparecer en 100ms se sentia brusco,
+  // pero cerrar rapido es lo que se espera al descartar.
+  const entrada = transicionLenta ? 'ease-out duration-300' : 'ease-out duration-150';
   const salida = transicionLenta ? 'ease-in duration-200' : 'ease-in duration-100';
 
   return (
@@ -109,7 +111,7 @@ export default function BaseModal({
               <Dialog.Panel
                 className={`w-full ${ANCHOS[ancho]} transform ${
                   permitirDesborde ? '' : 'overflow-hidden '
-                }rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all${
+                }rounded border border-neutro-200 border-t-2 border-t-marca-500 bg-white p-6 text-left align-middle transition-all${
                   clasePanel ? ` ${clasePanel}` : ''
                 }`}
               >
@@ -117,7 +119,7 @@ export default function BaseModal({
 
                 <Dialog.Title
                   as='h3'
-                  className={claseTitulo ?? `text-lg font-medium leading-6 ${colorTitulo} mb-4`}
+                  className={claseTitulo ?? `text-h2 font-semibold ${colorTitulo} mb-4`}
                 >
                   {titulo}
                 </Dialog.Title>

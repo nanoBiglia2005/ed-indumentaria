@@ -54,14 +54,14 @@ export default function AccionMasivaModal({
           <button
             onClick={handleClose}
             disabled={cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-60'
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirmar}
             disabled={!puedeConfirmar || cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-white rounded-md disabled:cursor-not-allowed transition-colors cursor-pointer bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300'
+            className='flex-1 px-4 py-2 text-sm font-medium text-white rounded disabled:cursor-not-allowed transition-colors cursor-pointer bg-acento-500 hover:bg-acento-600 disabled:bg-acento-500/50'
           >
             {cargando
               ? 'Imprimiendo...'
@@ -72,7 +72,7 @@ export default function AccionMasivaModal({
         </>
       }
     >
-      <p className='text-sm text-gray-700'>
+      <p className='text-sm text-neutro-600'>
         Se va a imprimir una etiqueta por cada uno de los{' '}
         <span className='font-semibold'>
           {cantidad} {cantidad === 1 ? 'artículo seleccionado' : 'artículos seleccionados'}

@@ -49,7 +49,7 @@ export default function SelectListModal({
       footer={
         <button
           onClick={onCerrar}
-          className='w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+          className='w-full px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
         >
           Cerrar
         </button>
@@ -67,24 +67,24 @@ export default function SelectListModal({
         <button
           type='button'
           onClick={onCrear}
-          className='w-full mb-3 flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 transition-colors cursor-pointer'
+          className='w-full mb-3 flex items-center justify-center gap-1 px-3 py-2 text-sm font-medium text-marca-500 border border-marca-500 rounded hover:bg-marca-50 transition-colors cursor-pointer'
         >
           + {crearLabel}
         </button>
       )}
 
       {opciones.length === 0 ? (
-        <p className='text-sm text-gray-400 italic'>{emptyMessage}</p>
+        <p className='text-sm text-neutro-400 italic'>{emptyMessage}</p>
       ) : opcionesFiltradas.length === 0 ? (
-        <p className='text-sm text-gray-400 italic'>Sin resultados</p>
+        <p className='text-sm text-neutro-400 italic'>Sin resultados</p>
       ) : (
         <div className='h-80'>
-        <ul className='max-h-80 overflow-y-auto overflow-x-hidden divide-y divide-gray-100 border border-gray-200 rounded-md'>
+        <ul className='max-h-80 overflow-y-auto overflow-x-hidden divide-y divide-neutro-100 border border-neutro-200 rounded'>
           {opcionesFiltradas.map((opcion) => (
             <li
               key={opcion.id}
               onClick={() => onSelect(opcion)}
-              className='px-4 py-2 text-sm text-gray-700 cursor-pointer hover:bg-gray-100'
+              className='px-4 py-2 text-sm text-neutro-600 cursor-pointer hover:bg-neutro-100'
             >
               {busqueda ? resaltarCoincidencia(opcion.nombre, busqueda) : opcion.nombre}
             </li>

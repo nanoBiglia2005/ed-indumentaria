@@ -33,21 +33,21 @@ export default function QuitarClienteModal({
           <button
             type='button'
             onClick={onCerrar}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
           >
             Cancelar
           </button>
           <button
             type='button'
             onClick={onQuitar}
-            className='flex-1 px-4 py-2 text-sm font-medium text-amber-700 border border-amber-500 rounded-md hover:bg-amber-50 transition-colors cursor-pointer'
+            className='flex-1 px-4 py-2 text-sm font-medium text-acento-800 border border-acento-500 rounded hover:bg-acento-100 transition-colors cursor-pointer'
           >
             Quitar Asignación
           </button>
         </>
       }
     >
-      <p className='text-sm text-gray-600'>
+      <p className='text-sm text-neutro-600'>
         La venta va a quedar sin cliente asignado.{' '}
         {cliente && (
           <>
@@ -56,7 +56,7 @@ export default function QuitarClienteModal({
           </>
         )}
       </p>
-      <p className='mt-2 text-sm text-gray-500'>
+      <p className='mt-2 text-sm text-neutro-600'>
         Si editaste algún dato y todavía no confirmaste la venta, esos cambios se descartan.
       </p>
     </BaseModal>

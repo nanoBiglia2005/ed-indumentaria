@@ -115,8 +115,8 @@ function Sidebar() {
       <aside
         ref={asideRef}
         onClick={() => setExpandido(true)}
-        className={`fixed left-0 top-0 z-40 flex flex-col h-screen border-r border-black/10 bg-stone-50 py-10 px-3 gap-10 select-none overflow-hidden transition-[width] duration-200 ease-in-out ${
-          expandido ? 'w-56 shadow-xl' : 'w-16'
+        className={`fixed left-0 top-0 z-40 flex flex-col h-screen border-r border-black/10 bg-neutro-50 py-10 px-3 gap-10 select-none overflow-hidden transition-[width] duration-200 ease-in-out ${
+          expandido ? 'w-56' : 'w-16'
         } md:w-56`}
       >
         <img src='/img/ED Indumentaria Deportiva.png'></img>
@@ -138,14 +138,14 @@ function Sidebar() {
                   setExpandido(false);
                 }}
                 className={({ isActive }) =>
-                  `group flex items-center gap-3 px-3 py-2 rounded-lg font-semibold text-sm cursor-pointer
+                  `group flex items-center gap-3 px-3 py-2 rounded font-semibold text-sm cursor-pointer
                   transition-all duration-150 ease-in
                   ${clickeado ? 'scale-95' : 'scale-100'}
                   ${expandido ? 'justify-start' : 'justify-center md:justify-start'}
                   ${
                     isActive
-                      ? 'bg-violet-500 text-white shadow-md'
-                      : 'text-gray-600 hover:bg-amber-100 hover:text-amber-600'
+                      ? 'bg-marca-500 text-white'
+                      : 'text-neutro-600 hover:bg-marca-50 hover:text-marca-700'
                   }`
                 }
               >
@@ -176,7 +176,7 @@ function Sidebar() {
             }`}
           >
             <span
-              className={`whitespace-nowrap overflow-hidden text-sm font-semibold text-gray-700 ${
+              className={`whitespace-nowrap overflow-hidden text-sm font-semibold text-neutro-600 ${
                 expandido ? 'inline' : 'hidden md:inline'
               }`}
             >
@@ -188,7 +188,7 @@ function Sidebar() {
               <button
                 type='submit'
                 disabled={!csrfToken}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg font-semibold text-sm cursor-pointer text-gray-600 transition-all duration-150 ease-in hover:bg-amber-100 hover:text-amber-600 disabled:opacity-50 ${
+                className={`flex items-center gap-3 px-3 py-2 rounded font-semibold text-sm cursor-pointer text-neutro-600 transition-all duration-150 ease-in hover:bg-marca-50 hover:text-marca-700 disabled:opacity-50 ${
                   expandido ? 'justify-start' : 'justify-center md:justify-start'
                 }`}
               >

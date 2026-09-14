@@ -19,7 +19,7 @@ export default function ListaDeChips({
   vacioTexto: string;
 }) {
   if (nombres.length === 0) {
-    return <span className='text-gray-400 text-sm italic'>{vacioTexto}</span>;
+    return <span className='text-neutro-400 text-sm italic'>{vacioTexto}</span>;
   }
 
   const visibles = nombres.slice(0, CHIP_MAXIMO);
@@ -30,12 +30,12 @@ export default function ListaDeChips({
       {visibles.map((nombre) => (
         <span
           key={nombre}
-          className='px-2 py-0.5 bg-gray-50 border border-gray-200 rounded text-gray-700 shadow-sm'
+          className='px-2 py-0.5 bg-neutro-50 border border-neutro-200 rounded text-neutro-600'
         >
           {nombre}
         </span>
       ))}
-      {restantes > 0 && <span className='text-gray-500 font-medium'>+{restantes}</span>}
+      {restantes > 0 && <span className='text-neutro-400 font-medium'>+{restantes}</span>}
     </span>
   );
 }

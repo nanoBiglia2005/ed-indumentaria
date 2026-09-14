@@ -27,8 +27,8 @@ function InputCliente({
 }: InputClienteProps) {
   // El amarillo avisa "esto se va a pisar en la base al confirmar la venta".
   const colores = modificado
-    ? 'border-amber-400 bg-amber-50 text-amber-900 hover:border-amber-500 focus:border-amber-500 focus:ring-amber-400/40'
-    : 'border-gray-300 bg-white text-gray-700 hover:border-violet-400 focus:border-violet-500 focus:ring-violet-500/30';
+    ? 'border-acento-500 bg-acento-100 text-acento-800 hover:border-acento-600 focus:border-acento-600 focus:ring-acento-500/40'
+    : 'border-neutro-200 bg-white text-neutro-600 hover:border-marca-400 focus:border-marca-500 focus:ring-marca-500/30';
 
   return (
     <input
@@ -42,7 +42,7 @@ function InputCliente({
       placeholder={placeholder}
       aria-label={etiqueta}
       title={etiqueta}
-      className={`min-w-0 rounded-md border px-3 py-2 text-sm placeholder:text-gray-400 transition-colors duration-100 ease-in focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60 ${colores} ${claseExtra}`}
+      className={`min-w-0 rounded border px-3 py-2 text-sm placeholder:text-neutro-400 transition-colors duration-100 ease-in focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60 ${colores} ${claseExtra}`}
     />
   );
 }
@@ -103,7 +103,7 @@ export default function FormularioCliente({
         />
       </div>
 
-      <div className='grid grid-cols-1 gap-3 border-t border-gray-200 pt-3 sm:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-3 border-t border-neutro-200 pt-3 sm:grid-cols-3'>
         <InputCliente
           {...comun('email')}
           onCambiar={(valor) => onCambiar('email', valor)}

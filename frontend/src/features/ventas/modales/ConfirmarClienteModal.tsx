@@ -53,16 +53,16 @@ export default function ConfirmarClienteModal({
     datos && existente ? camposModificados(datos, existente) : new Set();
 
   const claseBotonSecundario =
-    'flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60';
+    'flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-60';
   const claseBotonPrincipal =
-    'flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 disabled:cursor-not-allowed transition-colors cursor-pointer';
+    'flex-1 px-4 py-2 text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 disabled:cursor-not-allowed transition-colors cursor-pointer';
 
   return (
     <BaseModal
       abierto={abierto}
       onCerrar={cargando ? () => {} : onCerrar}
       titulo={esDuplicado ? 'Ese DNI ya está registrado' : '¿Crear y asignar este cliente?'}
-      claseTitulo='text-lg font-medium leading-6 text-gray-900 mb-4'
+      claseTitulo='text-lg font-medium leading-6 text-neutro-900 mb-4'
       ancho={esDuplicado ? 'xl' : 'md'}
       z='z-[60]'
       error={error ? { titulo: 'No se pudo guardar el cliente', detalle: error } : null}
@@ -78,7 +78,7 @@ export default function ConfirmarClienteModal({
                 type='button'
                 onClick={onAsignarExistente}
                 disabled={cargando}
-                className='flex-1 px-4 py-2 text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 transition-colors cursor-pointer disabled:opacity-60'
+                className='flex-1 px-4 py-2 text-sm font-medium text-marca-600 border border-marca-600 rounded hover:bg-marca-50 transition-colors cursor-pointer disabled:opacity-60'
               >
                 Asignar el Existente
               </button>
@@ -86,7 +86,7 @@ export default function ConfirmarClienteModal({
                 type='button'
                 onClick={onSobrescribir}
                 disabled={cargando}
-                className='flex-1 px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600 disabled:bg-amber-300 disabled:cursor-not-allowed transition-colors cursor-pointer'
+                className='flex-1 px-4 py-2 text-sm font-medium text-white bg-acento-500 rounded hover:bg-acento-600 disabled:bg-acento-500/50 disabled:cursor-not-allowed transition-colors cursor-pointer'
               >
                 {cargando ? 'Guardando...' : 'Asignar y Sobrescribir'}
               </button>
@@ -101,30 +101,30 @@ export default function ConfirmarClienteModal({
     >
       {!datos ? null : esDuplicado ? (
         <div className='flex flex-col gap-4'>
-          <p className='text-sm text-gray-500'>
+          <p className='text-sm text-neutro-600'>
             Ya hay un cliente registrado con el DNI <span className='font-semibold'>{datos.dni}</span>.
             Elegí si querés usar los datos que ya están en el sistema o pisarlos con los que cargaste.
           </p>
 
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-            <div className='rounded-md border border-gray-200 p-3'>
-              <p className='mb-2 text-sm font-semibold text-gray-700'>En el sistema</p>
+            <div className='rounded border border-neutro-200 p-3'>
+              <p className='mb-2 text-sm font-semibold text-neutro-600'>En el sistema</p>
               <ResumenCliente datos={desdeCliente(existente)} />
             </div>
-            <div className='rounded-md border border-amber-300 bg-amber-50/40 p-3'>
-              <p className='mb-2 text-sm font-semibold text-amber-700'>Lo que cargaste</p>
+            <div className='rounded border border-acento-500 bg-acento-100/40 p-3'>
+              <p className='mb-2 text-sm font-semibold text-acento-800'>Lo que cargaste</p>
               <ResumenCliente datos={datos} resaltados={diferencias} />
             </div>
           </div>
 
           {diferencias.size === 0 && (
-            <p className='text-sm italic text-gray-400'>
+            <p className='text-sm italic text-neutro-400'>
               Los datos que cargaste son idénticos a los del sistema.
             </p>
           )}
         </div>
       ) : (
-        <div className='rounded-md border border-gray-200 p-3'>
+        <div className='rounded border border-neutro-200 p-3'>
           <ResumenCliente datos={datos} />
         </div>
       )}

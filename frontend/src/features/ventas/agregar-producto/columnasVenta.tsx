@@ -60,7 +60,7 @@ export function crearColumnasVenta(
     {
       header: 'Código',
       render: (item) => codigoBarcodeCompleto(item.barcode_tail) ?? 'No Asignado',
-      extraClassName: (item) => (!codigoBarcodeCompleto(item.barcode_tail) ? 'text-gray-400 text-xs' : ''),
+      extraClassName: (item) => (!codigoBarcodeCompleto(item.barcode_tail) ? 'text-neutro-400 text-xs' : ''),
       width: 110,
       filtroKey: 'codigo',
       filtro: { tipo: 'texto' },
@@ -76,7 +76,7 @@ export function crearColumnasVenta(
     {
       header: 'Detalle',
       render: (item) => item.descripcion ?? 'Sin Nombre',
-      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 text-xs' : ''),
+      extraClassName: (item) => (!item.descripcion ? 'text-neutro-400 text-xs' : ''),
       width: 200,
       filtroKey: 'nombre',
       filtro: { tipo: 'texto' },
@@ -84,7 +84,7 @@ export function crearColumnasVenta(
     {
       header: 'Talle',
       render: (item) => item.talle ?? 'Sin Talle',
-      extraClassName: (item) => (!item.talle ? 'text-gray-400 text-xs' : ''),
+      extraClassName: (item) => (!item.talle ? 'text-neutro-400 text-xs' : ''),
       width: 90,
       filtroKey: 'talle',
       filtro: { tipo: 'texto' },
@@ -108,7 +108,7 @@ export function crearColumnasVenta(
     {
       header: 'Color/Modelo',
       render: (item) => item.detalle ?? 'Sin Detalle',
-      extraClassName: (item) => (!item.detalle ? 'text-gray-400 text-xs' : ''),
+      extraClassName: (item) => (!item.detalle ? 'text-neutro-400 text-xs' : ''),
       width: 150,
       filtroKey: 'detalle',
       filtro: { tipo: 'texto' },
@@ -116,7 +116,7 @@ export function crearColumnasVenta(
     {
       header: 'Línea',
       render: (item) => lineas.find((l) => l.id_linea === item.id_linea)?.nombre_linea ?? 'Sin Línea',
-      extraClassName: (item) => (item.id_linea === null ? 'text-gray-400 text-xs' : ''),
+      extraClassName: (item) => (item.id_linea === null ? 'text-neutro-400 text-xs' : ''),
       width: 110,
       filtroKey: 'linea',
       filtro: {
@@ -130,7 +130,7 @@ export function crearColumnasVenta(
     {
       header: 'Subgrupo',
       render: (item) => item.nombre_subgrupo ?? 'Sin Subgrupo',
-      extraClassName: (item) => (!item.nombre_subgrupo ? 'text-gray-400 text-xs' : ''),
+      extraClassName: (item) => (!item.nombre_subgrupo ? 'text-neutro-400 text-xs' : ''),
       width: 150,
       filtroKey: 'subgrupos',
       filtro: {

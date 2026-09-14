@@ -43,12 +43,12 @@ export default function ResumenCliente({ datos, resaltados }: ResumenClienteProp
 
         return (
           <div key={fila.etiqueta} className='flex flex-col'>
-            <dt className='text-xs text-gray-400'>{fila.etiqueta}</dt>
+            <dt className='text-xs text-neutro-400'>{fila.etiqueta}</dt>
             <dd
               className={`text-sm break-words ${
                 resaltado
-                  ? 'rounded bg-amber-50 px-1 font-semibold text-amber-800'
-                  : 'font-medium text-gray-800'
+                  ? 'rounded bg-acento-100 px-1 font-semibold text-acento-800'
+                  : 'font-medium text-neutro-900'
               }`}
             >
               {fila.valor === '' ? '—' : fila.valor}

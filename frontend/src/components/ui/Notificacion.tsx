@@ -31,7 +31,7 @@ export default function Notificacion({
         POSICION[posicion]
       } ${mensaje ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}
     >
-      <span className='rounded-full bg-green-600 px-4 py-1.5 text-sm font-medium text-white shadow-lg'>
+      <span className='rounded-full bg-green-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm'>
         ✓ {mensaje}
       </span>
     </div>

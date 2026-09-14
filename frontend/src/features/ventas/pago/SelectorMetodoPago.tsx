@@ -22,7 +22,7 @@ export default function SelectorMetodoPago({
   deshabilitado = false,
 }: SelectorMetodoPagoProps) {
   return (
-    <div className='flex w-full gap-2 rounded-lg border-2 border-gray-300 bg-gray-100 p-1'>
+    <div className='flex w-full gap-2 rounded border-2 border-neutro-200 bg-neutro-100 p-1'>
       {tipos.map((tipo) => {
         const activo = seleccionado === tipo.id_tipos_de_pago;
 
@@ -32,8 +32,8 @@ export default function SelectorMetodoPago({
             type='button'
             onClick={() => onSeleccionar(tipo.id_tipos_de_pago)}
             disabled={deshabilitado}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-              activo ? 'bg-violet-800 text-white' : 'text-gray-900 hover:bg-gray-200'
+            className={`flex-1 rounded px-3 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+              activo ? 'bg-marca-500 text-white' : 'text-neutro-900 hover:bg-neutro-200'
             }`}
           >
             {tipo.nombre_tipo_de_pago}

@@ -463,7 +463,7 @@ export default function AgregarProductoModal({
         abierto={abierto}
         onCerrar={onCerrar}
         titulo={tituloPaso}
-        claseTitulo='text-lg font-medium leading-6 text-gray-900'
+        claseTitulo='text-lg font-medium leading-6 text-neutro-900'
         ancho={paso === 4 ? '1200px' : '2xl'}
         z='z-[60]'
         clasePanel='relative select-none'
@@ -471,7 +471,7 @@ export default function AgregarProductoModal({
         footer={
           <button
             onClick={onCerrar}
-            className='w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+            className='w-full px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
           >
             Cerrar
           </button>

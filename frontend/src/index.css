@@ -1,5 +1,73 @@
 @import "tailwindcss";
 
+/*
+ * Sistema de tokens "Taller tecnico".
+ *
+ * La identidad anterior ("Estudio moderno": violeta saturado, neutros frios,
+ * radio 8px, tarjetas con sombra) fue REEMPLAZADA a proposito por esta, mas
+ * apagada e industrial — inspirada en el propio dominio del negocio (remitos,
+ * codigos, tickets). No es una migracion a medias: los nombres de los tokens
+ * son los mismos, solo cambian los valores, asi que todo lo que ya usa
+ * `marca-*` / `acento-*` / `neutro-*` se recolorea sin tocarse.
+ *
+ * - `marca-*`  : violeta apagado (#5b3aa0), unico acento fuerte de la interfaz
+ *                (botones primarios, estados activos, franja superior de modal).
+ * - `acento-*` : ambar terroso (#c77d2e), SOLO acentos puntuales (badges tipo
+ *                "Predeterminada"). NO es un hover generico: para eso `marca-50`.
+ * - `neutro-*` : neutros CALIDOS (piedra/hueso), reemplazan a los slate frios.
+ *
+ * RADIO: todo lo que se toca usa `rounded` (4px) y nada mas — mas angosto y
+ * menos "app SaaS" que el `rounded-lg` de la identidad anterior. No hay token de
+ * radio a proposito: la convencion alcanza y evita otro token que mantener.
+ *
+ * JERARQUIA: bordes y divisores, nunca sombras. El unico recurso "audaz" es la
+ * franja superior violeta de `BaseModal`, gastada en un solo lugar.
+ *
+ * MIGRACION GRADUAL: las piezas nuevas o tocadas usan estos tokens; el resto del
+ * codigo (Ventas, Articulos, Precios) sigue con `violet-*` / `amber-*` hasta un PR
+ * de migracion posterior. Es deliberado, no una inconsistencia pendiente.
+ */
+@theme {
+  --color-marca-50: #f5f2fa;
+  --color-marca-100: #e8e2f3;
+  --color-marca-400: #8f74c4;
+  --color-marca-500: #5b3aa0;
+  --color-marca-600: #4b2f85;
+  --color-marca-700: #3b2569;
+
+  --color-acento-100: #f6e7d3;
+  --color-acento-500: #c77d2e;
+  --color-acento-600: #a86322;
+  --color-acento-800: #6b3f13;
+
+  --color-neutro-50: #fafaf9;
+  --color-neutro-100: #f2f0ed;
+  --color-neutro-200: #e3dfda;
+  --color-neutro-400: #a09a92;
+  --color-neutro-600: #57524c;
+  --color-neutro-900: #26232b;
+
+  --font-display: 'Hanken Grotesk', system-ui, sans-serif;
+  /* Tailwind v4 genera la utilidad nativa `font-mono` desde esta variable: los
+     codigos y tokens que ya usan `font-mono` heredan Plex Mono sin tocarse. */
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Escala tipografica: reemplaza la mezcla text-2xl / text-[25px] / text-lg. */
+  --text-display: 2.5rem;      /* 40px */
+  --text-display--line-height: 1.1;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 1.75rem;          /* 28px */
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h2: 1.25rem;          /* 20px */
+  --text-h2--line-height: 1.35;
+  --text-h2--letter-spacing: -0.01em;
+  --text-body: 0.875rem;       /* 14px */
+  --text-body--line-height: 1.5;
+  --text-caption: 0.75rem;     /* 12px */
+  --text-caption--line-height: 1.4;
+}
+
 :root {
   --text: #6b6375;
   --bg: #fff;
@@ -17,32 +85,96 @@
   }
 }
 
+/* Hanken Grotesk variable (SIL OFL), autohosteada desde `public/fonts/`.
+   La ruta es `/fonts/...`: `public/` es la raiz estatica de Vite, no parte de la URL.
+   Dos subsets de Google Fonts: `latin` cubre el castellano completo; `latin-ext`
+   entra solo si aparece un caracter fuera de Latin-1. */
 @font-face {
-  font-family: Inter;
-  src: url('/frontend/public/fonts/InterVariable.woff2');
-  font-weight: normal;
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGroteskVariable.woff2') format('woff2');
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
+@font-face {
+  font-family: 'Hanken Grotesk';
+  src: url('/fonts/HankenGroteskVariable-LatinExt.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* IBM Plex Mono Regular (SIL OFL), autohosteada igual que Hanken Grotesk.
+   Peso 400 unicamente y subset `latin`: se usa solo para codigos y tokens
+   (alfanumericos), no para texto corrido, asi que no hace falta `latin-ext`
+   ni otros pesos. Plex Mono no publica variable font, por eso es estatica. */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/IBMPlexMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* La familia se declara una sola vez en `body` y el resto la hereda. El selector
+   anterior (`span p h1 h2`, sin comas) era un descendiente compuesto que casi
+   nunca matcheaba: la fuente practicamente no se aplicaba. */
 body {
   margin: 0;
+  font-family: var(--font-display);
 }
 
 p {
   margin: 0;
 }
 
-span p h1 h2{
-  font-family: Inter;
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }
 
 h1 {
-  font-size: 54px;
+  font-size: var(--text-h1);
+  line-height: 1.2;
+  font-weight: 600;
 }
 
-h2{
-  font-size: 26px;
+h2 {
+  font-size: var(--text-h2);
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: var(--text-h2);
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+/* Oculta las flechitas nativas de un `input type=number`. Se usa donde el
+   incremento lo manejan botones "-" / "+" propios (ver `ui/InputCantidad`):
+   dejar tambien el spinner del navegador daria dos controles para lo mismo. */
+.input-sin-spinner::-webkit-outer-spin-button,
+.input-sin-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.input-sin-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 @keyframes shake {

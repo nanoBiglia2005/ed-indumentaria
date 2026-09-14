@@ -26,7 +26,7 @@ export default function ToolbarSeleccionArticulos({
         type='button'
         onClick={onDeseleccionar}
         disabled={actualizando}
-        className='rounded border border-white/70 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+        className='rounded border border-white/70 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-marca-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
       >
         Deseleccionar
       </button>
@@ -42,7 +42,7 @@ export default function ToolbarSeleccionArticulos({
         type='button'
         onClick={() => onVigenciaMasiva(false)}
         disabled={actualizando}
-        className='rounded border border-orange-500 bg-orange-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-orange-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+        className='rounded border border-red-500 bg-red-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-acento-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
       >
         {actualizando ? 'Actualizando...' : 'Establecer No Vigente'}
       </button>
@@ -50,7 +50,7 @@ export default function ToolbarSeleccionArticulos({
         type='button'
         onClick={onImprimir}
         disabled={actualizando}
-        className='rounded border border-amber-500 bg-amber-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-amber-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+        className='rounded border border-acento-500 bg-acento-500 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-acento-600 active:bg-acento-800 disabled:cursor-wait disabled:bg-acento-500/50 whitespace-nowrap'
       >
         Imprimir
       </button>

@@ -65,14 +65,14 @@ export default function ReimprimirRemitoModal({
         <>
           <button
             onClick={onCerrar}
-            className='flex-1 cursor-pointer rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200'
+            className='flex-1 cursor-pointer rounded bg-neutro-100 px-4 py-2 text-sm font-medium text-neutro-600 transition-colors hover:bg-neutro-200'
           >
             {listo ? 'Cerrar' : 'Cancelar'}
           </button>
           <button
             onClick={handleReimprimir}
             disabled={cargando}
-            className='flex-1 cursor-pointer rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-violet-400'
+            className='flex-1 cursor-pointer rounded bg-marca-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-marca-600 disabled:cursor-not-allowed disabled:bg-marca-400'
           >
             {cargando ? 'Imprimiendo...' : listo ? 'Imprimir de nuevo' : 'Imprimir'}
           </button>
@@ -80,7 +80,7 @@ export default function ReimprimirRemitoModal({
       }
     >
       <div className='flex flex-col gap-4'>
-        <p className='text-sm text-gray-600'>
+        <p className='text-sm text-neutro-600'>
           Se imprime el mismo ticket que se emitió al registrar la venta, con los precios de ese
           momento.
         </p>
@@ -94,7 +94,7 @@ export default function ReimprimirRemitoModal({
         />
 
         {listo && (
-          <p className='rounded-md border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-700'>
+          <p className='rounded border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-700'>
             El ticket se envió a la impresora.
           </p>
         )}

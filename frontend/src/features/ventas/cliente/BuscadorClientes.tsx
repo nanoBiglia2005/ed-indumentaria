@@ -90,17 +90,17 @@ export default function BuscadorClientes({
         onFocus={() => setAbierto(true)}
         placeholder='Buscar por Nombre/DNI...'
         aria-label='Buscar un cliente por nombre o DNI'
-        className='w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 transition-colors duration-100 ease-in hover:border-violet-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 disabled:cursor-not-allowed disabled:opacity-60'
+        className='w-full rounded border border-neutro-200 bg-white px-3 py-2 text-sm text-neutro-600 placeholder:text-neutro-400 transition-colors duration-100 ease-in hover:border-marca-400 focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30 disabled:cursor-not-allowed disabled:opacity-60'
       />
 
       {hayAlgoQueMostrar && (
-        <div className='absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg'>
-          {cargando && <p className='px-4 py-3 text-sm text-gray-400'>Buscando...</p>}
+        <div className='absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded border border-neutro-200 bg-white shadow-sm'>
+          {cargando && <p className='px-4 py-3 text-sm text-neutro-400'>Buscando...</p>}
 
           {!cargando && error && <p className='px-4 py-3 text-sm text-red-600'>{error}</p>}
 
           {!cargando && !error && resultados.length === 0 && (
-            <p className='px-4 py-3 text-sm italic text-gray-400'>
+            <p className='px-4 py-3 text-sm italic text-neutro-400'>
               No hay clientes con ese nombre o DNI.
             </p>
           )}
@@ -112,10 +112,10 @@ export default function BuscadorClientes({
                 key={cliente.id_cliente}
                 type='button'
                 onClick={() => handleSeleccionar(cliente)}
-                className='flex w-full flex-col border-b border-gray-100 px-4 py-2 text-left last:border-b-0 transition-colors duration-100 ease-in hover:bg-amber-50 cursor-pointer'
+                className='flex w-full flex-col border-b border-neutro-200 px-4 py-2 text-left last:border-b-0 transition-colors duration-100 ease-in hover:bg-neutro-100 cursor-pointer'
               >
-                <span className='font-semibold text-gray-800'>{nombreCompleto(cliente)}</span>
-                <span className='text-xs text-gray-500'>DNI {cliente.dni}</span>
+                <span className='font-semibold text-neutro-900'>{nombreCompleto(cliente)}</span>
+                <span className='text-xs text-neutro-600'>DNI {cliente.dni}</span>
               </button>
             ))}
         </div>

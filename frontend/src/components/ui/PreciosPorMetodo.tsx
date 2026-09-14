@@ -36,7 +36,7 @@ export default function PreciosPorMetodo({
             metodo.recargo > 0 ? ` (${metodo.recargo}% de recargo)` : ''
           }`}
           className={`flex items-center gap-1 text-${tamanoTexto} font-medium px-3 py-1 ${
-            metodo.recargo > 0 ? 'text-violet-600' : 'text-gray-600'
+            metodo.recargo > 0 ? 'text-marca-500' : ''
           }`}
         >
           <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={tamanoIcono} />

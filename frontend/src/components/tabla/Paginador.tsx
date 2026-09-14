@@ -38,17 +38,17 @@ export default function Paginador({
   const ultimaPagina = Math.max(1, Math.ceil(total / tamano));
 
   const claseBoton =
-    'rounded p-1.5 text-violet-600 transition-colors duration-100 ease-in hover:bg-violet-100 active:bg-violet-200 cursor-pointer disabled:text-gray-300 disabled:hover:bg-transparent disabled:cursor-default';
+    'rounded p-1.5 text-marca-600 transition-colors duration-100 ease-in hover:bg-marca-50 active:bg-marca-100 cursor-pointer disabled:text-neutro-400 disabled:hover:bg-transparent disabled:cursor-default';
 
   return (
     <div className='flex items-center justify-end gap-1 py-2 select-none'>
-      <span className='text-sm text-gray-600 whitespace-nowrap pr-2'>
+      <span className='text-sm text-neutro-600 whitespace-nowrap pr-2'>
         {cargando ? (
           'Cargando...'
         ) : (
           <>
             {desde.toLocaleString('es-AR')}–{hasta.toLocaleString('es-AR')} de{' '}
-            <span className='font-semibold text-gray-800'>{total.toLocaleString('es-AR')}</span>
+            <span className='font-semibold text-neutro-900'>{total.toLocaleString('es-AR')}</span>
           </>
         )}
       </span>

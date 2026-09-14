@@ -71,6 +71,19 @@ export const crearArticulo = (datos: Partial<ARTICULOS>) =>
 export const actualizarArticulo = (idArticulo: number, datos: Partial<ARTICULOS>) =>
   request<ARTICULOS>(`/api/articulos/${idArticulo}`, { metodo: 'PUT', cuerpo: datos });
 
+/**
+ * Ajusta la cantidad de forma atomica en la base (`cant = cant + delta`),
+ * a diferencia de `actualizarArticulo({ cant })` que escribe un valor absoluto.
+ * Usar para el modo "Entrada y salida de stock": `delta` positivo suma,
+ * negativo resta. Si el resultado quedaria negativo, el backend rechaza el
+ * pedido (409) sin aplicar el cambio.
+ */
+export const ajustarCantidadArticulo = (idArticulo: number, delta: number) =>
+  request<ARTICULOS>(`/api/articulos/${idArticulo}/ajustar-cantidad`, {
+    metodo: 'PATCH',
+    cuerpo: { delta },
+  });
+
 // --- Asociaciones del articulo (clientes) ---
 // El grupo y el subgrupo son campos propios del articulo: se editan con
 // actualizarArticulo({ id_grupo, id_subgrupo }).
