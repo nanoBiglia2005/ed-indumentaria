@@ -19,7 +19,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SessionProvider>
       <BrowserRouter>
-        <Suspense fallback={<div className='p-8 text-violet-700'>Cargando…</div>}>
+        <Suspense fallback={<div className='p-8 text-marca-700'>Cargando…</div>}>
           <Routes>
             <Route path='/' element={<LoginPage />} />
             <Route path='gestion' element={<AuthGuard />}>

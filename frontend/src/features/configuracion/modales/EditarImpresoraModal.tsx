@@ -83,7 +83,7 @@ export default function EditarImpresoraModal({
         token ? (
           <button
             onClick={handleCerrar}
-            className='flex-1 cursor-pointer rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700'
+            className='flex-1 cursor-pointer rounded bg-marca-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-marca-600'
           >
             Ya lo copié, cerrar
           </button>
@@ -91,14 +91,14 @@ export default function EditarImpresoraModal({
           <>
             <button
               onClick={handleCerrar}
-              className='flex-1 cursor-pointer rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200'
+              className='flex-1 cursor-pointer rounded bg-neutro-100 px-4 py-2 text-sm font-medium text-neutro-600 transition-colors hover:bg-neutro-200'
             >
               Cancelar
             </button>
             <button
               onClick={handleGuardar}
               disabled={cargando || nombre.trim() === ''}
-              className='flex-1 cursor-pointer rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-violet-400'
+              className='flex-1 cursor-pointer rounded bg-marca-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-marca-600 disabled:cursor-not-allowed disabled:bg-marca-400'
             >
               {cargando ? 'Guardando...' : 'Guardar'}
             </button>
@@ -111,7 +111,7 @@ export default function EditarImpresoraModal({
       ) : (
         <div className='flex flex-col gap-4'>
           <div className='flex flex-col gap-2'>
-            <label className='text-sm font-medium text-gray-700' htmlFor='editar-nombre-impresora'>
+            <label className='text-sm font-medium text-neutro-600' htmlFor='editar-nombre-impresora'>
               Nombre
             </label>
             <input
@@ -120,22 +120,22 @@ export default function EditarImpresoraModal({
               value={nombre}
               maxLength={NOMBRE_IMPRESORA_MAX}
               onChange={(e) => setNombre(e.target.value)}
-              className='w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+              className='w-full rounded border border-neutro-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-marca-500'
             />
           </div>
 
-          <label className='flex items-start gap-3 text-sm text-gray-700'>
+          <label className='flex items-start gap-3 text-sm text-neutro-600'>
             <input
               type='checkbox'
               checked={activa}
               disabled={impresora.es_predeterminada}
               onChange={(e) => setActiva(e.target.checked)}
-              className='mt-0.5 h-4 w-4 accent-violet-600 disabled:opacity-50'
+              className='mt-0.5 h-4 w-4 accent-marca-500 disabled:opacity-50'
             />
             <span>
               Activa
               {impresora.es_predeterminada && (
-                <span className='block text-xs text-gray-500'>
+                <span className='block text-xs text-neutro-400'>
                   La impresora predeterminada no se puede desactivar. Marcá otra como
                   predeterminada primero.
                 </span>
@@ -143,40 +143,40 @@ export default function EditarImpresoraModal({
             </span>
           </label>
 
-          <label className='flex items-start gap-3 text-sm text-gray-700'>
+          <label className='flex items-start gap-3 text-sm text-neutro-600'>
             <input
               type='checkbox'
               checked={predeterminada}
               disabled={impresora.es_predeterminada || !activa}
               onChange={(e) => setPredeterminada(e.target.checked)}
-              className='mt-0.5 h-4 w-4 accent-violet-600 disabled:opacity-50'
+              className='mt-0.5 h-4 w-4 accent-marca-500 disabled:opacity-50'
             />
             <span>
               Predeterminada
-              <span className='block text-xs text-gray-500'>
+              <span className='block text-xs text-neutro-400'>
                 Es donde imprimen los empleados y todo lo que no elige impresora.
               </span>
             </span>
           </label>
 
-          <div className='border-t border-gray-200 pt-4'>
+          <div className='border-t border-neutro-200 pt-4'>
             {confirmandoToken ? (
               <div className='flex flex-col gap-3'>
-                <div className='rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800'>
+                <div className='rounded border border-acento-500 bg-acento-100 p-3 text-sm text-acento-800'>
                   El token actual deja de funcionar y esa PC no va a imprimir hasta que pegues el
                   nuevo en su archivo <code className='font-mono'>.env</code>.
                 </div>
                 <div className='flex gap-3'>
                   <button
                     onClick={() => setConfirmandoToken(false)}
-                    className='flex-1 cursor-pointer rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200'
+                    className='flex-1 cursor-pointer rounded bg-neutro-100 px-4 py-2 text-sm font-medium text-neutro-600 transition-colors hover:bg-neutro-200'
                   >
                     Mejor no
                   </button>
                   <button
                     onClick={handleRegenerar}
                     disabled={cargando || segundos > 0}
-                    className='flex-1 cursor-pointer rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-amber-300'
+                    className='flex-1 cursor-pointer rounded bg-acento-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-acento-600 disabled:cursor-not-allowed disabled:bg-acento-500/50'
                   >
                     {segundos > 0 ? `Regenerar (${segundos})` : 'Regenerar'}
                   </button>
@@ -185,7 +185,7 @@ export default function EditarImpresoraModal({
             ) : (
               <button
                 onClick={() => setConfirmandoToken(true)}
-                className='cursor-pointer text-sm font-medium text-amber-700 underline-offset-2 hover:underline'
+                className='cursor-pointer text-sm font-medium text-acento-600 underline-offset-2 hover:underline'
               >
                 Regenerar token
               </button>

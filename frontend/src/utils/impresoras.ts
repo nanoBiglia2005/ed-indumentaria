@@ -26,9 +26,14 @@ export const estadoImpresora = (impresora: Impresora) => {
   return 'En línea';
 };
 
-/** Color del punto de estado. Violeta/ambar son los colores de la pagina. */
+/**
+ * Color del punto de estado, con los tokens del sistema: `neutro` para lo
+ * apagado y `acento` para el aviso de "sin conexion" (es exactamente el caso de
+ * uso de acento). El verde queda literal a proposito: es semantica de
+ * resultado, no identidad de marca.
+ */
 export const colorEstadoImpresora = (impresora: Impresora) => {
-  if (!impresora.activa) return 'bg-gray-300';
-  if (!impresora.conectada) return 'bg-amber-500';
+  if (!impresora.activa) return 'bg-neutro-400';
+  if (!impresora.conectada) return 'bg-acento-500';
   return 'bg-green-500';
 };

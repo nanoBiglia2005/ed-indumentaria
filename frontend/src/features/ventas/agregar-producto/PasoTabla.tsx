@@ -91,7 +91,7 @@ export default function PasoTabla({
         altoFila={ROW_HEIGHT}
         anchoColSeleccion={ANCHO_COL_SELECCION}
         anchoUltimaColumna='minmax(100px, 1fr)'
-        claseContenedor='max-h-96 overflow-auto border rounded-md border-black/30'
+        claseContenedor='max-h-96 overflow-auto border rounded border-neutro-200'
         estiloCeldaTexto={{
           display: '-webkit-box',
           WebkitLineClamp: MAX_LINEAS_CELDA,
@@ -121,7 +121,7 @@ export default function PasoTabla({
             <button
               type='button'
               onClick={onDeseleccionar}
-              className='rounded border border-white/70 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 whitespace-nowrap'
+              className='rounded border border-white/70 px-3 py-1 text-[13px] font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-marca-600 whitespace-nowrap'
             >
               Deseleccionar
             </button>
@@ -142,18 +142,18 @@ export default function PasoTabla({
               e.stopPropagation();
               onAgregar(item);
             }}
-            className='rounded border border-violet-500 bg-violet-500 px-3 py-1 text-xs font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 active:bg-violet-700'
+            className='rounded border border-marca-500 bg-marca-500 px-3 py-1 text-xs font-semibold text-white cursor-pointer transition-colors duration-100 ease-in hover:bg-marca-600 active:bg-marca-700'
           >
             Agregar
           </button>
         )}
         claseCeldaAccion={() =>
-          'py-2 border-black/20 border-l border-b group-hover:bg-amber-50 transition-colors duration-100 ease-in flex items-center justify-center'
+          'py-2 border-black/20 border-l border-b group-hover:bg-neutro-100 transition-colors duration-100 ease-in flex items-center justify-center'
         }
         cargando={cargando}
-        estadoCargando={<p className='px-3 py-6 text-sm text-gray-400 text-center'>Cargando artículos...</p>}
+        estadoCargando={<p className='px-3 py-6 text-sm text-neutro-400 text-center'>Cargando artículos...</p>}
         estadoVacio={
-          <p className='px-3 py-6 text-sm text-gray-400 italic text-center'>
+          <p className='px-3 py-6 text-sm text-neutro-400 italic text-center'>
             No hay artículos disponibles para agregar.
           </p>
         }

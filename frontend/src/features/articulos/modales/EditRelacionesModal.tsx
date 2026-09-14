@@ -94,14 +94,14 @@ export default function EditRelacionesModal({
         <>
           <button
             onClick={onCerrar}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
           >
             Cerrar
           </button>
           <button
             onClick={handleGuardar}
             disabled={cargando}
-            className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
+            className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 transition-colors'
           >
             {cargando ? 'Guardando...' : 'Confirmar'}
           </button>
@@ -109,7 +109,7 @@ export default function EditRelacionesModal({
       }
     >
       <div>
-        <label className='block text-sm font-medium text-gray-700 mb-2'>{textos.label}</label>
+        <label className='block text-sm font-medium text-neutro-600 mb-2'>{textos.label}</label>
         <div className='mb-3'>
           <InlineFilterDropdown
             label={textos.labelAgregar}

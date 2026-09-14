@@ -164,7 +164,7 @@ function VentasPage() {
         <button
           type='button'
           onClick={() => setIsNuevaVentaOpen(true)}
-          className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-violet-500 hover:bg-violet-600 active:bg-violet-700 transition-colors duration-100 ease-in'
+          className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-marca-500 hover:bg-marca-600 active:bg-marca-700 transition-colors duration-100 ease-in'
         >
           Iniciar Nueva Venta
         </button>

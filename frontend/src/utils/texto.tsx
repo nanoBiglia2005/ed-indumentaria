@@ -35,7 +35,7 @@ export function resaltarCoincidencia(texto: string, termino: string): ReactNode 
   const terminoLower = termino.toLowerCase();
   return partes.map((parte, i) =>
     parte.toLowerCase() === terminoLower ? (
-      <mark key={i} className='bg-violet-300 text-inherit rounded-sm'>
+      <mark key={i} className='bg-marca-100 text-inherit rounded-sm'>
         {parte}
       </mark>
     ) : (

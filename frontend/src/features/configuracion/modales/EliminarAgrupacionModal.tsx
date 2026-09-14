@@ -94,14 +94,14 @@ export default function EliminarAgrupacionModal({
           <button
             onClick={handleClose}
             disabled={cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-60'
           >
             Cancelar
           </button>
           <button
             onClick={handleEliminar}
             disabled={!puedeConfirmar || cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors cursor-pointer'
+            className='flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors cursor-pointer'
           >
             {cargando
               ? 'Eliminando...'
@@ -112,7 +112,7 @@ export default function EliminarAgrupacionModal({
         </>
       }
     >
-      <p className='text-sm text-gray-700'>
+      <p className='text-sm text-neutro-600'>
         ¿Estás seguro que querés eliminar {NOMBRE_TIPO[tipo]}{' '}
         <span className='font-semibold'>{item?.nombre}</span>? {ADVERTENCIA[tipo]}
       </p>

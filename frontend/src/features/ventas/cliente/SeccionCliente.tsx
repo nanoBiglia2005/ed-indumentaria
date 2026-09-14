@@ -105,29 +105,29 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
   };
 
   const claseBotonCaja =
-    'px-4 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60';
+    'px-4 py-2 text-sm font-medium rounded transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60';
 
   return (
     <div className='mt-6'>
       <div className='flex flex-wrap items-center gap-x-5 gap-y-2'>
-        <span className='text-lg font-medium text-gray-700'>Cliente</span>
+        <span className='text-lg font-medium text-neutro-600'>Cliente</span>
 
         {/* Elegir del buscador tambien cierra el alta a medio llenar: el
             cliente de la venta es uno solo. */}
         <BuscadorClientes onSeleccionar={terminarAsignacion} deshabilitado={deshabilitado} />
 
         {asignado && (
-          <div className='flex items-center gap-3 rounded-md bg-violet-600 px-3 py-1.5 text-white'>
+          <div className='flex items-center gap-3 rounded bg-marca-500 px-3 py-1.5 text-white'>
             <div className='flex flex-col leading-tight'>
               <span className='text-sm font-semibold'>{nombreCompleto(asignado)}</span>
-              <span className='text-xs text-violet-200'>{asignado.dni}</span>
+              <span className='text-xs text-marca-100'>{asignado.dni}</span>
             </div>
             <button
               type='button'
               onClick={() => setAQuitar(asignado)}
               disabled={deshabilitado}
               aria-label='Quitar el cliente de la venta'
-              className='font-bold text-violet-200 hover:text-white cursor-pointer disabled:cursor-not-allowed'
+              className='font-bold text-marca-100 hover:text-white cursor-pointer disabled:cursor-not-allowed'
             >
               X
             </button>
@@ -135,7 +135,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
         )}
       </div>
 
-      <div className='mt-3 rounded-md border border-gray-200 p-4'>
+      <div className='mt-3 rounded border border-neutro-200 p-4'>
         {/* 1. Sin cliente */}
         {!asignado && !creando && (
           <div className='flex h-32 items-center justify-center'>
@@ -147,7 +147,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
                 setCreando(true);
               }}
               disabled={deshabilitado}
-              className={`${claseBotonCaja} border border-gray-300 text-gray-700 hover:border-violet-500 hover:text-violet-600`}
+              className={`${claseBotonCaja} border border-neutro-200 text-neutro-600 hover:border-marca-500 hover:text-marca-600`}
             >
               Crear Nuevo Cliente
             </button>
@@ -177,7 +177,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
                   setErrorFormulario(null);
                 }}
                 disabled={deshabilitado}
-                className={`${claseBotonCaja} border border-gray-300 text-gray-700 hover:bg-gray-50 sm:w-48`}
+                className={`${claseBotonCaja} border border-neutro-200 text-neutro-600 hover:bg-neutro-100 sm:w-48`}
               >
                 Cancelar
               </button>
@@ -185,7 +185,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
                 type='button'
                 onClick={handlePedirConfirmacion}
                 disabled={deshabilitado}
-                className={`${claseBotonCaja} bg-violet-600 text-white hover:bg-violet-700 sm:w-48`}
+                className={`${claseBotonCaja} bg-marca-500 text-white hover:bg-marca-600 sm:w-48`}
               >
                 Crear y Asignar
               </button>
@@ -204,7 +204,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
             />
 
             {modificados.size > 0 && (
-              <p className='text-sm text-amber-700'>
+              <p className='text-sm text-acento-800'>
                 Los campos en amarillo se van a actualizar en el sistema al confirmar la venta.
               </p>
             )}
@@ -214,7 +214,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
                 type='button'
                 onClick={() => setAQuitar(asignado)}
                 disabled={deshabilitado}
-                className={`${claseBotonCaja} border border-amber-500 text-amber-700 hover:bg-amber-50 sm:w-64`}
+                className={`${claseBotonCaja} border border-acento-500 text-acento-800 hover:bg-acento-100 sm:w-64`}
               >
                 Quitar Asignación
               </button>

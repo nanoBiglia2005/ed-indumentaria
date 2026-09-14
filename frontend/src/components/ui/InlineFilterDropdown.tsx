@@ -67,9 +67,9 @@ function InlineFilterDropdown({
         onClick={() => (abierto ? cerrar() : setAbierto(true))}
         className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded border min-w-[150px] font-semibold text-md transition-colors duration-100 ease-in ${
           disabled
-            ? 'opacity-50 cursor-not-allowed border-gray-300 text-gray-400'
-            : 'cursor-pointer text-violet-500 hover:bg-amber-400 hover:text-white'
-        } ${seleccionada ? '!bg-violet-500 !text-white' : ''}`}
+            ? 'opacity-50 cursor-not-allowed border-neutro-200 text-neutro-400'
+            : 'cursor-pointer text-marca-500 hover:bg-neutro-100'
+        } ${seleccionada ? '!bg-marca-500 !text-white' : ''}`}
       >
         <span className='truncate'>{seleccionada ? seleccionada.nombre : label}</span>
         {seleccionada && permitirLimpiar ? (
@@ -98,25 +98,25 @@ function InlineFilterDropdown({
       </button>
 
       <div
-        className={`absolute z-20 mt-1 w-56 origin-top rounded-md border border-gray-200 bg-white shadow-lg transition-all duration-150 ease-in-out overflow-hidden ${
+        className={`absolute z-20 mt-1 w-56 origin-top rounded border border-neutro-200 bg-white shadow-sm transition-all duration-150 ease-in-out overflow-hidden ${
           abierto ? 'opacity-100 scale-100 max-h-72' : 'opacity-0 scale-95 max-h-0 pointer-events-none'
         }`}
       >
         {conBuscador && (
-          <div className='p-2 border-b border-gray-100'>
+          <div className='p-2 border-b border-neutro-100'>
             <input
               type='text'
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder='Buscar...'
-              className='w-full rounded border border-gray-300 bg-white py-1 px-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30'
+              className='w-full rounded border border-neutro-200 bg-white py-1 px-2 text-sm text-neutro-900 placeholder:text-neutro-400 focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30'
             />
           </div>
         )}
 
         <ul className='max-h-56 overflow-y-auto py-1'>
           {opcionesFiltradas.length === 0 ? (
-            <li className='px-3 py-2 text-md text-gray-400 italic'>
+            <li className='px-3 py-2 text-md text-neutro-400 italic'>
               {opciones.length === 0 ? 'Sin opciones' : 'Sin resultados'}
             </li>
           ) : (
@@ -127,8 +127,8 @@ function InlineFilterDropdown({
                   onSelect(opcion.id);
                   cerrar();
                 }}
-                className={`px-3 py-1.5 text-md cursor-pointer hover:bg-amber-50 transition-colors duration-100 ease-in ${
-                  opcion.id === selectedId ? 'bg-violet-50 text-violet-700 font-semibold' : 'text-gray-700'
+                className={`px-3 py-1.5 text-md cursor-pointer hover:bg-neutro-100 transition-colors duration-100 ease-in ${
+                  opcion.id === selectedId ? 'bg-marca-50 text-marca-700 font-semibold' : 'text-neutro-600'
                 }`}
               >
                 {opcion.nombre}

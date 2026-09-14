@@ -75,12 +75,14 @@ describe('estadoImpresora', () => {
     expect(estadoImpresora(impresora({ nombre: 'X', activa: false, conectada: true }))).toBe(
       'Desactivada'
     );
-    expect(colorEstadoImpresora(impresora({ nombre: 'X', activa: false }))).toBe('bg-gray-300');
+    expect(colorEstadoImpresora(impresora({ nombre: 'X', activa: false }))).toBe('bg-neutro-400');
   });
 
   test('activa pero sin cliente conectado avisa en ambar', () => {
     expect(estadoImpresora(impresora({ nombre: 'X', conectada: false }))).toBe('Sin conexión');
-    expect(colorEstadoImpresora(impresora({ nombre: 'X', conectada: false }))).toBe('bg-amber-500');
+    expect(colorEstadoImpresora(impresora({ nombre: 'X', conectada: false }))).toBe(
+      'bg-acento-500'
+    );
   });
 
   test('activa y conectada esta en linea', () => {

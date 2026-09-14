@@ -46,7 +46,7 @@ interface DataGridProps<T> {
   onToggleTodos: () => void;
   /** Contenido de la barra violeta que aparece con la seleccion activa. */
   toolbarSeleccion: ReactNode;
-  /** true: las celdas de la fila seleccionada se pintan de ambar (ArticulosPage). */
+  /** true: las celdas de la fila seleccionada se pintan de neutro (ArticulosPage). */
   resaltarFilaSeleccionada?: boolean;
 
   // --- Columna de accion ---
@@ -120,8 +120,8 @@ export default function DataGrid<T>({
         style={{ gridTemplateColumns, transform: 'translateZ(0)' }}
       >
         <span
-          className={`${pyHeader} border-black/35 bg-stone-100 border-b flex items-center justify-center ${
-            modoSeleccion ? 'bg-violet-500' : ''
+          className={`${pyHeader} border-black/35 bg-neutro-100 border-b flex items-center justify-center ${
+            modoSeleccion ? 'bg-marca-500' : ''
           }`}
         >
           <input
@@ -129,13 +129,13 @@ export default function DataGrid<T>({
             checked={todosSeleccionados}
             onChange={onToggleTodos}
             title={todosSeleccionados ? 'Deseleccionar todos' : 'Seleccionar todos'}
-            className='h-4 w-4 accent-violet-300 cursor-pointer'
+            className='h-4 w-4 accent-marca-400 cursor-pointer'
           />
         </span>
 
         {modoSeleccion ? (
           <div
-            className='border-black/35 bg-violet-500 border-b border-l overflow-hidden'
+            className='border-black/35 bg-marca-500 border-b border-l overflow-hidden'
             style={{ gridColumn: '2 / -1' }}
           >
             <div className='sticky w-fit flex items-center gap-2 px-3 py-2'>{toolbarSeleccion}</div>
@@ -149,7 +149,7 @@ export default function DataGrid<T>({
                 return (
                   <span
                     key={columna.header}
-                    className={`${claseBtnFiltro} border-black/35 bg-stone-100 text-[13px] font-medium border-b border-l flex items-center`}
+                    className={`${claseBtnFiltro} border-black/35 bg-neutro-100 text-[13px] font-medium border-b border-l flex items-center`}
                     title={`${columna.header} (no se puede filtrar ni ordenar)`}
                   >
                     <span className='flex-1 truncate'>{columna.header}</span>
@@ -176,7 +176,7 @@ export default function DataGrid<T>({
               );
             })}
             <span
-              className={`${claseHeaderAccion} border-black/35 bg-stone-100 border-b border-l text-[13px] font-medium flex items-center justify-center`}
+              className={`${claseHeaderAccion} border-black/35 bg-neutro-100 border-b border-l text-[13px] font-medium flex items-center justify-center`}
             >
               Acción
             </span>
@@ -209,15 +209,15 @@ export default function DataGrid<T>({
               >
                 <label
                   onClick={onFilaClick ? (e) => e.stopPropagation() : undefined}
-                  className={`${pyHeader} border-black/20 border-b flex items-center justify-center cursor-pointer group-hover:bg-amber-50 transition-colors duration-100 ease-in ${
-                    seleccionada ? 'bg-amber-100' : ''
+                  className={`${pyHeader} border-black/20 border-b flex items-center justify-center cursor-pointer group-hover:bg-neutro-100 transition-colors duration-100 ease-in ${
+                    seleccionada ? 'bg-neutro-200' : ''
                   }`}
                 >
                   <input
                     type='checkbox'
                     checked={seleccionada}
                     onChange={() => onToggleSeleccion(id)}
-                    className='h-4 w-4 accent-violet-600 cursor-pointer'
+                    className='h-4 w-4 accent-marca-600 cursor-pointer'
                   />
                 </label>
                 {columnas.map((columna) => {
@@ -233,9 +233,9 @@ export default function DataGrid<T>({
                     <p
                       key={columna.header}
                       onClick={columna.onClick ? () => columna.onClick!(item) : undefined}
-                      className={`${claseCelda} border-black/20 border-b border-l flex items-center break-words group-hover:bg-amber-50 transition-colors duration-100 ease-in ${
-                        resaltarFilaSeleccionada && seleccionada ? 'bg-amber-100' : ''
-                      } ${columna.onClick ? 'cursor-pointer hover:bg-amber-300' : ''} ${
+                      className={`${claseCelda} border-black/20 border-b border-l flex items-center break-words group-hover:bg-neutro-100 transition-colors duration-100 ease-in ${
+                        resaltarFilaSeleccionada && seleccionada ? 'bg-neutro-200' : ''
+                      } ${columna.onClick ? 'cursor-pointer hover:bg-neutro-200' : ''} ${
                         columna.extraClassName ? columna.extraClassName(item) : ''
                       }`}
                     >

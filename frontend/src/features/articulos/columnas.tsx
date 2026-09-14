@@ -69,7 +69,7 @@ export function crearColumnasArticulos({
     {
       header: 'Código',
       render: (item) => codigoBarcodeCompleto(item.barcode_tail) ?? 'No Asignado',
-      extraClassName: (item) => (!item.barcode_tail ? 'text-gray-400 flex justify-center' : ''),
+      extraClassName: (item) => (!item.barcode_tail ? 'text-neutro-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'barcode'),
       width: 110,
       filtroKey: 'codigo',
@@ -98,7 +98,7 @@ export function crearColumnasArticulos({
       header: 'Línea',
       render: (item) => lineas.find((l) => l.id_linea === item.id_linea)?.nombre_linea ?? 'Sin Línea',
       extraClassName: (item) =>
-        item.id_linea === null ? 'text-gray-400 flex justify-center' : 'font-semibold',
+        item.id_linea === null ? 'text-neutro-400 flex justify-center' : 'font-semibold',
       onClick: (item) => abrirEdicionLinea(item),
       width: 110,
       filtroKey: 'linea',
@@ -143,7 +143,7 @@ export function crearColumnasArticulos({
     {
       header: 'Color/Modelo',
       render: (item) => item.detalle ?? 'Sin Detalle',
-      extraClassName: (item) => (!item.detalle ? 'text-gray-400 flex justify-center' : ''),
+      extraClassName: (item) => (!item.detalle ? 'text-neutro-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'detalle'),
       width: 150,
       filtroKey: 'detalle',
@@ -152,7 +152,7 @@ export function crearColumnasArticulos({
     {
       header: 'Detalle',
       render: (item) => item.descripcion ?? 'Sin Nombre',
-      extraClassName: (item) => (!item.descripcion ? 'text-gray-400 flex justify-center' : ''),
+      extraClassName: (item) => (!item.descripcion ? 'text-neutro-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'descripcion'),
       width: 150,
       filtroKey: 'nombre',
@@ -161,7 +161,7 @@ export function crearColumnasArticulos({
     {
       header: 'Talle',
       render: (item) => item.talle ?? 'Sin Talle',
-      extraClassName: (item) => (!item.talle ? 'text-gray-400 flex justify-center' : ''),
+      extraClassName: (item) => (!item.talle ? 'text-neutro-400 flex justify-center' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'talle'),
       width: 105,
       filtroKey: 'talle',
@@ -186,7 +186,7 @@ export function crearColumnasArticulos({
           metodos={metodosDePago}
           tamanoTexto='xs'
           tamanoIcono={17}
-          claseContenedor='flex flex-col items-center gap-y-1 rounded-md border bg-white border-gray-300 shadow-md divide-y divide-gray-300'
+          claseContenedor='flex flex-col items-center gap-y-1 rounded border bg-white border-neutro-200 divide-y divide-neutro-200'
         />
       ),
       onClick: (item) => abrirEdicionCampo(item, 'precio'),

@@ -28,11 +28,11 @@ export default function MigasDePasos({
     <div className={className}>
       {pasos.map((paso, indice) => (
         <Fragment key={paso.clave}>
-          {indice > 0 && <span className='text-gray-300'>›</span>}
+          {indice > 0 && <span className='text-neutro-400'>›</span>}
           <button
             type='button'
             onClick={paso.onClick}
-            className='px-2 py-0.5 rounded border border-violet-500 text-violet-600 cursor-pointer hover:bg-violet-50 transition-colors'
+            className='px-2 py-0.5 rounded border border-marca-500 text-marca-600 cursor-pointer hover:bg-marca-50 transition-colors'
           >
             {paso.texto} ✕
           </button>

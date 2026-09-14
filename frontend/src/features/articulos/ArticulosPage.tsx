@@ -54,6 +54,7 @@ import {
 } from './columnas';
 import FilterDropdown from './FilterDropdown';
 import ToolbarSeleccionArticulos from './ToolbarSeleccionArticulos';
+import SectionWrapper from '@/components/layout/SectionWrapper';
 
 const TAMANO_PAGINA = 30;
 
@@ -517,13 +518,12 @@ function ArticulosPage() {
 
   return (
     <>
-      <div className='flex flex-col justify-center flex-1 min-w-0 px-10 py-6'>
-        <div className='border px-3 rounded-xl border-violet-500 h-full min-w-0 flex flex-col shadow-xl'>
+      <SectionWrapper>
           <div className='flex flex-wrap gap-y-2 justify-between my-2'>
             <div className='flex flex-wrap gap-1.5 sm:gap-2 lg:gap-4 select-none'>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className='rounded flex items-center py-1 px-2 sm:py-1.5 sm:px-2.5 lg:py-2 lg:px-3 text-white font-semibold text-sm sm:text-base lg:text-lg border cursor-pointer bg-violet-500 whitespace-nowrap transition-colors
+                className='rounded flex items-center py-1 px-2 sm:py-1.5 sm:px-2.5 lg:py-2 lg:px-3 text-white font-semibold text-sm sm:text-base lg:text-lg border cursor-pointer bg-marca-500 hover:bg-marca-600 whitespace-nowrap transition-colors
             duration-100 ease-in'
               >
                 <span>Nuevo Articulo</span>
@@ -572,7 +572,7 @@ function ArticulosPage() {
                 />
               </div>
             </div>
-            <div className='flex items-end gap-3'>
+            <div className='flex items-center gap-3'>
               {/* No se muestra a quien no puede elegir: sus etiquetas salen por
                   la impresora predeterminada. */}
               <div className='w-52'>
@@ -581,7 +581,6 @@ function ArticulosPage() {
                   valor={impresoras.seleccionada}
                   onChange={impresoras.setSeleccionada}
                   puedeElegir={impresoras.puedeElegir}
-                  etiqueta='Etiquetas en'
                 />
               </div>
               <SearchInput
@@ -600,7 +599,7 @@ function ArticulosPage() {
             altoFila={ROW_HEIGHT}
             anchoColSeleccion={ANCHO_COL_SELECCION}
             anchoUltimaColumna='minmax(110px, 1fr)'
-            claseContenedor='flex-1 min-h-0 w-full min-w-0 overflow-auto border rounded-xl border-black/30 select-none shadow'
+            claseContenedor='flex-1 min-h-0 w-full min-w-0 overflow-auto border rounded border-neutro-200 select-none'
             estiloCeldaTexto={{
               display: '-webkit-box',
               WebkitLineClamp: MAX_LINEAS_CELDA,
@@ -633,7 +632,7 @@ function ArticulosPage() {
                     type='button'
                     onClick={handleSeleccionarLosQueCoinciden}
                     disabled={seleccionandoTodos || actualizandoMasivo}
-                    className='rounded border border-amber-300 px-3 py-1 text-[13px] font-semibold text-amber-200 cursor-pointer transition-colors duration-100 ease-in hover:bg-violet-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
+                    className='rounded border border-acento-100 px-3 py-1 text-[13px] font-semibold text-acento-100 cursor-pointer transition-colors duration-100 ease-in hover:bg-marca-600 disabled:opacity-50 disabled:cursor-wait whitespace-nowrap'
                   >
                     {seleccionandoTodos
                       ? 'Seleccionando...'
@@ -655,7 +654,7 @@ function ArticulosPage() {
                   } ${
                     impresoId === item.id_articulo
                       ? 'border-green-600 bg-green-600'
-                      : 'cursor-pointer border-amber-500 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 disabled:cursor-wait disabled:bg-amber-300'
+                      : 'cursor-pointer border-acento-500 bg-acento-500 hover:bg-acento-600 active:bg-acento-800 disabled:cursor-wait disabled:bg-acento-500/50'
                   }`}
                 >
                   {imprimiendoId === item.id_articulo
@@ -667,8 +666,8 @@ function ArticulosPage() {
               </>
             )}
             claseCeldaAccion={(item) =>
-              `py-3 border-black/20 border-l border-b group-hover:bg-amber-50 transition-colors duration-100 ease-in flex flex-col items-center justify-center gap-2 ${
-                seleccionados.has(item.id_articulo) ? 'bg-violet-50' : ''
+              `py-3 border-black/20 border-l border-b group-hover:bg-neutro-100 transition-colors duration-100 ease-in flex flex-col items-center justify-center gap-2 ${
+                seleccionados.has(item.id_articulo) ? 'bg-neutro-200' : ''
               }`
             }
             // Solo se vacia la tabla en la primera carga: al cambiar de pagina o
@@ -676,10 +675,10 @@ function ArticulosPage() {
             // (el aviso de "Cargando..." lo da el paginador), asi no parpadea.
             cargando={cargando && articulos.length === 0}
             estadoCargando={
-              <p className='px-4 py-6 text-gray-400 italic text-center'>Cargando articulos...</p>
+              <p className='px-4 py-6 text-neutro-400 italic text-center'>Cargando articulos...</p>
             }
             estadoVacio={
-              <p className='px-4 py-6 text-gray-400 italic text-center'>
+              <p className='px-4 py-6 text-neutro-400 italic text-center'>
                 No hay articulos que coincidan con la busqueda
               </p>
             }
@@ -692,8 +691,7 @@ function ArticulosPage() {
             cargando={cargando}
             onCambiarPagina={setPagina}
           />
-        </div>
-      </div>
+      </SectionWrapper>
 
       <CreateArticleModal
         abierto={isModalOpen}

@@ -148,11 +148,47 @@
   no se arregla en silencio.
 - Priorizar la claridad visual y simpleza de uso para todas las partes de la pagina ya que
   esta no será utilizada por un cliente técnico.
-- Los colores principales de la página son violeta (violet en tailwind) y amarillo (amber
-  en tailwind). Utilizar estos colores para botones, hovers, borders, etc.
 - El desarrollo debe ser enfocado en uso en resoluciones de pantalla altas (PC) pero los
   elementos de la página deben adaptarse a resoluciones más pequeñas (Celular).
 - Al crear una nueva pagina se debe crear un botón en la sidebar para acceder a esta.
+
+### Identidad Visual: "Taller Técnico"
+
+La aplicación sigue una identidad visual industrial y cálida llamada "Taller Técnico", definida por:
+
+**Paleta de colores (tokens Tailwind v4 en `frontend/src/index.css` `@theme`)**:
+- **marca** (violeta): 50/100/400/500/600/700 — botones primarios, estados activos, navegación.
+- **acento** (ámbar/naranja cálido): 100/500/600/800 — avisos, alertas, estados puntuales.
+- **neutro** (grises cálidos): 50/100/200/400/600/900 — fondos, textos, bordes, hovers genéricos.
+- Colores semánticos **literales**: `green-*` (éxito), `red-*` (error/destrucción) — no tienen tokens,
+  se escriben directamente en Tailwind (`bg-green-600`, `text-red-500`).
+
+**Tipografía**:
+- Hanken Grotesk (body, encabezados)
+- IBM Plex Mono (código, valores técnicos)
+
+**Convenciones de aplicación** (aplica a todo nuevo elemento o reworkeo):
+1. **Botones primarios** (`bg-marca-500 hover:bg-marca-600 disabled:bg-marca-400`): acciones
+   principales de la página, cambios de estado, navegación.
+2. **Botones secundarios** (`text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200`): cancelar,
+   opciones alternativas.
+3. **Hovers genéricos en listas/tablas** (`hover:bg-neutro-100`): filas de tabla, opciones,
+   elementos clickeables que no son botones primarios. **NUNCA** ámbar ni marca para hover genérico —
+   esos colores se reservan para estados y acciones.
+4. **Estados de remito** (mapeados en `RemitoCard.tsx`): facturado→`marca-500`, confirmado→`acento-500`,
+   anulado→`neutro-600`, devuelto→`red-500` literal.
+5. **Sombras**: se eliminan en tarjetas y contenedores (jerarquía por borde). **Excepción única**:
+   elementos flotantes sin overlay propio (dropdowns, tooltips, panel de `Listbox`, toast de
+   `Notificacion`) conservan `shadow-sm` para separarse visualmente de la página.
+6. **Radio de esquinas**: `rounded` (4px) en todo. **Excepción**: puntos de estado circulares
+   (`rounded-full`).
+7. **Avisos y alertas** (`border-acento-100 bg-acento-50 text-acento-800` o variantes): usan tokens
+   `acento-*`, no ámbar literal. El verde de éxito y rojo de error se escriben literales porque son
+   semántica de resultado, no marca.
+
+**Cuándo aplicar los tokens**: al diseñar un nuevo componente o reworkear uno existente, **consultar
+siempre esta sección del CLAUDE.md**. El plan de migración usado en la Tanda 0-4 está documentado
+históricamente en el archivo de plan, pero las reglas arriba son las que rigen de ahora en adelante.
 
 ## Ramas y deploy
 - **`main` = producción, protegida.** No acepta push directo: todo entra por Pull Request.

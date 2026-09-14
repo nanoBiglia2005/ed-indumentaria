@@ -36,6 +36,12 @@ export interface TalleDePrecios {
   ids: number[];
   precioMin: number;
   precioMax: number;
+  /**
+   * Los articulos del talle uno por uno (mismo orden que `ids`: id_articulo
+   * ascendente), para poder editar el precio de cada uno por separado sin
+   * pedir otra consulta.
+   */
+  articulos: { id: number; descripcion: string; precio: number }[];
 }
 
 /** Paso 1: los articulos de la linea + los grupos y subgrupos que aparecen. */

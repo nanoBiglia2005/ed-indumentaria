@@ -31,17 +31,17 @@ export default function SegmentedToggle<T extends string | number>({
   const textoBoton = compacto ? 'px-2 py-0.5 text-xs' : 'px-3 py-2 text-sm';
 
   const claseBoton = (activo: boolean) =>
-    `relative flex-1 font-medium rounded-md transition-colors duration-300 cursor-pointer ${textoBoton} ${
-      activo ? 'text-white' : 'text-gray-900 hover:bg-gray-300'
+    `relative flex-1 font-medium rounded transition-colors duration-300 cursor-pointer ${textoBoton} ${
+      activo ? 'text-white' : 'text-neutro-900 hover:bg-neutro-200'
     }`;
 
   return (
     <div
-      className={`relative inline-flex w-full border-2 border-gray-300 rounded-lg bg-gray-100 gap-2 ${padding}`}
+      className={`relative inline-flex w-full border-2 border-neutro-200 rounded bg-neutro-100 gap-2 ${padding}`}
     >
       {/* Fondo animado */}
       <div
-        className={`absolute rounded-md bg-violet-600 transition-all duration-300 ease-in-out ${bordes} ${posicion}`}
+        className={`absolute rounded bg-marca-600 transition-all duration-300 ease-in-out ${bordes} ${posicion}`}
       />
 
       <button type='button' onClick={() => onChange(opciones[0].valor)} className={claseBoton(!esSegunda)}>

@@ -19,7 +19,7 @@ interface ListaChipsProps {
 export default function ListaChips({ items, onQuitar, textoVacio, maxVisible }: ListaChipsProps) {
   if (items.length === 0) {
     return <div className='flex items-center justify-center w-full'>
-        <p className='text-sm text-gray-400 italic'>{textoVacio}</p>
+        <p className='text-sm text-neutro-400 italic'>{textoVacio}</p>
       </div>;
   }
 
@@ -32,14 +32,14 @@ export default function ListaChips({ items, onQuitar, textoVacio, maxVisible }: 
       {visibles.map((item) => (
         <li
           key={item.id}
-          className='flex items-center gap-1 justify-between px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700 w-fit'
+          className='flex items-center gap-1 justify-between px-3 py-1.5 bg-neutro-50 border border-neutro-200 rounded text-sm text-neutro-600 w-fit'
         >
           <span>{item.nombre}</span>
           {onQuitar && (
             <button
               type='button'
               onClick={() => onQuitar(item.id)}
-              className='font-bold text-gray-400 hover:text-red-600 cursor-pointer px-1'
+              className='font-bold text-neutro-400 hover:text-red-600 cursor-pointer px-1'
             >
               X
             </button>
@@ -49,14 +49,14 @@ export default function ListaChips({ items, onQuitar, textoVacio, maxVisible }: 
 
       {ocultos.length > 0 && (
         <li className='group relative w-fit'>
-          <span className='flex items-center px-3 py-1.5 bg-violet-50 border border-violet-200 rounded text-sm font-medium text-violet-700 cursor-default'>
+          <span className='flex items-center px-3 py-1.5 bg-marca-50 border border-marca-100 rounded text-sm font-medium text-marca-700 cursor-default'>
             +{ocultos.length}
           </span>
-          <div className='pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden -translate-x-1/2 flex-col gap-0.5 whitespace-nowrap rounded-md bg-gray-900 px-3 py-2 text-xs text-white shadow-lg group-hover:flex'>
+          <div className='pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden -translate-x-1/2 flex-col gap-0.5 whitespace-nowrap rounded bg-neutro-900 px-3 py-2 text-xs text-white shadow-sm group-hover:flex'>
             {ocultos.map((item) => (
               <span key={item.id}>{item.nombre}</span>
             ))}
-            <div className='absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-gray-900' />
+            <div className='absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-neutro-900' />
           </div>
         </li>
       )}

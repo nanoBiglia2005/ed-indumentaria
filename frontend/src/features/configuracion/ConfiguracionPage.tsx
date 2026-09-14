@@ -138,15 +138,15 @@ function ConfiguracionPage() {
 
   return (
     <SectionWrapper>
-      <div className='flex flex-col w-full h-full px-5 pt-10 overflow-y-auto'>
-        <span className='text-2xl font-semibold text-black mb-5'>Medios de Pago</span>
+      <div className='flex flex-col w-full h-full px-3 pt-6 sm:px-5 sm:pt-10 overflow-y-auto'>
+        <span className='text-h1 font-semibold text-neutro-900 mb-5'>Medios de Pago</span>
 
-        {cargando && <span className='text-gray-400'>Cargando medios de pago...</span>}
+        {cargando && <span className='text-neutro-400'>Cargando medios de pago...</span>}
 
         {!cargando && error && <span className='text-red-500'>{error}</span>}
 
         {!cargando && !error && tiposDePago.length === 0 && (
-          <span className='text-gray-400'>No hay medios de pago registrados.</span>
+          <span className='text-neutro-400'>No hay medios de pago registrados.</span>
         )}
 
         {!cargando && !error && tiposDePago.length > 0 && (
@@ -154,12 +154,12 @@ function ConfiguracionPage() {
             {tiposDePago.map((tipoDePago) => (
               <div
                 key={tipoDePago.id_tipos_de_pago}
-                className='w-[200px] group relative h-fit hover:shadow-lg transition-all duration-100 ease-in px-4 py-4 border-violet-500 border flex flex-col rounded text-black'
+                className='w-full sm:w-[200px] group relative h-fit hover:border-marca-500 transition-all duration-150 ease-out px-4 py-4 border-marca-500/40 border flex flex-col rounded text-neutro-900'
               >
-                <span className='text-xl font-semibold truncate' title={tipoDePago.nombre_tipo_de_pago}>
+                <span className='text-h2 font-semibold truncate' title={tipoDePago.nombre_tipo_de_pago}>
                   {tipoDePago.nombre_tipo_de_pago ?? 'Sin nombre'}
                 </span>
-                <span className='text-md text-gray-600'>
+                <span className='text-body text-neutro-600'>
                   Recargo: {tipoDePago.recargo}
                   {tipoDePago.signo ? '%' : ''}
                 </span>
@@ -168,7 +168,7 @@ function ConfiguracionPage() {
                     <button
                       type='button'
                       onClick={() => abrirEdicionRecargo(tipoDePago)}
-                      className='border transition-colors duration-100 ease-in bg-violet-500 hover:bg-violet-600 text-white rounded w-full py-1 text-sm text-center cursor-pointer'
+                      className='border border-transparent transition-colors duration-100 ease-in bg-marca-500 hover:bg-marca-600 text-white rounded w-full py-1 text-sm text-center cursor-pointer'
                     >
                       Editar
                     </button>
@@ -185,8 +185,8 @@ function ConfiguracionPage() {
           </div>
         )}
 
-        <div className='flex flex-col lg:flex-row lg:flex-wrap gap-8 w-full items-start'>
-          <div className='flex-1 min-w-[260px] w-full'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full items-start'>
+          <div className='min-w-0 w-full'>
             <AgrupacionSection
               titulo='Líneas'
               tipo='linea'
@@ -198,7 +198,7 @@ function ConfiguracionPage() {
             />
           </div>
 
-          <div className='flex-1 min-w-[260px] w-full'>
+          <div className='min-w-0 w-full'>
             <AgrupacionSection
               titulo='Grupos'
               tipo='grupo'
@@ -211,7 +211,7 @@ function ConfiguracionPage() {
             />
           </div>
 
-          <div className='flex-1 min-w-[260px] w-full'>
+          <div className='min-w-0 w-full'>
             <AgrupacionSection
               titulo='Subgrupos'
               tipo='subgrupo'
@@ -223,7 +223,7 @@ function ConfiguracionPage() {
             />
           </div>
 
-          <div className='flex-1 min-w-[260px] w-full'>
+          <div className='min-w-0 w-full'>
             <AgrupacionSection
               titulo='Colegios/Clubes'
               tipo='colegio'

@@ -36,9 +36,9 @@ export default function FilterDropdown({
         onClick={() => setAbierto(true)}
         className={`flex items-center justify-between gap-1 sm:gap-1.5 lg:gap-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 rounded border min-w-0 lg:min-w-[140px] font-semibold whitespace-nowrap transition-colors duration-100 ease-in ${
           disabled
-            ? 'cursor-not-allowed border-gray-300 text-gray-400'
-            : 'cursor-pointer text-violet-500 hover:bg-amber-400 hover:text-white'
-        } ${seleccionada ? 'bg-violet-500 text-white' : ''}`}
+            ? 'cursor-not-allowed border-neutro-200 text-neutro-400'
+            : 'cursor-pointer text-marca-500 hover:bg-neutro-100'
+        } ${seleccionada ? 'bg-marca-500 text-white' : ''}`}
       >
         <span className='text-sm sm:text-base lg:text-xl'>{seleccionada ? seleccionada.nombre : label}</span>
         {seleccionada && (

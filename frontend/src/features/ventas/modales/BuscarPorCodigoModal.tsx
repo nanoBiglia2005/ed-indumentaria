@@ -99,7 +99,7 @@ export default function BuscarPorCodigoModal({
         <button
           type='button'
           onClick={onCerrar}
-          className='w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+          className='w-full px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
         >
           Cerrar
         </button>
@@ -112,7 +112,7 @@ export default function BuscarPorCodigoModal({
         }}
         className='flex flex-col gap-3'
       >
-        <label htmlFor='codigo-de-barras' className='text-sm text-gray-500'>
+        <label htmlFor='codigo-de-barras' className='text-sm text-neutro-600'>
           Escaneá el código o escribilo y presioná Buscar.
         </label>
 
@@ -127,19 +127,19 @@ export default function BuscarPorCodigoModal({
             value={codigo}
             onChange={(e) => handleCambio(e.target.value)}
             placeholder='Código de barras...'
-            className='flex-1 min-w-0 rounded-md border border-gray-300 px-3 py-2 text-lg tracking-wider text-gray-800 placeholder:text-base placeholder:tracking-normal placeholder:text-gray-400 transition-colors duration-100 ease-in hover:border-violet-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30'
+            className='flex-1 min-w-0 rounded border border-neutro-200 px-3 py-2 text-lg tracking-wider text-neutro-900 placeholder:text-base placeholder:tracking-normal placeholder:text-neutro-400 transition-colors duration-100 ease-in hover:border-marca-400 focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30'
           />
           <button
             type='submit'
             disabled={!puedeBuscar}
-            className='px-6 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-300 disabled:cursor-not-allowed transition-colors cursor-pointer shrink-0'
+            className='px-6 py-2 text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 disabled:cursor-not-allowed transition-colors cursor-pointer shrink-0'
           >
             {cargando ? 'Buscando...' : 'Buscar'}
           </button>
         </div>
 
         {aviso && (
-          <div className='rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700'>
+          <div className='rounded border border-acento-500 bg-acento-100 px-3 py-2 text-sm text-acento-800'>
             {aviso}
           </div>
         )}

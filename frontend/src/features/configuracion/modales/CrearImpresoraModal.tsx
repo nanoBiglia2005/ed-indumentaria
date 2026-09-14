@@ -60,7 +60,7 @@ export default function CrearImpresoraModal({
         token ? (
           <button
             onClick={handleCerrar}
-            className='flex-1 cursor-pointer rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700'
+            className='flex-1 cursor-pointer rounded bg-marca-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-marca-600'
           >
             Ya lo copié, cerrar
           </button>
@@ -68,14 +68,14 @@ export default function CrearImpresoraModal({
           <>
             <button
               onClick={handleCerrar}
-              className='flex-1 cursor-pointer rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200'
+              className='flex-1 cursor-pointer rounded bg-neutro-100 px-4 py-2 text-sm font-medium text-neutro-600 transition-colors hover:bg-neutro-200'
             >
               Cancelar
             </button>
             <button
               onClick={handleCrear}
               disabled={cargando || nombre.trim() === ''}
-              className='flex-1 cursor-pointer rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-violet-400'
+              className='flex-1 cursor-pointer rounded bg-marca-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-marca-600 disabled:cursor-not-allowed disabled:bg-marca-400'
             >
               {cargando ? 'Creando...' : 'Crear'}
             </button>
@@ -87,7 +87,7 @@ export default function CrearImpresoraModal({
         <TokenImpresora token={token} />
       ) : (
         <div className='flex flex-col gap-2'>
-          <label className='text-sm font-medium text-gray-700' htmlFor='nombre-impresora'>
+          <label className='text-sm font-medium text-neutro-600' htmlFor='nombre-impresora'>
             Nombre
           </label>
           <input
@@ -98,9 +98,9 @@ export default function CrearImpresoraModal({
             maxLength={NOMBRE_IMPRESORA_MAX}
             onChange={(e) => setNombre(e.target.value)}
             placeholder='Mostrador'
-            className='w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+            className='w-full rounded border border-neutro-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-marca-500'
           />
-          <p className='text-xs text-gray-500'>
+          <p className='text-xs text-neutro-400'>
             Un nombre que identifique la PC donde está la impresora. Es lo que se ve al elegir
             dónde imprimir.
           </p>

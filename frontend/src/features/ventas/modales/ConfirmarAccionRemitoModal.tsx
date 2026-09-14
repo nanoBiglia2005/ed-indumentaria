@@ -68,14 +68,14 @@ export default function ConfirmarAccionRemitoModal({
           <button
             onClick={onCerrar}
             disabled={cargando}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-60'
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirmar}
             disabled={esperando || cargando}
-            className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${
+            className={`flex-1 px-4 py-2 text-sm font-medium text-white rounded transition-colors ${
               esperando || cargando ? 'bg-red-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 cursor-pointer '
             }`}
           >
@@ -88,7 +88,7 @@ export default function ConfirmarAccionRemitoModal({
         </>
       }
     >
-      <p className='text-sm text-gray-700'>
+      <p className='text-sm text-neutro-600'>
         {accion.descripcion} <span className='font-semibold'>#{remito?.cod_mes}-{remito?.cod_remito_final}</span> por{' '}
         <span className='font-semibold'>{formatearPesos(remito ? accion.monto(remito) : 0)}</span>. Esta acción no
         se puede deshacer.

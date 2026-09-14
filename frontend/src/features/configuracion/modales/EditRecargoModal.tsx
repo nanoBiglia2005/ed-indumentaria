@@ -71,14 +71,14 @@ export default function EditRecargoModal({
         <>
           <button
             onClick={onCerrar}
-            className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
           >
             Cerrar
           </button>
           <button
             onClick={handleConfirmar}
             disabled={cargando}
-            className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
+            className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 transition-colors'
           >
             {cargando ? 'Guardando...' : 'Confirmar'}
           </button>
@@ -93,9 +93,9 @@ export default function EditRecargoModal({
           value={valorTexto}
           onChange={handleRecargoChange}
           placeholder='0'
-          className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+          className='w-full px-3 py-2 border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
         />
-        <span className='ps-2 text-gray-700 font-semibold'>%</span>
+        <span className='ps-2 text-neutro-600 font-semibold'>%</span>
       </div>
     </BaseModal>
   );

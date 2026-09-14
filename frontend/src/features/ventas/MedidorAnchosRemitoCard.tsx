@@ -126,7 +126,7 @@ export default function MedidorAnchosRemitoCard({ remitos, metodosConRecargo, ca
       <div ref={refCliente}>
         {remitos.map((r) => (
           <div key={r.id_remito} className='inline-flex flex-col whitespace-nowrap px-2'>
-            <span className='text-xs text-gray-400'>Cliente</span>
+            <span className='text-xs text-neutro-400'>Cliente</span>
             <span className='text-black font-medium'>
               {r.CLIENTES ? `${r.CLIENTES.nombre} ${r.CLIENTES.apellido}` : 'No Asignado'}
             </span>
@@ -150,7 +150,7 @@ export default function MedidorAnchosRemitoCard({ remitos, metodosConRecargo, ca
       <div ref={refFechaEmision}>
         {remitos.map((r) => (
           <div key={r.id_remito} className='inline-flex flex-col whitespace-nowrap px-2'>
-            <span className='text-xs text-gray-400'>Fecha de Emisión</span>
+            <span className='text-xs text-neutro-400'>Fecha de Emisión</span>
             <span className='text-black font-medium'>{formatearFecha(r.fecha_de_emision)}</span>
           </div>
         ))}
@@ -159,7 +159,7 @@ export default function MedidorAnchosRemitoCard({ remitos, metodosConRecargo, ca
       <div ref={refFechaCreacion}>
         {remitos.map((r) => (
           <div key={r.id_remito} className='inline-flex flex-col whitespace-nowrap px-2'>
-            <span className='text-xs text-gray-400'>Fecha de Creación</span>
+            <span className='text-xs text-neutro-400'>Fecha de Creación</span>
             <span className='text-black font-medium'>{formatearFecha(r.fecha_de_creacion)}</span>
           </div>
         ))}

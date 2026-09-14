@@ -280,13 +280,13 @@ export default function CreateArticleModal({
             <>
               <button
                 onClick={onCerrar}
-                className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+                className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
               >
                 Cancelar
               </button>
               <button
                 onClick={irASiguiente}
-                className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 transition-colors'
+                className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 transition-colors'
               >
                 Siguiente
               </button>
@@ -295,13 +295,13 @@ export default function CreateArticleModal({
             <>
               <button
                 onClick={volverAPrimeraPagina}
-                className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer'
+                className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
               >
                 Volver
               </button>
               <button
                 onClick={abrirConfirmacion}
-                className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 transition-colors'
+                className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 transition-colors'
               >
                 Crear
               </button>
@@ -342,7 +342,7 @@ export default function CreateArticleModal({
                 <div className='flex items-center justify-end mb-1'>
                   <span
                     className={`text-xs transition-colors ${
-                      barcode.length >= BARCODE_MAX ? 'text-red-500 opacity-100' : 'text-gray-400 opacity-70'
+                      barcode.length >= BARCODE_MAX ? 'text-red-500 opacity-100' : 'text-neutro-400 opacity-70'
                     }`}
                   >
                     {barcode.length}/{BARCODE_MAX} dígitos
@@ -357,8 +357,8 @@ export default function CreateArticleModal({
                   placeholder={barcodeAuto ? 'Se generará automáticamente' : 'Sin Código de Barra'}
                   disabled={barcodeAuto}
                   maxLength={BARCODE_MAX}
-                  className={`w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 transition-colors ${
-                    barcodeAuto ? 'bg-gray-200 cursor-not-allowed text-gray-500' : ''
+                  className={`w-full px-3 py-2 border border-neutro-200 rounded text-neutro-900 focus:outline-none focus:ring-2 focus:ring-marca-500 transition-colors ${
+                    barcodeAuto ? 'bg-neutro-200 cursor-not-allowed text-neutro-400' : ''
                   }`}
                 />
               </div>
@@ -366,100 +366,100 @@ export default function CreateArticleModal({
 
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Detalle</label>
+                <label className='block text-sm font-medium text-neutro-600 mb-1'>Detalle</label>
                 <input
                   type='text'
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
                   maxLength={70}
                   placeholder='Sin Detalle'
-                  className='w-full text-gray-700 px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='w-full text-neutro-900 px-3 py-1.5 text-sm border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Color/Modelo</label>
+                <label className='block text-sm font-medium text-neutro-600 mb-1'>Color/Modelo</label>
                 <input
                   type='text'
                   value={colorModelo}
                   onChange={(e) => setColorModelo(e.target.value)}
                   maxLength={50}
                   placeholder='Sin Color/Modelo'
-                  className='w-full text-gray-700 px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='w-full text-neutro-900 px-3 py-1.5 text-sm border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
                 />
               </div>
             </div>
 
             <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Cantidad</label>
+                <label className='block text-sm font-medium text-neutro-600 mb-1'>Cantidad</label>
                 <input
                   type='number'
                   value={cantidad === null ? '' : cantidad}
                   onChange={handleCantidadChange}
                   placeholder='0'
-                  className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='w-full px-3 py-1.5 text-sm border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Cant. Reservada</label>
+                <label className='block text-sm font-medium text-neutro-600 mb-1'>Cant. Reservada</label>
                 <input
                   type='number'
                   value={cantidadReservada === null ? '' : cantidadReservada}
                   onChange={handleCantidadReservadaChange}
                   placeholder='0'
-                  className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='w-full px-3 py-1.5 text-sm border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Cant. Mínima</label>
+                <label className='block text-sm font-medium text-neutro-600 mb-1'>Cant. Mínima</label>
                 <input
                   type='number'
                   value={cantidadMinima === null ? '' : cantidadMinima}
                   onChange={handleCantidadMinimaChange}
                   placeholder='0'
-                  className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='w-full px-3 py-1.5 text-sm border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Talle</label>
+                <label className='block text-sm font-medium text-neutro-600 mb-1'>Talle</label>
                 <input
                   type='text'
                   value={talle}
                   onChange={(e) => setTalle(e.target.value)}
                   maxLength={30}
                   placeholder='Sin Talle'
-                  className='w-full text-gray-700 px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='w-full text-neutro-900 px-3 py-1.5 text-sm border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
                 />
               </div>
             </div>
 
             <div className='flex flex-col sm:flex-row sm:items-end gap-x-4 gap-y-3'>
               <div className='sm:w-1/2'>
-                <label className='block text-sm font-medium text-gray-700 mb-1'>Precio</label>
+                <label className='block text-sm font-medium text-neutro-600 mb-1'>Precio</label>
                 <input
                   type='number'
                   value={precio === null ? '' : precio}
                   onChange={handlePrecioChange}
                   placeholder='0'
-                  className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500'
+                  className='w-full px-3 py-1.5 text-sm border border-neutro-200 rounded focus:outline-none focus:ring-2 focus:ring-marca-500'
                 />
               </div>
 
               <PreciosPorMetodo
                 precio={precio ?? 0}
                 metodos={metodosDePago}
-                claseContenedor='select-none flex flex-wrap items-center w-fit sm:mb-0.5 gap-y-1 px-1 rounded-md border border-gray-300 shadow-lg divide-x-1 divide-gray-300'
+                claseContenedor='select-none flex flex-wrap items-center w-fit sm:mb-0.5 gap-y-1 px-1 rounded border border-neutro-200 divide-x-1 divide-neutro-200'
               />
             </div>
           </div>
         ) : (
-          <div className='divide-y divide-gray-200 border-b pb-7 border-gray-300'>
+          <div className='divide-y divide-neutro-200 border-b pb-7 border-neutro-200'>
             <div className='pb-5'>
-              <label className='block font-medium text-gray-700 mb-2'>Línea</label>
+              <label className='block font-medium text-neutro-600 mb-2'>Línea</label>
               <InlineFilterDropdown
                 label='Elegir Línea'
                 opciones={opcionesLinea}
@@ -472,7 +472,7 @@ export default function CreateArticleModal({
 
             <div className='flex items-start gap-4 py-5 flex-wrap'>
               <div>
-                <label className='block font-medium text-gray-700 mb-2'>
+                <label className='block font-medium text-neutro-600 mb-2'>
                   Grupo de Articulos <span className='text-red-500'>*</span>
                 </label>
                 <InlineFilterDropdown
@@ -501,7 +501,7 @@ export default function CreateArticleModal({
                     : 'max-w-0 opacity-0 -translate-x-6'
                 }`}
               >
-                <label className='block font-medium text-gray-700 mb-2 whitespace-nowrap'>
+                <label className='block font-medium text-neutro-600 mb-2 whitespace-nowrap'>
                   Subgrupo
                 </label>
                 <InlineFilterDropdown
@@ -516,12 +516,12 @@ export default function CreateArticleModal({
             </div>
 
             <div className='pt-5'>
-              <label className='block font-medium text-gray-700 mb-2'>Clubes/Colegios</label>
+              <label className='block font-medium text-neutro-600 mb-2'>Clubes/Colegios</label>
               <div className='flex items-center gap-3'>
                 <button
                   type='button'
                   onClick={() => setIsClienteAssignOpen(true)}
-                  className='text-sm px-2 py-1 text-nowrap border border-violet-600 text-violet-600 rounded hover:bg-amber-50 transition-colors cursor-pointer'
+                  className='text-sm px-2 py-1 text-nowrap border border-marca-600 text-marca-600 rounded hover:bg-neutro-100 transition-colors cursor-pointer'
                 >
                   Asignar a un Nuevo Club/Colegio
                 </button>
@@ -553,73 +553,73 @@ export default function CreateArticleModal({
             <button
               onClick={() => setShowConfirmDialog(false)}
               disabled={cargando}
-              className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-50'
+              className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-50'
             >
               Volver
             </button>
             <button
               onClick={handleCreateArticle}
               disabled={cargando}
-              className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
+              className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 transition-colors'
             >
               {cargando ? 'Creando...' : 'Confirmar'}
             </button>
           </>
         }
       >
-        <div className='space-y-3 bg-gray-50 p-4 rounded-md'>
+        <div className='space-y-3 bg-neutro-50 p-4 rounded'>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Código de Barra:</span>
-            <span className='text-sm text-gray-900 font-semibold'>
+            <span className='text-sm font-medium text-neutro-600'>Código de Barra:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>
               {barcodeAuto ? 'Automático' : barcode.trim() === '' ? 'No Asignado' : barcode}
             </span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Detalle:</span>
-            <span className='text-sm text-gray-900 font-semibold text-right'>
+            <span className='text-sm font-medium text-neutro-600'>Detalle:</span>
+            <span className='text-sm text-neutro-900 font-semibold text-right'>
               {descripcion.trim() === '' ? 'Sin Detalle' : descripcion}
             </span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Color/Modelo:</span>
-            <span className='text-sm text-gray-900 font-semibold text-right'>
+            <span className='text-sm font-medium text-neutro-600'>Color/Modelo:</span>
+            <span className='text-sm text-neutro-900 font-semibold text-right'>
               {colorModelo.trim() === '' ? 'Sin Color/Modelo' : colorModelo}
             </span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Talle:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{talle.trim() === '' ? 'Sin Talle' : talle}</span>
+            <span className='text-sm font-medium text-neutro-600'>Talle:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{talle.trim() === '' ? 'Sin Talle' : talle}</span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Cantidad:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{cantidad ?? 0}</span>
+            <span className='text-sm font-medium text-neutro-600'>Cantidad:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{cantidad ?? 0}</span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Cant. Reservada:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{cantidadReservada ?? 0}</span>
+            <span className='text-sm font-medium text-neutro-600'>Cant. Reservada:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{cantidadReservada ?? 0}</span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Cant. Mínima:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{cantidadMinima ?? 0}</span>
+            <span className='text-sm font-medium text-neutro-600'>Cant. Mínima:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{cantidadMinima ?? 0}</span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Precio:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{formatearPesos(precio ?? 0)}</span>
+            <span className='text-sm font-medium text-neutro-600'>Precio:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{formatearPesos(precio ?? 0)}</span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Línea:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{nombreLineaSeleccionada}</span>
+            <span className='text-sm font-medium text-neutro-600'>Línea:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{nombreLineaSeleccionada}</span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Grupo de Articulos:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{nombreGrupoSeleccionado}</span>
+            <span className='text-sm font-medium text-neutro-600'>Grupo de Articulos:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{nombreGrupoSeleccionado}</span>
           </div>
           <div className='flex justify-between gap-3'>
-            <span className='text-sm font-medium text-gray-700'>Subgrupo:</span>
-            <span className='text-sm text-gray-900 font-semibold'>{nombreSubgrupoSeleccionado}</span>
+            <span className='text-sm font-medium text-neutro-600'>Subgrupo:</span>
+            <span className='text-sm text-neutro-900 font-semibold'>{nombreSubgrupoSeleccionado}</span>
           </div>
           <div className='flex justify-between gap-3 items-center'>
-            <span className='text-sm font-medium text-gray-700 shrink-0'>Clubes/Colegios:</span>
+            <span className='text-sm font-medium text-neutro-600 shrink-0'>Clubes/Colegios:</span>
             <div className='flex justify-end'>
               <ListaChips
                 items={clientesSeleccionados.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
@@ -642,39 +642,39 @@ export default function CreateArticleModal({
         transicionLenta
       >
         {articuloCreado && (
-          <div className='space-y-3 mb-6 bg-gray-50 p-4 rounded-md'>
+          <div className='space-y-3 mb-6 bg-neutro-50 p-4 rounded'>
             <div className='flex justify-between'>
-              <span className='text-sm font-medium text-gray-700'>Código de Barra:</span>
-              <span className='text-sm text-gray-900 font-semibold'>
+              <span className='text-sm font-medium text-neutro-600'>Código de Barra:</span>
+              <span className='text-sm text-neutro-900 font-semibold'>
                 {articuloCreado.barcode_tail ?? 'No Asignado'}
               </span>
             </div>
             <div className='flex justify-between'>
-              <span className='text-sm font-medium text-gray-700'>Cantidad:</span>
-              <span className='text-sm text-gray-900 font-semibold'>{articuloCreado.cant}</span>
+              <span className='text-sm font-medium text-neutro-600'>Cantidad:</span>
+              <span className='text-sm text-neutro-900 font-semibold'>{articuloCreado.cant}</span>
             </div>
             <div className='flex justify-between'>
-              <span className='text-sm font-medium text-gray-700'>Precio:</span>
-              <span className='text-sm text-gray-900 font-semibold'>{formatearPesos(articuloCreado.precio ?? 0)}</span>
+              <span className='text-sm font-medium text-neutro-600'>Precio:</span>
+              <span className='text-sm text-neutro-900 font-semibold'>{formatearPesos(articuloCreado.precio ?? 0)}</span>
             </div>
             <div className='flex justify-between'>
-              <span className='text-sm font-medium text-gray-700'>Talle:</span>
-              <span className='text-sm text-gray-900 font-semibold'>{articuloCreado.talle ?? 'Sin Talle'}</span>
+              <span className='text-sm font-medium text-neutro-600'>Talle:</span>
+              <span className='text-sm text-neutro-900 font-semibold'>{articuloCreado.talle ?? 'Sin Talle'}</span>
             </div>
             <div className='flex justify-between'>
-              <span className='text-sm font-medium text-gray-700'>Línea:</span>
-              <span className='text-sm text-gray-900 font-semibold'>{nombreLineaSeleccionada}</span>
+              <span className='text-sm font-medium text-neutro-600'>Línea:</span>
+              <span className='text-sm text-neutro-900 font-semibold'>{nombreLineaSeleccionada}</span>
             </div>
             <div className='flex justify-between'>
-              <span className='text-sm font-medium text-gray-700'>Grupo de Articulos:</span>
-              <span className='text-sm text-gray-900 font-semibold'>{nombreGrupoSeleccionado}</span>
+              <span className='text-sm font-medium text-neutro-600'>Grupo de Articulos:</span>
+              <span className='text-sm text-neutro-900 font-semibold'>{nombreGrupoSeleccionado}</span>
             </div>
             <div className='flex justify-between'>
-              <span className='text-sm font-medium text-gray-700'>Subgrupo:</span>
-              <span className='text-sm text-gray-900 font-semibold'>{nombreSubgrupoSeleccionado}</span>
+              <span className='text-sm font-medium text-neutro-600'>Subgrupo:</span>
+              <span className='text-sm text-neutro-900 font-semibold'>{nombreSubgrupoSeleccionado}</span>
             </div>
             <div className='flex justify-between gap-3 items-center'>
-              <span className='text-sm font-medium text-gray-700 shrink-0'>Clientes:</span>
+              <span className='text-sm font-medium text-neutro-600 shrink-0'>Clientes:</span>
               <div className='flex justify-end'>
                 <ListaChips
                   items={clientesSeleccionados.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
@@ -688,7 +688,7 @@ export default function CreateArticleModal({
 
         <button
           onClick={handleCerrarExito}
-          className='cursor-pointer w-full px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 transition-colors'
+          className='cursor-pointer w-full px-4 py-2 text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 transition-colors'
         >
           Volver a la Lista
         </button>

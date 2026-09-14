@@ -34,7 +34,7 @@ export const mensajeDetallesPrimero = (err: unknown, fallback = 'Error desconoci
 };
 
 type OpcionesRequest = {
-  metodo?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  metodo?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   /** Se serializa como JSON y agrega el Content-Type automaticamente. */
   cuerpo?: unknown;
 };

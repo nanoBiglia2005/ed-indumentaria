@@ -34,7 +34,7 @@ export default function BotonFiltroOrden<T>({
   return (
     <div
       className={`flex items-stretch border-black/35 text-xs font-medium border-b border-l transition-colors duration-100 ease-in ${
-        filtroActivo ? 'bg-violet-500 text-white' : 'bg-stone-100'
+        filtroActivo ? 'bg-marca-500 text-white' : 'bg-neutro-100'
       }`}
     >
       <button
@@ -42,12 +42,12 @@ export default function BotonFiltroOrden<T>({
         onClick={() => onClickHeader(columna)}
         title={filtroActivo ? `Quitar filtro de ${columna.header}` : `Filtrar por ${columna.header}`}
         className={`flex-1 min-w-0 ${claseBtnFiltro} flex items-center cursor-pointer transition-colors duration-100 ease-in text-left ${
-          filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-100'
+          filtroActivo ? 'hover:bg-marca-600' : 'hover:bg-neutro-200'
         }`}
       >
         <span className='flex-1 truncate'>{columna.header}</span>
         <svg
-          className={`h-3.5 w-3.5 shrink-0 ${filtroActivo ? 'text-white' : 'text-gray-400'}`}
+          className={`h-3.5 w-3.5 shrink-0 ${filtroActivo ? 'text-white' : 'text-neutro-400'}`}
           fill='none'
           viewBox='0 0 24 24'
           stroke='currentColor'
@@ -71,15 +71,15 @@ export default function BotonFiltroOrden<T>({
             : `Ordenar por ${columna.header}. Shift+click: usar solo esta columna.`
         }
         className={`shrink-0 ${claseBtnOrden} flex items-center gap-0.5 cursor-pointer transition-colors duration-100 ease-in ${
-          filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-100'
+          filtroActivo ? 'hover:bg-marca-600' : 'hover:bg-neutro-200'
         } ${
           ordenActivo
             ? filtroActivo
               ? 'text-white'
-              : 'text-violet-600'
+              : 'text-marca-600'
             : filtroActivo
             ? 'text-white/70'
-            : 'text-gray-400'
+            : 'text-neutro-400'
         }`}
       >
         <IconoOrden direccion={ordenActivo} />

@@ -2,7 +2,7 @@
 name: frontend
 description: "Implementa y mantiene el frontend React/TypeScript de ED Indumentaria: páginas, componentes, hooks, cliente de API. Usar para nuevas features de UI, cambios de página/componente, estilos Tailwind o tests de frontend. NO toca rutas/servicios del backend, schema.prisma, ni el código Python del subsistema de impresión."
 tools: Read, Grep, Glob, Edit, Write, Bash, Skill
-model: sonnet
+model: opus
 ---
 
 # Agente Frontend — ED Indumentaria
@@ -31,6 +31,19 @@ Dueño del frontend React/TypeScript. Este archivo asume que ya leíste el `CLAU
 - Resetear estado cuando cambia una prop va con `useResetAlCambiar`, nunca con `useEffect` + `setState`. Al tocar un archivo que todavía use ese patrón viejo, migrarlo.
 - Política de `react-hooks/set-state-in-effect`: no agregar advertencias nuevas. Las preexistentes se migran solo si ya se está tocando ese archivo por otra razón — no salir a cazarlas.
 - No cambiar comportamiento al refactorizar. Un bug encontrado se documenta y se pregunta, no se arregla en silencio dentro de un cambio que no era sobre eso.
+
+## Identidad visual "Taller Técnico"
+
+**CRÍTICO al diseñar o reworkear elementos visuales**: consultar SIEMPRE la sección "Identidad Visual:
+Taller Técnico" del `CLAUDE.md` del proyecto. Esa sección define:
+
+- Paleta de tokens (`marca` violeta, `acento` ámbar, `neutro` grises cálidos, semánticos literales)
+- Patrones de aplicación (botones primarios/secundarios, hovers en listas, estados, avisos)
+- Reglas de sombra (eliminadas en tarjetas, `shadow-sm` solo en flotantes)
+- Tipografía, radio (`rounded` 4px), y convenciones de uso
+
+Si el cambio es un nuevo componente o un reworkeo visual significativo, revisar esa sección ANTES
+de proponer o implementar. Mantener consistencia con la identidad de marca ya establecida.
 
 ## Verificación antes de reportar terminado
 

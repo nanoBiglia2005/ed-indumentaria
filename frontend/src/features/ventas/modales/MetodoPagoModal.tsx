@@ -272,10 +272,10 @@ export default function MetodoPagoModal({
         titulo={
           <div className='flex items-center justify-between gap-4'>
             <span>Realizar Pago</span>
-            <span className='text-2xl font-bold text-violet-600'>{codigo}</span>
+            <span className='text-2xl font-bold text-marca-600'>{codigo}</span>
           </div>
         }
-        claseTitulo='text-2xl font-semibold leading-7 text-gray-900 mb-4'
+        claseTitulo='text-2xl font-semibold leading-7 text-neutro-900 mb-4'
         ancho='2xl'
         clasePanel='select-none'
         error={error ? { titulo: 'Error al finalizar la venta', detalle: error } : null}
@@ -285,7 +285,7 @@ export default function MetodoPagoModal({
               type='button'
               onClick={onCerrar}
               disabled={finalizando}
-              className='flex-1 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60'
+              className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 border border-neutro-200 rounded hover:bg-neutro-50 transition-colors cursor-pointer disabled:opacity-60'
             >
               Cancelar
             </button>
@@ -293,7 +293,7 @@ export default function MetodoPagoModal({
               type='button'
               onClick={() => setConfirmando(true)}
               disabled={finalizando || cargando || !puedeFinalizar}
-              className='flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-800 rounded-md hover:bg-violet-900 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors cursor-pointer'
+              className='flex-1 px-4 py-2 text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-neutro-200 disabled:text-neutro-400 disabled:cursor-not-allowed transition-colors cursor-pointer'
             >
               {finalizando ? 'Finalizando...' : 'Finalizar Pago'}
             </button>
@@ -302,10 +302,10 @@ export default function MetodoPagoModal({
       >
         {/* min-h: el modal no cambia de alto al abrir y cerrar el reparto. */}
         <div className='flex min-h-[18rem] flex-col gap-3'>
-          {cargando && <p className='text-sm text-gray-400'>Cargando métodos de pago...</p>}
+          {cargando && <p className='text-sm text-neutro-400'>Cargando métodos de pago...</p>}
 
           {!cargando && tipos.length === 0 && (
-            <p className='text-sm italic text-gray-400'>No hay métodos de pago cargados.</p>
+            <p className='text-sm italic text-neutro-400'>No hay métodos de pago cargados.</p>
           )}
 
           {!cargando && tipos.length > 0 && (
@@ -327,8 +327,8 @@ export default function MetodoPagoModal({
                   disabled={finalizando}
                   className={`flex w-full items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors duration-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
                     personalizado
-                      ? 'rounded-t-lg bg-violet-800 text-white'
-                      : 'rounded-lg bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      ? 'rounded bg-marca-500 text-white'
+                      : 'rounded bg-neutro-100 text-neutro-900 hover:bg-neutro-200'
                   }`}
                 >
                   <span className='text-xs'>●</span>
@@ -353,12 +353,12 @@ export default function MetodoPagoModal({
 
         <div className='mt-auto flex items-end justify-between gap-4 pt-4'>
           <div className='flex flex-col'>
-            <span className='text-sm font-medium text-gray-400'>Total en Efectivo</span>
-            <span className='text-2xl font-bold text-gray-900'>{formatearPesos(totalEfectivo)}</span>
+            <span className='text-sm font-medium text-neutro-400'>Total en Efectivo</span>
+            <span className='text-2xl font-bold text-neutro-900'>{formatearPesos(totalEfectivo)}</span>
           </div>
           <div className='flex flex-col items-end'>
-            <span className='text-sm font-medium text-violet-400'>Total Final</span>
-            <span className='text-3xl font-bold text-violet-600'>{formatearPesos(totalFinal)}</span>
+            <span className='text-sm font-medium text-marca-400'>Total Final</span>
+            <span className='text-3xl font-bold text-marca-600'>{formatearPesos(totalFinal)}</span>
           </div>
         </div>
       </div>

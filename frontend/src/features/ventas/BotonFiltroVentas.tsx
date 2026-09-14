@@ -8,17 +8,17 @@ import type { ColumnaTabla } from '@/components/tabla/tipos';
  * pero look propio pensado para vivir arriba de una lista de RemitoCard en
  * vez de pegado a una grilla de spreadsheet:
  *
- * - `rounded-lg` + `border` en las 4 caras + `shadow-sm`, dialogando con el
- *   `rounded-xl border shadow` de RemitoCard en vez de la esquina recta con
- *   borde solo abajo/izquierda del header de DataGrid.
- * - Filtro activo = chip violeta RELLENO (`bg-violet-500`), el mismo gesto
+ * - `rounded` + `border` en las 4 caras, dialogando con el `rounded border`
+ *   de RemitoCard en vez de la esquina recta con borde solo abajo/izquierda
+ *   del header de DataGrid.
+ * - Filtro activo = chip de marca RELLENO (`bg-marca-500`), el mismo gesto
  *   que RemitoCard usa en su chip de codigo cuando la tarjeta esta abierta
  *   (`estilo.fondo` + texto blanco): "esto esta activo" se lee igual en los
  *   dos lugares.
- *   Filtro inactivo = fondo blanco, hover ambar (la otra mitad de la paleta
- *   del proyecto).
+ *   Filtro inactivo = fondo blanco, hover neutro (el ambar/acento queda
+ *   reservado para estados puntuales, no para hovers genericos).
  * - La prioridad de orden (cuando hay mas de un criterio apilado) ya no es un
- *   numerito plano: es un chip circular ambar (o blanco sobre violeta si el
+ *   numerito plano: es un chip circular de acento (o blanco sobre marca si el
  *   filtro tambien esta activo), mas cerca del lenguaje de "badge" que del
  *   texto crudo del header de tabla.
  */
@@ -60,8 +60,8 @@ export default function BotonFiltroVentas<T>({
   return (
     <div
       style={ancho !== undefined ? { width: ancho } : undefined}
-      className={`flex items-stretch rounded-lg border text-sm font-medium shadow-sm overflow-hidden transition-colors duration-100 ease-in ${
-        filtroActivo ? 'bg-violet-500 border-violet-500 text-white' : 'bg-white border-gray-200 text-gray-700'
+      className={`flex items-stretch rounded border text-sm font-medium overflow-hidden transition-colors duration-100 ease-in ${
+        filtroActivo ? 'bg-marca-500 border-marca-500 text-white' : 'bg-white border-neutro-200 text-neutro-600'
       }`}
     >
       <button
@@ -69,12 +69,12 @@ export default function BotonFiltroVentas<T>({
         onClick={() => onClickHeader(columna)}
         title={filtroActivo ? `Quitar filtro de ${columna.header}` : `Filtrar por ${columna.header}`}
         className={`flex-1 min-w-0 flex items-center gap-1.5 px-3 py-2 cursor-pointer text-left transition-colors duration-100 ease-in ${
-          filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-50 hover:text-amber-700'
+          filtroActivo ? 'hover:bg-marca-600' : 'hover:bg-neutro-100 hover:text-neutro-900'
         }`}
       >
         <span className='flex-1 truncate'>{texto ?? columna.header}</span>
         <svg
-          className={`h-3.5 w-3.5 shrink-0 ${filtroActivo ? 'text-white' : 'text-gray-400'}`}
+          className={`h-3.5 w-3.5 shrink-0 ${filtroActivo ? 'text-white' : 'text-neutro-400'}`}
           fill='none'
           viewBox='0 0 24 24'
           stroke='currentColor'
@@ -88,7 +88,7 @@ export default function BotonFiltroVentas<T>({
         </svg>
       </button>
 
-      <span className={`w-px shrink-0 ${filtroActivo ? 'bg-white/30' : 'bg-gray-200'}`} />
+      <span className={`w-px shrink-0 ${filtroActivo ? 'bg-white/30' : 'bg-neutro-200'}`} />
 
       <button
         type='button'
@@ -101,22 +101,22 @@ export default function BotonFiltroVentas<T>({
             : `Ordenar por ${columna.header}. Shift+click: usar solo esta columna.`
         }
         className={`shrink-0 flex items-center gap-1 px-2.5 py-2 cursor-pointer transition-colors duration-100 ease-in ${
-          filtroActivo ? 'hover:bg-violet-600' : 'hover:bg-amber-50'
+          filtroActivo ? 'hover:bg-marca-600' : 'hover:bg-neutro-100'
         } ${
           ordenActivo
             ? filtroActivo
               ? 'text-white'
-              : 'text-violet-600'
+              : 'text-marca-600'
             : filtroActivo
             ? 'text-white/70'
-            : 'text-gray-400'
+            : 'text-neutro-400'
         }`}
       >
         <IconoOrden direccion={ordenActivo} />
         {totalCriterios > 1 && prioridadOrden !== -1 && (
           <span
             className={`flex items-center justify-center h-3.5 w-3.5 shrink-0 rounded-full text-[9px] font-bold leading-none ${
-              filtroActivo ? 'bg-white text-violet-600' : 'bg-amber-400 text-white'
+              filtroActivo ? 'bg-white text-marca-600' : 'bg-acento-500 text-white'
             }`}
           >
             {prioridadOrden + 1}

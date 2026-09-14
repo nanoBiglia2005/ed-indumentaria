@@ -19,6 +19,19 @@ import { useImpresoras } from '@/hooks/useImpresoras';
 
 const MAX_LINEAS_DESCRIPCION = 3;
 
+/**
+ * Columnas de la lista de articulos agregados: descripcion | cantidad (el
+ * control - / input / +) | subtotal | boton de quitar. La comparten el
+ * encabezado y cada fila, que es lo que mantiene "Cant." y "Subtotal" sobre
+ * sus valores aunque el contenido de cada fila mida distinto.
+ *
+ * La columna de cantidad es fija (el control mide siempre lo mismo) y la del
+ * subtotal es `minmax` para que un importe largo la agrande en vez de
+ * recortarse.
+ */
+const COLUMNAS =
+  'grid grid-cols-[minmax(0,1fr)_8rem_minmax(6rem,auto)_1.25rem] items-center gap-3 px-4';
+
 interface ProductoSeleccionado {
   articulo: ArticuloDeVenta;
   cantidad: number | null;
@@ -226,7 +239,7 @@ export default function NuevaVentaModal({
   };
 
   const claseBotonCantidad =
-    'w-8 h-8 shrink-0 flex items-center justify-center text-lg font-medium text-gray-500 hover:bg-violet-50 hover:text-violet-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40';
+    'w-8 h-8 shrink-0 flex items-center justify-center text-lg font-medium text-neutro-600 hover:bg-marca-50 hover:text-marca-600 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40';
 
   return (
     <>
@@ -240,13 +253,13 @@ export default function NuevaVentaModal({
               type='button'
               onClick={handleClose}
               disabled={isLoading}
-              className='px-4 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60 shrink-0'
+              className='px-4 py-1.5 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-60 shrink-0'
             >
               Cerrar
             </button>
           </div>
         }
-        claseTitulo='text-xl font-medium leading-6 text-gray-900 mb-4'
+        claseTitulo='text-xl font-medium leading-6 text-neutro-900 mb-4'
         ancho='2xl'
         clasePanel='select-none'
         error={error ? { titulo: 'Error al registrar la venta', detalle: error } : null}
@@ -264,14 +277,14 @@ export default function NuevaVentaModal({
             <button
               onClick={() => handlePedirConfirmacion(true)}
               disabled={isLoading}
-              className='flex-1 px-3 py-2 cursor-pointer text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 disabled:bg-violet-400 transition-colors'
+              className='flex-1 px-3 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 transition-colors'
             >
               {accionEnCurso === 'con-impresion' ? 'Imprimiendo...' : 'Confirmar e Imprimir'}
             </button>
             <button
               onClick={() => handlePedirConfirmacion(false)}
               disabled={isLoading}
-              className='flex-1 px-3 py-2 cursor-pointer text-sm font-medium text-violet-600 border border-violet-600 rounded-md hover:bg-violet-50 disabled:opacity-60 transition-colors'
+              className='flex-1 px-3 py-2 cursor-pointer text-sm font-medium text-marca-600 border border-marca-600 rounded hover:bg-marca-50 disabled:opacity-60 transition-colors'
             >
               {accionEnCurso === 'sin-impresion' ? 'Preparando...' : 'Confirmar Sin Imprimir'}
             </button>
@@ -279,46 +292,59 @@ export default function NuevaVentaModal({
         }
       >
         <div className='flex flex-wrap items-center gap-3 mb-2'>
-          <span className='text-lg font-medium text-gray-700'>Artículos</span>
+          <span className='text-lg font-medium text-neutro-600'>Artículos</span>
           <button
             type='button'
             onClick={() => setIsAgregarOpen(true)}
-            className='text-sm px-3 py-1.5 border border-violet-600 text-violet-600 font-medium rounded hover:bg-violet-500 hover:text-white transition-colors cursor-pointer'
+            className='text-sm px-3 py-1.5 border border-marca-600 text-marca-600 font-medium rounded hover:bg-marca-500 hover:text-white transition-colors cursor-pointer'
           >
             Agregar por Búsqueda
           </button>
           <button
             type='button'
             onClick={() => setIsCodigoOpen(true)}
-            className='text-sm px-3 py-1.5 border border-violet-600 bg-violet-600 text-white font-medium rounded hover:bg-violet-700 hover:border-violet-700 transition-colors cursor-pointer'
+            className='text-sm px-3 py-1.5 border border-marca-500 bg-marca-500 text-white font-medium rounded hover:bg-marca-600 hover:border-marca-600 transition-colors cursor-pointer'
           >
             Agregar por Código de Barras
           </button>
         </div>
 
-        <div className='border border-gray-200 rounded-md max-h-72 overflow-y-auto divide-y divide-gray-100'>
+        <div className='border border-neutro-200 rounded max-h-72 overflow-y-auto divide-y divide-neutro-100'>
           {productos.length === 0 ? (
-            <p className='text-sm text-gray-400 italic px-4 py-3'>No hay artículos agregados</p>
+            <p className='text-sm text-neutro-400 italic px-4 py-3'>No hay artículos agregados</p>
           ) : (
-            productos.map(({ articulo, cantidad }) => (
-              <div key={articulo.id_articulo} className='flex items-center gap-3 px-4 py-2'>
-                <div className='flex-1 min-w-0 flex flex-col text-left'>
+            <>
+              {/* Encabezado con LA MISMA plantilla de columnas que las filas:
+                  si solo se pusiera texto con el mismo gap, cada rotulo caeria
+                  donde lo dejara el ancho del contenido de la fila. Queda
+                  pegado arriba (sticky) porque la lista scrollea. */}
+              <div
+                className={`${COLUMNAS} sticky top-0 z-10 bg-white py-2 text-[10px] font-semibold uppercase tracking-wide text-neutro-400`}
+              >
+                <span>Artículo / precio unitario</span>
+                <span className='text-center'>Cant.</span>
+                <span className='text-right'>Subtotal</span>
+                <span />
+              </div>
+              {productos.map(({ articulo, cantidad }) => (
+              <div key={articulo.id_articulo} className={`${COLUMNAS} py-2`}>
+                <div className='min-w-0 flex flex-col text-left'>
                   <span
-                    className='text-md text-gray-800 break-words'
+                    className='text-md text-neutro-900 break-words'
                     style={estiloLineClamp(MAX_LINEAS_DESCRIPCION)}
                   >
                     {articulo.descripcion ?? 'Sin Nombre'}
                   </span>
                   {/* Precio unitario: el base y el de cada metodo, lado a lado. */}
                   <div className='flex flex-wrap items-center gap-2'>
-                    <span className='flex gap-1 items-center text-gray-500'>
+                    <span className='flex gap-1 items-center text-neutro-600'>
                       <PaymentIcon paymentId={1} height={18}/>
                       <span className='text-[12px] font-medium'>{formatearPesos(articulo.precio)}</span>
                     </span>      
                     {metodosConRecargo.map((metodo) => (
                       <span
                         key={metodo.id_tipos_de_pago}
-                        className='flex gap-1 items-center text-violet-500'
+                        className='flex gap-1 items-center text-marca-500'
                         title={`Precio con ${metodo.nombre_tipo_de_pago}`}
                       >
                         <PaymentIcon paymentId={metodo.id_tipos_de_pago} height={18}/>
@@ -328,7 +354,7 @@ export default function NuevaVentaModal({
                   </div>
                 </div>
 
-                <div className='flex items-center rounded-md border border-gray-300 overflow-hidden shrink-0'>
+                <div className='flex items-center justify-self-center rounded border border-neutro-200 overflow-hidden shrink-0'>
                   <button
                     type='button'
                     onClick={() => handleAjustarCantidad(articulo.id_articulo, -1)}
@@ -349,7 +375,7 @@ export default function NuevaVentaModal({
                     value={cantidad === null ? '' : cantidad}
                     onChange={(e) => handleCantidadChange(articulo.id_articulo, e.target.value)}
                     aria-label={`Cantidad de ${articulo.descripcion ?? 'el artículo'}`}
-                    className='w-14 py-1 text-sm border-x border-gray-300 text-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-violet-500'
+                    className='w-14 py-1 text-sm border-x border-neutro-200 text-center focus:outline-none focus:ring-2 focus:ring-inset focus:ring-marca-500'
                   />
                   <button
                     type='button'
@@ -362,8 +388,8 @@ export default function NuevaVentaModal({
                 </div>
 
                 {/* Precio x cantidad: el base y el de cada metodo, uno debajo del otro. */}
-                <div className='flex flex-col items-end shrink-0'>
-                  <span className='flex items-center gap-1 text-gray-800'> 
+                <div className='flex flex-col items-end'>
+                  <span className='flex items-center gap-1 text-neutro-900'> 
                     <span className='text-sm font-medium min-w-14 text-right'>
                       {formatearPesos(articulo.precio * (cantidad ?? 0))}
                     </span>
@@ -372,7 +398,7 @@ export default function NuevaVentaModal({
                   {metodosConRecargo.map((metodo) => (
                     <span
                       key={metodo.id_tipos_de_pago}
-                      className='flex items-center gap-1 text-sm font-medium text-violet-500'
+                      className='flex items-center gap-1 text-sm font-medium text-marca-500'
                       title={`Subtotal con ${metodo.nombre_tipo_de_pago}`}
                     >
                       <span className='min-w-14 text-right'>
@@ -387,12 +413,13 @@ export default function NuevaVentaModal({
                 <button
                   type='button'
                   onClick={() => handleQuitarProducto(articulo.id_articulo)}
-                  className='font-bold text-gray-400 hover:text-red-600 cursor-pointer px-1 shrink-0'
+                  className='font-bold text-neutro-400 hover:text-red-600 cursor-pointer justify-self-center'
                 >
                   X
                 </button>
               </div>
-            ))
+              ))}
+            </>
           )}
         </div>
 
@@ -400,17 +427,17 @@ export default function NuevaVentaModal({
 
         {/* El total va abajo de todo: asi hay lugar para mostrar el de cada
             metodo de pago uno debajo del otro, sin apretar el encabezado. */}
-        <div className='mt-6 flex items-start justify-between gap-4 border-t border-gray-200 pt-4'>
-          <span className='text-xl font-medium text-gray-700'>Total</span>
+        <div className='mt-6 flex items-start justify-between gap-4 border-t border-neutro-200 pt-4'>
+          <span className='text-xl font-medium text-neutro-600'>Total</span>
           <div className='flex flex-col items-end text-2xl font-semibold '>
             <span className='flex gap-2 items-center'>
-              <span className='text-right text-gray-900'>{formatearPesos(totalVenta)}</span>
+              <span className='text-right text-neutro-900'>{formatearPesos(totalVenta)}</span>
               <PaymentIcon paymentId={1} height={25}/>
             </span>
             {metodosConRecargo.map((metodo) => (
               <span
                 key={metodo.id_tipos_de_pago}
-                className='text-violet-600 flex gap-2 items-center'
+                className='text-marca-600 flex gap-2 items-center'
                 title={`Total con ${metodo.nombre_tipo_de_pago}`}
               >
                 <span className='text-right'>
