@@ -198,3 +198,12 @@ export const ESTADO_DEVUELTO = ventas.ESTADOS.DEVUELTO;
 export type RemitoCreado = RemitoConDetalles & {
   impresion: { status: 'ok' | 'error' | 'omitida'; message?: string };
 };
+
+/**
+ * Respuesta de POST /api/presupuestos: nada se persiste (no hay REMITOS de
+ * por medio), asi que la unica info que vuelve es si se pudo imprimir.
+ * Imprimir es obligatorio para un presupuesto: no existe 'omitida'.
+ */
+export type PresupuestoCreado = {
+  impresion: { status: 'ok' | 'error'; message?: string };
+};

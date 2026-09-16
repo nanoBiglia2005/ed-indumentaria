@@ -12,6 +12,11 @@ interface BuscarPorCodigoModalProps {
   onCerrar: () => void;
   /** Ids ya agregados a la venta: se avisa en vez de agregarlos dos veces. */
   articulosExcluidos: number[];
+  /**
+   * true (venta): un articulo sin unidades disponibles se rechaza con un aviso
+   * en vez de pasar al modal de cantidad. false (presupuesto): no limita.
+   */
+  limitarPorStock?: boolean;
   /** El articulo encontrado; el que abre el modal decide que hacer con el. */
   onEncontrado: (articulo: ArticuloDeVenta) => void;
 }
@@ -28,6 +33,7 @@ export default function BuscarPorCodigoModal({
   abierto,
   onCerrar,
   articulosExcluidos,
+  limitarPorStock = true,
   onEncontrado,
 }: BuscarPorCodigoModalProps) {
   const [codigo, setCodigo] = useState('');
@@ -76,6 +82,16 @@ export default function BuscarPorCodigoModal({
       if (articulosExcluidos.includes(articulo.id_articulo)) {
         setAviso(
           `"${articulo.descripcion ?? 'Ese artículo'}" ya está agregado a la venta. Cambiá la cantidad desde la lista.`
+        );
+        seleccionarCodigo();
+        return;
+      }
+
+      // El articulo viene de una consulta fresca, asi que su `cant` es el stock
+      // del momento: en una venta alcanza con este chequeo.
+      if (limitarPorStock && articulo.cant <= 0) {
+        setAviso(
+          `"${articulo.descripcion ?? 'Ese artículo'}" no tiene stock disponible y no se puede agregar a la venta.`
         );
         seleccionarCodigo();
         return;

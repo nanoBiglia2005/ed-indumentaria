@@ -24,8 +24,14 @@ const remitosInclude = {
 /**
  * Valida los articulos que llegan del modal de venta y los devuelve con su
  * precio base ya redondeado (el que se va a congelar en la venta).
+ *
+ * `exigirStock` es la red de seguridad final de una Venta: compara la
+ * cantidad pedida contra `ARTICULOS.cant` y rechaza si se pide de mas. El
+ * sistema NO descuenta stock al vender (se ajusta a mano aparte), asi que
+ * esto es solo una validacion de tope, no una reserva. Los Presupuestos
+ * llaman a esta misma funcion sin `exigirStock` (no limitan por stock).
  */
-const resolverItemsVenta = async (detalles) => {
+const resolverItemsVenta = async (detalles, { exigirStock = false } = {}) => {
   if (!Array.isArray(detalles) || detalles.length === 0) {
     return { error: { status: 400, message: 'La venta debe tener al menos un articulo.' } };
   }
@@ -67,6 +73,20 @@ const resolverItemsVenta = async (detalles) => {
         message: `El articulo "${articuloNoVigente.descripcion ?? articuloNoVigente.id_articulo}" ya no esta vigente.`,
       },
     };
+  }
+
+  if (exigirStock) {
+    const articuloSinStock = articulos.find(
+      (articulo) => cantidadesPorArticulo.get(articulo.id_articulo) > articulo.cant
+    );
+    if (articuloSinStock) {
+      return {
+        error: {
+          status: 409,
+          message: `El articulo "${articuloSinStock.descripcion ?? articuloSinStock.id_articulo}" tiene ${articuloSinStock.cant} unidades disponibles.`,
+        },
+      };
+    }
   }
 
   const items = articulos.map((articulo) => ({

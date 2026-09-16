@@ -179,7 +179,7 @@ router.get(
 router.post(
   '/',
   asyncHandler(async (req, res) => {
-    const { error, items } = await resolverItemsVenta(req.body.detalles);
+    const { error, items } = await resolverItemsVenta(req.body.detalles, { exigirStock: true });
     if (error) {
       throw new HttpError(error.status, { message: error.message });
     }

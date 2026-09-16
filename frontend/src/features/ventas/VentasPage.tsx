@@ -14,6 +14,7 @@ import type { OpcionesCargadas } from '@/features/ventas/useOpcionesDeFiltro';
 import { camposVentasPendientes } from '@/features/ventas/campos';
 import MetodoPagoModal from '@/features/ventas/modales/MetodoPagoModal';
 import NuevaVentaModal from '@/features/ventas/modales/NuevaVentaModal';
+import CrearPresupuestoModal from '@/features/ventas/modales/CrearPresupuestoModal';
 import Notificacion from '@/components/ui/Notificacion';
 import SectionWrapper from '@/components/layout/SectionWrapper';
 import VentaExitosaModal from '@/features/ventas/modales/VentaExitosaModal';
@@ -95,6 +96,7 @@ function VentasPage() {
   const fetchPendientes = () => setRecarga((n) => n + 1);
 
   const [isNuevaVentaOpen, setIsNuevaVentaOpen] = useState(false);
+  const [isPresupuestoOpen, setIsPresupuestoOpen] = useState(false);
   // Remito recien registrado: se pregunta si se sigue al pago.
   const [ventaRegistrada, setVentaRegistrada] = useState<RemitoCreado | null>(null);
   // Remito que se esta cobrando / anulando.
@@ -134,6 +136,13 @@ function VentasPage() {
     setVentaRegistrada(remito);
   };
 
+  // Un presupuesto no se persiste ni entra en Ventas Pendientes: no hay nada
+  // que recargar, el aviso es lo unico que confirma que el ticket salio.
+  const handlePresupuestoImpreso = () => {
+    setIsPresupuestoOpen(false);
+    mostrarNotificacion('Presupuesto impreso con éxito.');
+  };
+
   const handleSeguirAlPago = (remito: RemitoCreado) => {
     setVentaRegistrada(null);
     setRemitoACobrar(remito);
@@ -161,13 +170,24 @@ function VentasPage() {
       <Notificacion mensaje={notificacion} posicion='pagina' />
 
       <div className='flex flex-col w-full h-full px-5 pt-10 min-h-0 items-center'>
-        <button
-          type='button'
-          onClick={() => setIsNuevaVentaOpen(true)}
-          className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-marca-500 hover:bg-marca-600 active:bg-marca-700 transition-colors duration-100 ease-in'
-        >
-          Iniciar Nueva Venta
-        </button>
+        {/* Dos acciones de arranque: la venta es la principal (boton lleno) y
+            el presupuesto la alternativa (contorno de marca). */}
+        <div className='flex flex-wrap items-center justify-center gap-3'>
+          <button
+            type='button'
+            onClick={() => setIsNuevaVentaOpen(true)}
+            className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-marca-500 hover:bg-marca-600 active:bg-marca-700 transition-colors duration-100 ease-in'
+          >
+            Iniciar Nueva Venta
+          </button>
+          <button
+            type='button'
+            onClick={() => setIsPresupuestoOpen(true)}
+            className='rounded flex items-center text-[25px] w-fit py-2 px-4 font-semibold border border-marca-600 text-marca-600 cursor-pointer hover:bg-marca-500 hover:text-white active:bg-marca-600 transition-colors duration-100 ease-in'
+          >
+            Crear Presupuesto
+          </button>
+        </div>
 
         <span className='text-2xl font-semibold text-black w-full mt-10 mb-4 shrink-0'>
           Ventas Pendientes
@@ -210,6 +230,13 @@ function VentasPage() {
         metodosConRecargo={metodosConRecargo}
         onCerrar={() => setIsNuevaVentaOpen(false)}
         onVentaRegistrada={handleVentaRegistrada}
+      />
+
+      <CrearPresupuestoModal
+        abierto={isPresupuestoOpen}
+        metodosConRecargo={metodosConRecargo}
+        onCerrar={() => setIsPresupuestoOpen(false)}
+        onPresupuestoImpreso={handlePresupuestoImpreso}
       />
 
       <VentaExitosaModal

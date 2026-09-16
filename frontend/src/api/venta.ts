@@ -110,6 +110,19 @@ export const buscarArticuloPorCodigo = (codigo: string) =>
   request<ArticuloDeVenta>(`/api/venta/articulo-por-codigo?codigo=${encodeURIComponent(codigo)}`);
 
 /**
+ * Stock actual (`ARTICULOS.cant`) de los articulos pedidos, leido en el momento.
+ *
+ * La tabla del wizard ya trae `cant`, pero puede quedar vieja mientras el
+ * usuario navega: esto se consulta justo antes de confirmar una cantidad, para
+ * comparar contra el valor real. Las claves del objeto llegan como string (es
+ * JSON), pero se indexan por numero sin problema.
+ */
+export const verificarStockVenta = (ids: number[]): Promise<Record<number, number>> => {
+  if (ids.length === 0) return Promise.resolve({});
+  return request<Record<number, number>>(`/api/venta/stock?ids=${ids.join(',')}`);
+};
+
+/**
  * Datos de un cliente final tal como viajan a la API: los tres campos
  * numericos y la fecha ya normalizados (la fecha en 'AAAA-MM-DD', que es lo que
  * el backend convierte a la columna `date`). null = campo vacio.

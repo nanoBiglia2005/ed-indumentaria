@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { TIPOS_DE_PAGO } from '@backend/types';
 import type { ArticuloDeVenta, ItemAConfirmar } from '@/types/ventas';
 import BaseModal from '@/components/ui/BaseModal';
+import { mensajeDetallesPrimero } from '@/api/cliente';
+import { verificarStockVenta } from '@/api/venta';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { totalesDeLineas } from '@/features/ventas/pago/calculoPago';
 import PaymentIcon from "@/components/ui/PaymentIcon";
@@ -19,6 +21,14 @@ interface ConfirmarProductoModalProps {
   productos: ArticuloDeVenta[] | null;
   /** Metodos de pago, para mostrar el precio de cada uno. */
   metodosConRecargo?: TIPOS_DE_PAGO[];
+  /**
+   * true (venta): antes de confirmar se relee el stock en la base y se rechaza
+   * la cantidad que lo supere. false (presupuesto, default): no limita.
+   *
+   * El default es "no limitar" porque este modal lo comparten los dos flujos y
+   * es el mas seguro: el camino de venta lo pasa en true explicito.
+   */
+  limitarPorStock?: boolean;
   onCerrar: () => void;
   onConfirmar: (items: ItemAConfirmar[]) => void;
 }
@@ -27,17 +37,23 @@ export default function ConfirmarProductoModal({
   abierto,
   productos,
   metodosConRecargo = [],
+  limitarPorStock = false,
   onCerrar,
   onConfirmar,
 }: ConfirmarProductoModalProps) {
   // Cantidad por articulo (id_articulo -> cantidad), asi cada uno se edita
   // por separado cuando se confirman varios a la vez.
   const [cantidades, setCantidades] = useState<Record<number, number | null>>({});
+  // Verificacion de stock en curso / su resultado.
+  const [verificando, setVerificando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Reset al llegar una tanda de productos distinta.
-  useResetAlCambiar(productos, () =>
-    setCantidades(Object.fromEntries((productos ?? []).map((p) => [p.id_articulo, 1])))
-  );
+  useResetAlCambiar(productos, () => {
+    setCantidades(Object.fromEntries((productos ?? []).map((p) => [p.id_articulo, 1])));
+    setError(null);
+    setVerificando(false);
+  });
 
   const items = productos ?? [];
 
@@ -70,9 +86,43 @@ export default function ConfirmarProductoModal({
     metodosConRecargo
   );
 
-  const handleConfirmar = () => {
-    if (!todasValidas) return;
-    onConfirmar(items.map((p) => ({ articulo: p, cantidad: cantidadDe(p.id_articulo) as number })));
+  const aConfirmar = () =>
+    items.map((p) => ({ articulo: p, cantidad: cantidadDe(p.id_articulo) as number }));
+
+  const handleConfirmar = async () => {
+    if (!todasValidas || verificando) return;
+
+    if (!limitarPorStock) {
+      onConfirmar(aConfirmar());
+      return;
+    }
+
+    // El stock de la tabla puede haber quedado viejo mientras el usuario
+    // navegaba el wizard: se relee en el momento. Es comodidad, no la garantia:
+    // el backend vuelve a validarlo al crear el remito.
+    try {
+      setVerificando(true);
+      setError(null);
+
+      const stock = await verificarStockVenta(items.map((p) => p.id_articulo));
+
+      const excedido = items.find((p) => (cantidadDe(p.id_articulo) ?? 0) > (stock[p.id_articulo] ?? 0));
+      if (excedido) {
+        const disponible = stock[excedido.id_articulo] ?? 0;
+        setError(
+          `"${excedido.descripcion ?? 'El artículo'}" tiene ${disponible} ${
+            disponible === 1 ? 'unidad disponible' : 'unidades disponibles'
+          }.`
+        );
+        return;
+      }
+
+      onConfirmar(aConfirmar());
+    } catch (err) {
+      setError(mensajeDetallesPrimero(err, 'No se pudo verificar el stock disponible.'));
+    } finally {
+      setVerificando(false);
+    }
   };
 
   const esMultiple = items.length > 1;
@@ -84,20 +134,26 @@ export default function ConfirmarProductoModal({
       titulo={esMultiple ? `Confirmar Productos (${items.length})` : 'Confirmar Producto'}
       ancho='md'
       z='z-[70]'
+      error={error ? { titulo: 'No se pudo agregar', detalle: error } : null}
       footer={
         <>
           <button
             onClick={onCerrar}
-            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer'
+            disabled={verificando}
+            className='flex-1 px-4 py-2 text-sm font-medium text-neutro-600 bg-neutro-100 rounded hover:bg-neutro-200 transition-colors cursor-pointer disabled:opacity-60'
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirmar}
-            disabled={!todasValidas}
+            disabled={!todasValidas || verificando}
             className='flex-1 px-4 py-2 cursor-pointer text-sm font-medium text-white bg-marca-500 rounded hover:bg-marca-600 disabled:bg-marca-400 disabled:cursor-not-allowed transition-colors'
           >
-            {esMultiple ? 'Agregar Productos' : 'Agregar Producto'}
+            {verificando
+              ? 'Verificando stock...'
+              : esMultiple
+                ? 'Agregar Productos'
+                : 'Agregar Producto'}
           </button>
         </>
       }

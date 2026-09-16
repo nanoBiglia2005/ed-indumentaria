@@ -20,7 +20,7 @@ import { listarLineas } from '@/api/agrupaciones';
 import ColumnFilterModal from '@/components/tabla/ColumnFilterModal';
 import MigasDePasos from '@/components/ui/MigasDePasos';
 import ConfirmarProductoModal from '@/features/ventas/modales/ConfirmarProductoModal';
-import { crearColumnasVenta } from './columnasVenta';
+import { crearColumnasVenta, sinStock } from './columnasVenta';
 import PasoLinea from './PasoLinea';
 import PasoCliente from './PasoCliente';
 import { textoTodaLaAgrupacion } from './textos';
@@ -67,6 +67,11 @@ interface AgregarProductoModalProps {
   articulosExcluidos: number[];
   /** Metodos de pago: la tabla muestra una columna de precio por cada uno. */
   metodos: TIPOS_DE_PAGO[];
+  /**
+   * true (venta): los articulos sin unidades disponibles se muestran pero no se
+   * pueden agregar ni seleccionar. false (presupuesto): no limita nada.
+   */
+  limitarPorStock?: boolean;
   onAgregar: (articulo: ArticuloDeVenta, cantidad: number) => void;
 }
 
@@ -75,6 +80,7 @@ export default function AgregarProductoModal({
   onCerrar,
   articulosExcluidos,
   metodos,
+  limitarPorStock = true,
   onAgregar,
 }: AgregarProductoModalProps) {
   // --- Seleccion del asistente ---
@@ -130,18 +136,6 @@ export default function AgregarProductoModal({
     [seleccionadosPorId]
   );
 
-  const toggleSeleccion = (id: number) => {
-    setSeleccionadosPorId((prev) => {
-      const siguiente = new Map(prev);
-      if (siguiente.has(id)) siguiente.delete(id);
-      else {
-        const articulo = articulos.find((a) => a.id_articulo === id);
-        if (articulo) siguiente.set(id, articulo);
-      }
-      return siguiente;
-    });
-  };
-
   // --- Confirmacion (click en una fila, su boton "Agregar", o el "Agregar"
   // masivo de la barra de seleccion). Soporta uno o varios productos a la vez.
   const [productosAConfirmar, setProductosAConfirmar] = useState<ArticuloDeVenta[] | null>(null);
@@ -154,6 +148,31 @@ export default function AgregarProductoModal({
     mostrar: mostrarNotificacion,
     ocultar: ocultarNotificacion,
   } = useNotificacion();
+
+  /**
+   * En una venta no se puede agregar lo que no hay: el articulo igual se ve en
+   * la tabla (atenuado), pero el click y el tilde son no-op con un aviso. El
+   * backend vuelve a validarlo al crear el remito; esto es solo comodidad.
+   */
+  const bloqueadoPorStock = (articulo: ArticuloDeVenta) =>
+    limitarPorStock && sinStock(articulo);
+
+  const avisarSinStock = () => mostrarNotificacion('Sin stock disponible.');
+
+  const toggleSeleccion = (id: number) => {
+    const articulo = articulos.find((a) => a.id_articulo === id);
+    if (articulo && bloqueadoPorStock(articulo)) {
+      avisarSinStock();
+      return;
+    }
+
+    setSeleccionadosPorId((prev) => {
+      const siguiente = new Map(prev);
+      if (siguiente.has(id)) siguiente.delete(id);
+      else if (articulo) siguiente.set(id, articulo);
+      return siguiente;
+    });
+  };
 
   const paso = linea === null ? 1 : cliente === null ? 2 : grupo === null ? 3 : 4;
 
@@ -399,6 +418,10 @@ export default function AgregarProductoModal({
   // Click en una fila o su boton "Agregar": abre el modal de confirmacion en
   // vez de agregar directo, para poder elegir la cantidad y ver el total.
   const handleAgregar = (articulo: ArticuloDeVenta) => {
+    if (bloqueadoPorStock(articulo)) {
+      avisarSinStock();
+      return;
+    }
     setConfirmacionEsMasiva(false);
     setProductosAConfirmar([articulo]);
   };
@@ -419,17 +442,29 @@ export default function AgregarProductoModal({
   };
 
   // El checkbox del header opera sobre la PAGINA visible, no sobre todo lo que
-  // coincide con los filtros.
+  // coincide con los filtros. En una venta, los que no tienen stock quedan
+  // fuera: si contaran, el tilde de "todos" nunca llegaria a marcarse.
+  const articulosAgregables = useMemo(
+    () => articulos.filter((a) => !(limitarPorStock && sinStock(a))),
+    [articulos, limitarPorStock]
+  );
+
   const todosSeleccionados =
-    articulos.length > 0 && articulos.every((a) => seleccionados.has(a.id_articulo));
+    articulosAgregables.length > 0 &&
+    articulosAgregables.every((a) => seleccionados.has(a.id_articulo));
 
   const handleSeleccionarTodos = () => {
+    if (articulosAgregables.length === 0) {
+      if (articulos.length > 0) avisarSinStock();
+      return;
+    }
+
     setSeleccionadosPorId((prev) => {
       const siguiente = new Map(prev);
       if (todosSeleccionados) {
-        for (const articulo of articulos) siguiente.delete(articulo.id_articulo);
+        for (const articulo of articulosAgregables) siguiente.delete(articulo.id_articulo);
       } else {
-        for (const articulo of articulos) siguiente.set(articulo.id_articulo, articulo);
+        for (const articulo of articulosAgregables) siguiente.set(articulo.id_articulo, articulo);
       }
       return siguiente;
     });
@@ -596,6 +631,7 @@ export default function AgregarProductoModal({
         abierto={productosAConfirmar !== null}
         productos={productosAConfirmar}
         metodosConRecargo={metodosConRecargo}
+        limitarPorStock={limitarPorStock}
         onCerrar={() => setProductosAConfirmar(null)}
         onConfirmar={handleConfirmarProductos}
       />

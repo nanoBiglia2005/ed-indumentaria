@@ -290,6 +290,36 @@ router.get(
   }, 'Error al buscar el artículo por código de barras.')
 );
 
+/**
+ * Stock actual de un conjunto de articulos, leido en el momento. Lo usa el
+ * frontend para revalidar contra la base justo antes de confirmar una
+ * cantidad en el wizard de venta (la tabla ya trae `cant`, pero puede haber
+ * quedado desactualizada mientras el usuario navega los pasos).
+ */
+router.get(
+  '/stock',
+  asyncHandler(async (req, res) => {
+    const ids = parseIdsSeparadosPorComa(req.query.ids);
+
+    if (ids.length === 0) {
+      res.status(200).json({});
+      return;
+    }
+
+    const articulos = await prisma.ARTICULOS.findMany({
+      where: { id_articulo: { in: ids } },
+      select: { id_articulo: true, cant: true },
+    });
+
+    const stock = {};
+    for (const articulo of articulos) {
+      stock[articulo.id_articulo] = articulo.cant;
+    }
+
+    res.status(200).json(stock);
+  }, 'Error al obtener el stock de los articulos.')
+);
+
 // ============================================================
 //  CLIENTE FINAL DE LA VENTA (tabla CLIENTES, la minorista)
 // ============================================================
