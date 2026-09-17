@@ -8,7 +8,7 @@
 const prisma = require('../db');
 const { aId } = require('../lib/validaciones');
 const { ESTADO_CONFIRMADO } = require('../constants/ventas');
-const { redondearPrecio } = require('./preciosPorMetodo');
+const { redondearPrecio, listarMetodosDePago, remitoConTotales } = require('./preciosPorMetodo');
 
 // Relaciones que se incluyen al consultar REMITOS en TODAS las rutas.
 // OJO: backend/types.ts declara este mismo shape a nivel de tipos para el
@@ -24,8 +24,14 @@ const remitosInclude = {
 /**
  * Valida los articulos que llegan del modal de venta y los devuelve con su
  * precio base ya redondeado (el que se va a congelar en la venta).
+ *
+ * `exigirStock` es la red de seguridad final de una Venta: compara la
+ * cantidad pedida contra `ARTICULOS.cant` y rechaza si se pide de mas. El
+ * sistema NO descuenta stock al vender (se ajusta a mano aparte), asi que
+ * esto es solo una validacion de tope, no una reserva. Los Presupuestos
+ * llaman a esta misma funcion sin `exigirStock` (no limitan por stock).
  */
-const resolverItemsVenta = async (detalles) => {
+const resolverItemsVenta = async (detalles, { exigirStock = false } = {}) => {
   if (!Array.isArray(detalles) || detalles.length === 0) {
     return { error: { status: 400, message: 'La venta debe tener al menos un articulo.' } };
   }
@@ -67,6 +73,20 @@ const resolverItemsVenta = async (detalles) => {
         message: `El articulo "${articuloNoVigente.descripcion ?? articuloNoVigente.id_articulo}" ya no esta vigente.`,
       },
     };
+  }
+
+  if (exigirStock) {
+    const articuloSinStock = articulos.find(
+      (articulo) => cantidadesPorArticulo.get(articulo.id_articulo) > articulo.cant
+    );
+    if (articuloSinStock) {
+      return {
+        error: {
+          status: 409,
+          message: `El articulo "${articuloSinStock.descripcion ?? articuloSinStock.id_articulo}" tiene ${articuloSinStock.cant} unidades disponibles.`,
+        },
+      };
+    }
   }
 
   const items = articulos.map((articulo) => ({
@@ -134,10 +154,42 @@ const itemsDeRemito = (remito) =>
     precio: detalle.precio,
   }));
 
+// Tamano de pagina por defecto de "ventas de este cliente" (ABM de clientes
+// finales). Mismo numero que services/clientesFinales.js: no hay una razon
+// para que difieran, pero cada uno lo declara para no crear un acoplamiento
+// artificial entre los dos modulos por una constante que podria divergir.
+const PAGINA_TAMANO_DEFAULT = 30;
+
+/**
+ * Remitos de un cliente final, paginados y mas nuevos primero, con la MISMA
+ * forma que ya consume RemitoCard.tsx (totales_por_metodo + precios_por_metodo
+ * por linea): se le aplica remitoConTotales antes de devolverlos, igual que
+ * responderPaginaDeRemitos en routes/remitos.js.
+ */
+const remitosDeCliente = async (id_cliente, { pagina = 1, tamano = PAGINA_TAMANO_DEFAULT } = {}) => {
+  const where = { id_cliente };
+
+  const [remitos, total] = await Promise.all([
+    prisma.REMITOS.findMany({
+      where,
+      include: remitosInclude,
+      orderBy: { fecha_de_creacion: 'desc' },
+      skip: (pagina - 1) * tamano,
+      take: tamano,
+    }),
+    prisma.REMITOS.count({ where }),
+  ]);
+
+  const metodos = await listarMetodosDePago();
+
+  return { remitos: remitos.map((remito) => remitoConTotales(remito, metodos)), total };
+};
+
 module.exports = {
   remitosInclude,
   resolverItemsVenta,
   buscarRemitoEnEstado,
   buscarRemitoPendiente,
   itemsDeRemito,
+  remitosDeCliente,
 };

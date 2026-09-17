@@ -49,12 +49,14 @@ app.use('/api', async (req, res, next) => (await authModule).requireAuth(req, re
 app.use('/api/venta', require('./routes/venta'));
 app.use('/api/tipos-de-pago', require('./routes/tiposDePago'));
 app.use('/api/remitos', require('./routes/remitos'));
+app.use('/api/presupuestos', require('./routes/presupuestos'));
 app.use('/api/print', require('./routes/print'));
 app.use('/api/impresoras', require('./routes/impresoras'));
 app.use('/api/articulos', require('./routes/articulos'));
 app.use('/api/grupos', require('./routes/grupos'));
 app.use('/api/subgrupos', require('./routes/subgrupos'));
 app.use('/api/clientes', require('./routes/clientes'));
+app.use('/api/clientes-finales', require('./routes/clientesFinales'));
 app.use('/api/lineas', require('./routes/lineas'));
 app.use('/api/precios', require('./routes/precios'));
 app.use('/api', require('./routes/asociaciones'));

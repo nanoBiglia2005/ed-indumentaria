@@ -110,6 +110,19 @@ export const buscarArticuloPorCodigo = (codigo: string) =>
   request<ArticuloDeVenta>(`/api/venta/articulo-por-codigo?codigo=${encodeURIComponent(codigo)}`);
 
 /**
+ * Stock actual (`ARTICULOS.cant`) de los articulos pedidos, leido en el momento.
+ *
+ * La tabla del wizard ya trae `cant`, pero puede quedar vieja mientras el
+ * usuario navega: esto se consulta justo antes de confirmar una cantidad, para
+ * comparar contra el valor real. Las claves del objeto llegan como string (es
+ * JSON), pero se indexan por numero sin problema.
+ */
+export const verificarStockVenta = (ids: number[]): Promise<Record<number, number>> => {
+  if (ids.length === 0) return Promise.resolve({});
+  return request<Record<number, number>>(`/api/venta/stock?ids=${ids.join(',')}`);
+};
+
+/**
  * Datos de un cliente final tal como viajan a la API: los tres campos
  * numericos y la fecha ya normalizados (la fecha en 'AAAA-MM-DD', que es lo que
  * el backend convierte a la columna `date`). null = campo vacio.
@@ -125,16 +138,22 @@ export interface DatosClienteAPI {
   fecha_nacimiento: string | null;
 }
 
+/** Los tres campos que no pueden repetirse entre clientes (ver schema.prisma: @unique en los tres). */
+export type CampoDuplicado = 'dni' | 'telefono' | 'email';
+
 /**
  * Respuesta del alta: `creado: false` NO es un error, es que ya habia un
- * cliente con ese DNI y hay que preguntarle al usuario que hacer con el.
+ * cliente con ese dni/telefono/email (`campo` dice cual) y hay que
+ * preguntarle al usuario que hacer con el.
  */
 export interface RespuestaAltaCliente {
   creado: boolean;
   cliente: CLIENTES;
+  /** Solo viene cuando `creado` es false. */
+  campo?: CampoDuplicado;
 }
 
-/** Clientes que matchean el termino por nombre, apellido o DNI. */
+/** Clientes que matchean el termino por nombre, apellido o telefono. */
 export const buscarClientes = (busqueda: string) =>
   request<CLIENTES[]>(`/api/venta/clientes?busqueda=${encodeURIComponent(busqueda)}`);
 

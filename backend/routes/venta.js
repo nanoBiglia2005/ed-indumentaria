@@ -22,7 +22,8 @@ const {
 } = require('../lib/articulosConsulta');
 const {
   parsearDatosCliente,
-  buscarPorDni,
+  buscarClienteConDatoRepetido,
+  assertDatosDisponibles,
   buscarClientes,
   obtenerCliente,
 } = require('../services/clientesFinales');
@@ -290,6 +291,36 @@ router.get(
   }, 'Error al buscar el artículo por código de barras.')
 );
 
+/**
+ * Stock actual de un conjunto de articulos, leido en el momento. Lo usa el
+ * frontend para revalidar contra la base justo antes de confirmar una
+ * cantidad en el wizard de venta (la tabla ya trae `cant`, pero puede haber
+ * quedado desactualizada mientras el usuario navega los pasos).
+ */
+router.get(
+  '/stock',
+  asyncHandler(async (req, res) => {
+    const ids = parseIdsSeparadosPorComa(req.query.ids);
+
+    if (ids.length === 0) {
+      res.status(200).json({});
+      return;
+    }
+
+    const articulos = await prisma.ARTICULOS.findMany({
+      where: { id_articulo: { in: ids } },
+      select: { id_articulo: true, cant: true },
+    });
+
+    const stock = {};
+    for (const articulo of articulos) {
+      stock[articulo.id_articulo] = articulo.cant;
+    }
+
+    res.status(200).json(stock);
+  }, 'Error al obtener el stock de los articulos.')
+);
+
 // ============================================================
 //  CLIENTE FINAL DE LA VENTA (tabla CLIENTES, la minorista)
 // ============================================================
@@ -298,7 +329,7 @@ router.get(
 // esta en el mostrador, no para listar la tabla.
 const MAX_RESULTADOS = 8;
 
-// Busqueda del selector: un solo termino contra nombre, apellido y DNI.
+// Busqueda del selector: un solo termino contra nombre, apellido y telefono.
 router.get(
   '/clientes',
   asyncHandler(async (req, res) => {
@@ -317,19 +348,20 @@ router.get(
 /**
  * Alta de un cliente para asignarlo a la venta.
  *
- * El DNI repetido NO es un error: es una decision del usuario (asignar el que
- * ya existe, pisarle los datos, o cancelar), asi que se responde 200 con
- * `creado: false` y el cliente encontrado. Un 409 obligaria al frontend a leer
- * el cuerpo de un error para seguir el flujo normal.
+ * Un dni/telefono/email repetido NO es un error: es una decision del usuario
+ * (asignar el que ya existe, pisarle los datos, o cancelar), asi que se
+ * responde 200 con `creado: false`, el cliente encontrado y que campo
+ * choco. Un 409 obligaria al frontend a leer el cuerpo de un error para
+ * seguir el flujo normal.
  */
 router.post(
   '/clientes',
   asyncHandler(async (req, res) => {
     const datos = parsearDatosCliente(req.body);
 
-    const existente = await buscarPorDni(datos.dni);
-    if (existente) {
-      res.status(200).json({ creado: false, cliente: existente });
+    const encontrado = await buscarClienteConDatoRepetido(datos);
+    if (encontrado) {
+      res.status(200).json({ creado: false, cliente: encontrado.cliente, campo: encontrado.campo });
       return;
     }
 
@@ -338,7 +370,7 @@ router.post(
   }, 'Error al crear el cliente.')
 );
 
-// Pisa los datos del cliente (el "asignar y sobrescribir" del DNI repetido).
+// Pisa los datos del cliente (el "asignar y sobrescribir" del dato repetido).
 router.put(
   '/clientes/:id_cliente',
   asyncHandler(async (req, res) => {
@@ -346,6 +378,7 @@ router.put(
     const datos = parsearDatosCliente(req.body);
 
     await obtenerCliente(id_cliente);
+    await assertDatosDisponibles(datos, id_cliente);
 
     res.status(200).json(await prisma.CLIENTES.update({ where: { id_cliente }, data: datos }));
   }, 'Error al actualizar el cliente.')

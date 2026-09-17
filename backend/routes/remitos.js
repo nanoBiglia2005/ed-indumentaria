@@ -20,7 +20,11 @@ const {
 } = require('../services/remitos');
 const { listarMetodosDePago, remitoConTotales } = require('../services/preciosPorMetodo');
 const { parsearPagos, registrarCobro } = require('../services/pagosRemito');
-const { parsearDatosCliente, obtenerCliente } = require('../services/clientesFinales');
+const {
+  parsearDatosCliente,
+  obtenerCliente,
+  assertDatosDisponibles,
+} = require('../services/clientesFinales');
 const { construirPayloadTicket, enviarTrabajoDeImpresion } = require('../services/impresion');
 const { resolverDestinoParaSesion } = require('../services/impresoras');
 const {
@@ -40,10 +44,17 @@ const router = express.Router();
 const imprimirTicketDeRemito = async ({ session, idImpresoraPedida, items, metodos, remito }) => {
   const { id_impresora } = await resolverDestinoParaSesion(session, idImpresoraPedida);
 
+  const clienteCompleto = remito.CLIENTES
+    ? `${remito.CLIENTES.nombre} ${remito.CLIENTES.apellido}`.trim()
+    : null;
+
   const { respuesta, resultado } = await enviarTrabajoDeImpresion(
     construirPayloadTicket(items, metodos, {
       id_remito: remito.id_remito,
       fecha: remito.fecha_de_creacion,
+      cod_mes: remito.cod_mes,
+      cod_remito_final: remito.cod_remito_final,
+      cliente: clienteCompleto,
     }),
     { id_impresora }
   );
@@ -158,6 +169,37 @@ router.get(
 );
 
 /**
+ * Un remito puntual, con la misma forma que ya arma responderPaginaDeRemitos
+ * (remitosInclude + remitoConTotales). Lo usa la ficha de un cliente final
+ * (ABM de routes/clientesFinales.js) para deep-linkear a Historial/Ventas, por
+ * eso queda gateado a ROLES_HISTORIAL igual que esa pagina, aunque los otros
+ * roles no lo necesiten.
+ *
+ * Va DESPUES de las rutas literales (/, /opciones, /pendientes,
+ * /pendientes/opciones): Express matchea en orden, y un `/:id_remito`
+ * declarado antes se las tragaria.
+ */
+router.get(
+  '/:id_remito',
+  requireRol(...ROLES_HISTORIAL),
+  asyncHandler(async (req, res) => {
+    const id_remito = parseId(req.params.id_remito, 'El id del remito debe ser un numero.');
+
+    const remito = await prisma.REMITOS.findUnique({
+      where: { id_remito },
+      include: remitosInclude,
+    });
+
+    if (!remito) {
+      throw new HttpError(404, { message: 'El remito no existe.' });
+    }
+
+    const metodos = await listarMetodosDePago();
+    res.status(200).json(remitoConTotales(remito, metodos));
+  }, 'Error al obtener el remito.')
+);
+
+/**
  * Registra la venta como CONFIRMADA (pendiente de cobro) e imprime el ticket
  * salvo que se pida `imprimir: false`. El metodo de pago se elige despues, al
  * cobrar: aca solo se congela el precio base de cada articulo.
@@ -172,7 +214,7 @@ router.get(
 router.post(
   '/',
   asyncHandler(async (req, res) => {
-    const { error, items } = await resolverItemsVenta(req.body.detalles);
+    const { error, items } = await resolverItemsVenta(req.body.detalles, { exigirStock: true });
     if (error) {
       throw new HttpError(error.status, { message: error.message });
     }
@@ -184,11 +226,18 @@ router.post(
         : parseId(req.body.id_cliente, 'El id del cliente debe ser un numero.');
 
     // Se valida ANTES de abrir la transaccion para no crear el remito si el
-    // formulario del cliente esta mal.
+    // formulario del cliente esta mal. `assertDatosDisponibles` tira 409 con
+    // el cliente en conflicto adentro (mismo mecanismo que PUT
+    // /api/venta/clientes/:id) si el dni/telefono/email editado ya es de
+    // OTRO cliente: el frontend ofrece asignar ese existente o sobrescribirlo,
+    // en vez de que la venta entera falle con un error de base a secas.
     let datosCliente = null;
     if (id_cliente !== null) {
       await obtenerCliente(id_cliente);
-      if (req.body.cliente) datosCliente = parsearDatosCliente(req.body.cliente);
+      if (req.body.cliente) {
+        datosCliente = parsearDatosCliente(req.body.cliente);
+        await assertDatosDisponibles(datosCliente, id_cliente);
+      }
     }
 
     const detallesData = items.map((item) => ({

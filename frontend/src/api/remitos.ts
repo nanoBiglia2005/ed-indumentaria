@@ -49,6 +49,15 @@ export const listarRemitosPagina = (params: ParamsRemitos, pagina: number, taman
 export const listarRemitosPendientesPagina = (params: ParamsRemitos, pagina: number, tamano: number) =>
   request<RespuestaRemitos>(`/api/remitos/pendientes?${querystring(params, { pagina, tamano })}`);
 
+/**
+ * Un remito suelto por id, con el mismo shape completo que la lista (lo que
+ * necesita RemitoCard). Lo usa el deep-link `?remito=<id>` de Ventas e
+ * Historial, que muestra una venta puntual sin tocar la paginacion ni los
+ * filtros de la lista. Lanza ApiError 404 si no existe.
+ */
+export const obtenerRemito = (idRemito: number) =>
+  request<RemitoConDetalles>(`/api/remitos/${idRemito}`);
+
 export interface RespuestaOpcionesRemitos {
   opciones: OpcionFiltro[];
   haySinAsignar: boolean;

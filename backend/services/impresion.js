@@ -39,7 +39,18 @@ const metodoConRecargo = (metodos) => metodos.find((metodo) => metodo.recargo > 
  * resto del sistema (redondear por linea y sumar), asi que el ticket coincide
  * con lo que muestra la pantalla y con lo que se cobra.
  */
-const construirPayloadTicket = (items, metodos, { id_remito = null, fecha = new Date() } = {}) => {
+const construirPayloadTicket = (
+  items,
+  metodos,
+  {
+    id_remito = null,
+    fecha = new Date(),
+    cod_mes = null,
+    cod_remito_final = null,
+    cliente = null,
+    esPresupuesto = false,
+  } = {}
+) => {
   const conRecargo = metodoConRecargo(metodos);
   const recargo = conRecargo?.recargo ?? 0;
 
@@ -65,6 +76,14 @@ const construirPayloadTicket = (items, metodos, { id_remito = null, fecha = new 
     total_efectivo: lineas.reduce((acumulado, linea) => acumulado + linea.subtotal_efectivo, 0),
     total_tarjeta: lineas.reduce((acumulado, linea) => acumulado + linea.subtotal_tarjeta, 0),
     items: lineas,
+    cod_mes,
+    cod_remito_final,
+    cliente,
+    // El printer-client codifica el ticket en ASCII puro (ver imprimir_barcode.py,
+    // texto.encode("ascii", errors="ignore")): estos literales van sin tildes
+    // a proposito, no es un descuido.
+    texto_encabezado: esPresupuesto ? 'Presupuesto\nValido por 15 dias' : null,
+    texto_agradecimiento: esPresupuesto ? 'GRACIAS POR SU CONSULTA' : null,
   };
 };
 

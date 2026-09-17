@@ -34,6 +34,11 @@ interface AgrupacionSectionProps {
   onRefrescar: () => void;
   /** Solo tipo 'grupo': para el editor de líneas asociadas. */
   lineasDisponibles?: LINEAS[];
+  /** Solo tipo 'colegio': fija el tipo de cliente y oculta el selector en el modal. */
+  tipoClienteFijo?: 1 | 2;
+  /** Overrides de título del modal de creación/edición (ver CrearAgrupacionModal). */
+  tituloModalCrear?: string;
+  tituloModalEditar?: string;
 }
 
 export default function AgrupacionSection({
@@ -45,6 +50,9 @@ export default function AgrupacionSection({
   grupos,
   onRefrescar,
   lineasDisponibles,
+  tipoClienteFijo,
+  tituloModalCrear,
+  tituloModalEditar,
 }: AgrupacionSectionProps) {
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState<Orden>('asc');
@@ -74,18 +82,13 @@ export default function AgrupacionSection({
       </div>
 
       <div className='flex items-center gap-2 mb-5'>
-        <SearchInput
-          valor={busqueda}
-          onCambio={setBusqueda}
-          claseContenedor='relative flex-1 flex items-center'
-        />
-
+        
         <button
           type='button'
           onClick={() => setOrden((actual) => (actual === 'asc' ? 'desc' : 'asc'))}
           title={orden === 'asc' ? 'Orden alfabético ascendente (A-Z)' : 'Orden alfabético descendente (Z-A)'}
           className='shrink-0 flex items-center gap-1 px-3 py-1.5 rounded border border-neutro-200 text-sm font-medium text-neutro-600 hover:border-marca-400 hover:text-marca-600 transition-colors duration-100 ease-in cursor-pointer'
-        >
+          >
           {orden === 'asc' ? 'A-Z' : 'Z-A'}
           <CaretDownIcon
             size={14}
@@ -93,6 +96,11 @@ export default function AgrupacionSection({
             className={`transition-transform duration-150 ease-in ${orden === 'desc' ? 'rotate-180' : ''}`}
           />
         </button>
+        <SearchInput
+          valor={busqueda}
+          onCambio={setBusqueda}
+          claseContenedor='relative flex-1 flex items-center'
+        />
       </div>
 
       {items.length === 0 && <span className='text-neutro-400'>{emptyMessage}</span>}
@@ -125,7 +133,7 @@ export default function AgrupacionSection({
                     e.stopPropagation();
                     setItemAEditar(item);
                   }}
-                  className='px-3 py-1 border border-transparent transition-colors duration-100 ease-in bg-marca-500 hover:bg-marca-600 text-white rounded text-sm text-center cursor-pointer'
+                  className='px-3 py-1 text-marca border border-marca-500 transition-colors duration-100 ease-in hover:bg-marca-500 hover:text-white rounded text-sm text-center cursor-pointer'
                 >
                   Editar
                 </button>
@@ -135,7 +143,7 @@ export default function AgrupacionSection({
                     e.stopPropagation();
                     setItemAEliminar(item);
                   }}
-                  className='px-3 py-1 border border-transparent transition-colors duration-100 ease-in bg-red-500 hover:bg-red-600 text-white rounded text-sm text-center cursor-pointer'
+                  className='px-3 py-1 border border-red-500 text-red-500 transition-colors duration-100 ease-in hover:bg-red-500 hover:text-white rounded text-sm text-center cursor-pointer'
                 >
                   Eliminar
                 </button>
@@ -159,6 +167,9 @@ export default function AgrupacionSection({
         tipo={tipo}
         grupos={grupos}
         lineasDisponibles={lineasDisponibles}
+        tipoClienteFijo={tipoClienteFijo}
+        tituloCrear={tituloModalCrear}
+        tituloEditar={tituloModalEditar}
         edicion={
           itemAEditar
             ? {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { RemitoConDetalles } from '@backend/types';
 import { useNotificacion } from '@/hooks/useNotificacion';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
@@ -8,6 +9,8 @@ import Paginador from '@/components/tabla/Paginador';
 import { listarRemitosPagina } from '@/api/remitos';
 import type { ParamsRemitos } from '@/api/remitos';
 import ListaDeRemitos from '@/features/ventas/ListaDeRemitos';
+import RemitoDestacado from '@/features/ventas/RemitoDestacado';
+import { idRemitoDeQuery } from '@/features/ventas/deepLinkRemito';
 import { useOpcionesDeFiltro } from '@/features/ventas/useOpcionesDeFiltro';
 import type { OpcionesCargadas } from '@/features/ventas/useOpcionesDeFiltro';
 import { camposHistorial } from '@/features/ventas/campos';
@@ -35,6 +38,11 @@ function HistorialPage() {
   // Venta facturada que se esta devolviendo.
   const [remitoADevolver, setRemitoADevolver] = useState<RemitoConDetalles | null>(null);
   const { notificacion, mostrar: mostrarNotificacion } = useNotificacion();
+
+  // Deep-link `?remito=<id>`: una venta puntual por encima de la lista, sin
+  // tocar filtros ni paginacion (ver deepLinkRemito.ts).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const idRemitoDestacado = idRemitoDeQuery(searchParams);
 
   // Opciones del filtro de seleccion recien abierto (hoy solo "Cliente":
   // "Estado" tiene opciones fijas, ver campos.ts). El estado vive aca, ANTES
@@ -117,10 +125,17 @@ function HistorialPage() {
     <SectionWrapper>
       <Notificacion mensaje={notificacion} posicion='pagina' />
 
-      <div className='flex flex-col w-full h-full px-5 pt-10 min-h-0'>
+      <div className='flex flex-col w-full h-full px-2 sm:px-5 sm:pt-10 pt-6 min-h-0'>
         <div className='flex items-center justify-between mb-5 shrink-0'>
           <span className='text-2xl font-semibold text-black'>Historial de Ventas</span>
         </div>
+
+        {idRemitoDestacado !== null && (
+          <RemitoDestacado
+            idRemito={idRemitoDestacado}
+            onCerrar={() => setSearchParams({})}
+          />
+        )}
 
         <ListaDeRemitos
           remitos={remitos}

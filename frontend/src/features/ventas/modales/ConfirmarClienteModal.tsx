@@ -1,26 +1,34 @@
 import type { CLIENTES } from '@backend/types';
+import type { CampoDuplicado } from '@/api/venta';
 import BaseModal from '@/components/ui/BaseModal';
 import ResumenCliente from '@/features/ventas/cliente/ResumenCliente';
 import type { CampoCliente, DatosCliente } from '@/features/ventas/cliente/formatoCliente';
-import { camposModificados, desdeCliente } from '@/features/ventas/cliente/formatoCliente';
+import {
+  ETIQUETA_CAMPO_DUPLICADO,
+  camposModificados,
+  desdeCliente,
+  telefonoLegible,
+} from '@/features/ventas/cliente/formatoCliente';
 
 interface ConfirmarClienteModalProps {
   abierto: boolean;
   /** Lo que se cargo en el formulario. */
   datos: DatosCliente | null;
   /**
-   * Cliente que YA existe con ese DNI. null = alta limpia (solo hay que
+   * Cliente que YA existe con ese dato. null = alta limpia (solo hay que
    * confirmar); con valor = hay que decidir que hacer con el que ya esta.
    */
   existente: CLIENTES | null;
+  /** Cual de los tres (dni/telefono/email) fue el que choco. null si `existente` es null. */
+  campo: CampoDuplicado | null;
   cargando: boolean;
   error: string | null;
   onCerrar: () => void;
   /** Alta limpia: crear el cliente y asignarlo. */
   onCrear: () => void;
-  /** DNI repetido: asignar el de la base tal cual esta. */
+  /** Dato repetido: asignar el de la base tal cual esta. */
   onAsignarExistente: () => void;
-  /** DNI repetido: pisar los datos de la base con los cargados y asignar. */
+  /** Dato repetido: pisar los datos de la base con los cargados y asignar. */
   onSobrescribir: () => void;
 }
 
@@ -28,17 +36,19 @@ interface ConfirmarClienteModalProps {
  * Confirmacion del alta del cliente de la venta. Tiene dos caras:
  *
  *  - alta limpia: se muestra lo que se va a guardar y se confirma;
- *  - DNI ya registrado: se muestran lado a lado el cliente de la base y lo
- *    cargado (con las diferencias en amarillo) y se elige entre asignar el
- *    existente, pisarlo, o cancelar.
+ *  - dni/telefono/email ya registrado: se muestran lado a lado el cliente de
+ *    la base y lo cargado (con las diferencias en amarillo) y se elige entre
+ *    asignar el existente, pisarlo, o cancelar.
  *
- * El segundo caso no es un error: el DNI no es unico en la base, asi que la
- * decision es del usuario.
+ * El segundo caso no es un error: son datos que pueden repetirse en la base
+ * (dos ventas del mismo cliente cargadas por separado, por ejemplo), asi que
+ * la decision es del usuario.
  */
 export default function ConfirmarClienteModal({
   abierto,
   datos,
   existente,
+  campo,
   cargando,
   error,
   onCerrar,
@@ -46,7 +56,11 @@ export default function ConfirmarClienteModal({
   onAsignarExistente,
   onSobrescribir,
 }: ConfirmarClienteModalProps) {
-  const esDuplicado = existente !== null;
+  const esDuplicado = existente !== null && campo !== null;
+  const etiqueta = campo ? ETIQUETA_CAMPO_DUPLICADO[campo] : '';
+  // El valor que choco, tal cual se cargo en el formulario (no el de la base:
+  // son iguales por definicion, pero `datos` es lo que ya esta a la vista).
+  const valorCargado = datos && campo === 'telefono' ? telefonoLegible(datos) : datos?.[campo ?? 'dni'];
 
   // Que campos cambiarian en la base si se elige sobrescribir.
   const diferencias: Set<CampoCliente> =
@@ -61,7 +75,7 @@ export default function ConfirmarClienteModal({
     <BaseModal
       abierto={abierto}
       onCerrar={cargando ? () => {} : onCerrar}
-      titulo={esDuplicado ? 'Ese DNI ya está registrado' : '¿Crear y asignar este cliente?'}
+      titulo={esDuplicado ? `Ese ${etiqueta} ya está registrado` : '¿Crear y asignar este cliente?'}
       claseTitulo='text-lg font-medium leading-6 text-neutro-900 mb-4'
       ancho={esDuplicado ? 'xl' : 'md'}
       z='z-[60]'
@@ -102,8 +116,9 @@ export default function ConfirmarClienteModal({
       {!datos ? null : esDuplicado ? (
         <div className='flex flex-col gap-4'>
           <p className='text-sm text-neutro-600'>
-            Ya hay un cliente registrado con el DNI <span className='font-semibold'>{datos.dni}</span>.
-            Elegí si querés usar los datos que ya están en el sistema o pisarlos con los que cargaste.
+            Ya hay un cliente registrado con el {etiqueta}{' '}
+            <span className='font-semibold'>{valorCargado}</span>. Elegí si querés usar los datos
+            que ya están en el sistema o pisarlos con los que cargaste.
           </p>
 
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>

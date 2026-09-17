@@ -4,7 +4,7 @@ import { mensajeDetallesPrimero } from '@/api/cliente';
 import { buscarClientes } from '@/api/venta';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useDebounce } from '@/hooks/useDebounce';
-import { nombreCompleto } from './formatoCliente';
+import { nombreCompleto, telefonoDeCliente } from './formatoCliente';
 
 const RETRASO_BUSQUEDA_MS = 300;
 
@@ -15,9 +15,9 @@ interface BuscadorClientesProps {
 
 /**
  * Buscador del cliente de la venta: un solo campo que matchea por nombre,
- * apellido o DNI (el backend decide contra que columna, el usuario no elige).
- * Al elegir uno el campo se limpia: lo que queda a la vista es la ficha del
- * cliente asignado, no el texto que se busco.
+ * apellido o telefono (el backend decide contra que columna, el usuario no
+ * elige). Al elegir uno el campo se limpia: lo que queda a la vista es la
+ * ficha del cliente asignado, no el texto que se busco.
  */
 export default function BuscadorClientes({
   onSeleccionar,
@@ -88,8 +88,8 @@ export default function BuscadorClientes({
           setAbierto(true);
         }}
         onFocus={() => setAbierto(true)}
-        placeholder='Buscar por Nombre/DNI...'
-        aria-label='Buscar un cliente por nombre o DNI'
+        placeholder='Buscar por Nombre/Teléfono...'
+        aria-label='Buscar un cliente por nombre o teléfono'
         className='w-full rounded border border-neutro-200 bg-white px-3 py-2 text-sm text-neutro-600 placeholder:text-neutro-400 transition-colors duration-100 ease-in hover:border-marca-400 focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30 disabled:cursor-not-allowed disabled:opacity-60'
       />
 
@@ -101,7 +101,7 @@ export default function BuscadorClientes({
 
           {!cargando && !error && resultados.length === 0 && (
             <p className='px-4 py-3 text-sm italic text-neutro-400'>
-              No hay clientes con ese nombre o DNI.
+              No hay clientes con ese nombre o teléfono.
             </p>
           )}
 
@@ -115,7 +115,7 @@ export default function BuscadorClientes({
                 className='flex w-full flex-col border-b border-neutro-200 px-4 py-2 text-left last:border-b-0 transition-colors duration-100 ease-in hover:bg-neutro-100 cursor-pointer'
               >
                 <span className='font-semibold text-neutro-900'>{nombreCompleto(cliente)}</span>
-                <span className='text-xs text-neutro-600'>DNI {cliente.dni}</span>
+                <span className='text-xs text-neutro-600'>{telefonoDeCliente(cliente) || 'Sin teléfono'}</span>
               </button>
             ))}
         </div>

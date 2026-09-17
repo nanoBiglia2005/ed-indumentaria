@@ -20,6 +20,13 @@ export const MAX_LINEAS_CELDA = 3;
 export const ROW_HEIGHT = MAX_LINEAS_CELDA * ALTO_LINEA + PADDING_VERTICAL_FILA + BORDE_FILA;
 export const ANCHO_COL_SELECCION = 44;
 
+/**
+ * El articulo no tiene unidades disponibles. En una VENTA se sigue mostrando en
+ * la tabla (atenuado), pero no se puede agregar; en un PRESUPUESTO no limita
+ * nada. Quien decide es `limitarPorStock` en AgregarProductoModal.
+ */
+export const sinStock = (item: ArticuloDeVenta) => item.cant <= 0;
+
 /** Desempate del sort: talles numericos cuando se puede (a diferencia de
  *  ArticulosPage, que los ordena alfabeticamente). */
 export const desempateTalleVenta = (a: ArticuloDeVenta, b: ArticuloDeVenta) =>
@@ -93,6 +100,9 @@ export function crearColumnasVenta(
     {
       header: 'Cantidad',
       render: (item) => item.cant,
+      // Sin stock: se atenua igual que "Sin Nombre"/"Sin Detalle", para que se
+      // vea de un vistazo por que la fila no se puede agregar a una venta.
+      extraClassName: (item) => (sinStock(item) ? 'text-neutro-400 text-xs' : ''),
       width: 120,
       filtroKey: 'cant',
       filtro: { tipo: 'rango', getValor: (item) => item.cant },

@@ -73,6 +73,12 @@ interface RemitoCardProps {
   /** Solo sobre ventas vigentes (ver `puedeReimprimir`): una anulada no se reimprime. */
   onReimprimir?: (remito: RemitoConDetalles) => void;
   /**
+   * Oculta la columna Cliente. La usa VentasDeCliente (panel de ficha en
+   * Clientes): ahi el cliente ya es el contexto de toda la pantalla, repetirlo
+   * en cada tarjeta es ruido.
+   */
+  mostrarCliente?: boolean;
+  /**
    * Ancho (px) de las columnas de valor variable, calculado por ListaDeRemitos
    * segun el remito mas ancho VISIBLE (ver MedidorAnchosRemitoCard) — asi
    * quedan alineadas entre tarjetas sin volver a un ancho fijo pensado para el
@@ -95,6 +101,7 @@ function RemitoCard({
   onAnular,
   onDevolver,
   onReimprimir,
+  mostrarCliente = true,
   anchoCodigo = ANCHOS_REMITO_CARD_POR_DEFECTO.codigo,
   anchoMonto = ANCHOS_REMITO_CARD_POR_DEFECTO.total,
   anchoEstado = ANCHOS_REMITO_CARD_POR_DEFECTO.estado,
@@ -169,19 +176,21 @@ function RemitoCard({
           )}
 
           {remito.id_estado !== ESTADO_CONFIRMADO && (
-            <div style={{ width: anchoFechaEmision }} className='flex flex-col px-2'>
+            <div style={{ minWidth: anchoFechaEmision }} className='flex flex-col px-2 whitespace-nowrap'>
               <span className='text-xs text-neutro-400'>Fecha de Emisión</span>
               <span className={`font-medium ${!remito.fecha_de_emision ? 'text-neutro-400 text-sm' : 'text-black'}`}>{formatearFecha(remito.fecha_de_emision)}</span>
             </div>
           )}
-          <div style={{ width: anchoFechaCreacion }} className='flex flex-col px-2'>
+          <div style={{ minWidth: anchoFechaCreacion }} className='flex flex-col px-2 whitespace-nowrap'>
             <span className='text-xs text-neutro-400'>Fecha de Creación</span>
             <span className={`font-medium ${!remito.fecha_de_creacion ? 'text-neutro-400 text-sm' : 'text-black'}`}>{formatearFecha(remito.fecha_de_creacion)}</span>
           </div>
-          <div style={{ width: anchoCliente }} className='flex flex-col px-2'>
-            <span className='text-xs text-neutro-400'>Cliente</span>
-            <span className={`text-black font-medium`}>{remito.CLIENTES ? remito.CLIENTES.nombre + ' ' +remito.CLIENTES.apellido : 'No Asignado'}</span>
-          </div>
+          {mostrarCliente && (
+            <div style={{ minWidth: anchoCliente }} className='flex flex-col px-2 whitespace-nowrap'>
+              <span className='text-xs text-neutro-400'>Cliente</span>
+              <span className={`text-black font-medium`}>{remito.CLIENTES ? remito.CLIENTES.nombre + ' ' +remito.CLIENTES.apellido : 'No Asignado'}</span>
+            </div>
+          )}
         </div>
         <div className='flex items-center gap-4 shrink-0'>
         {/* Los botones se montan SIEMPRE (si no, no habria nada que animar) y lo

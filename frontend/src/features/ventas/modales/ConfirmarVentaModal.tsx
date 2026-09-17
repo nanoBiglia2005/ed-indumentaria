@@ -36,6 +36,8 @@ interface ConfirmarVentaModalProps {
   conImpresion: boolean;
   /** Nombre de la impresora de destino; null si el usuario no elige (empleado). */
   nombreImpresora?: string | null;
+  /** Pregunta del encabezado; se cambia para reusar el repaso en presupuestos. */
+  titulo?: string;
   onCerrar: () => void;
   onConfirmar: () => void;
 }
@@ -55,6 +57,7 @@ export default function ConfirmarVentaModal({
   cargando,
   conImpresion,
   nombreImpresora = null,
+  titulo = '¿Desea confirmar esta Venta?',
   onCerrar,
   onConfirmar,
 }: ConfirmarVentaModalProps) {
@@ -65,7 +68,7 @@ export default function ConfirmarVentaModal({
     <BaseModal
       abierto={abierto}
       onCerrar={cargando ? () => {} : onCerrar}
-      titulo='¿Desea confirmar esta Venta?'
+      titulo={titulo}
       claseTitulo='text-2xl font-semibold leading-7 text-neutro-900 mb-5 text-center'
       ancho='2xl'
       z='z-[60]'

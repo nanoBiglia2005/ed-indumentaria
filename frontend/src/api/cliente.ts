@@ -5,11 +5,18 @@
  * mostrar el error (banner, alert, silencio), igual que antes de la refactor.
  */
 
-type CuerpoError = { message?: string; details?: string } | null;
+/**
+ * `message`/`details` son los campos estandar; algunas rutas agregan otros
+ * propios al body del error (p. ej. el cliente en conflicto de un DNI
+ * duplicado). El llamador que sepa de ese campo extra lo castea puntualmente
+ * — este tipo base se queda generico a proposito, no es el lugar para
+ * enumerar cada forma de error particular de cada dominio.
+ */
+type CuerpoError = ({ message?: string; details?: string } & Record<string, unknown>) | null;
 
 export class ApiError extends Error {
   readonly status: number;
-  /** Body JSON de la respuesta de error ({ message, details? }) o null si no era JSON. */
+  /** Body JSON de la respuesta de error ({ message, details?, ... }) o null si no era JSON. */
   readonly datos: CuerpoError;
   /** Atajo a datos.details (los sitios que mostraban details-primero lo usan). */
   readonly details?: string;

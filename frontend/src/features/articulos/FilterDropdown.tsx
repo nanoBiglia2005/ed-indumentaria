@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Opcion } from '@/types/comunes';
 import SelectListModal from '@/components/ui/SelectListModal';
 
@@ -28,6 +28,12 @@ export default function FilterDropdown({
 }) {
   const [abierto, setAbierto] = useState(false);
   const seleccionada = opciones.find((o) => o.id === selectedId) ?? null;
+  // Orden alfabetico para que la lista sea facil de recorrer, sin importar el
+  // orden en que el llamador arme las opciones.
+  const opcionesOrdenadas = useMemo(
+    () => [...opciones].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+    [opciones]
+  );
 
   return (
     <div className='relative'>
@@ -59,7 +65,7 @@ export default function FilterDropdown({
         abierto={abierto}
         onCerrar={() => setAbierto(false)}
         titulo={label}
-        opciones={opciones}
+        opciones={opcionesOrdenadas}
         onSelect={(opcion) => {
           onSelect(opcion.id);
           setAbierto(false);

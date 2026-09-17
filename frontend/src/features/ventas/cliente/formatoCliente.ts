@@ -14,7 +14,7 @@ import {
   COD_AREA_DIGITOS,
   TELEFONO_DIGITOS,
 } from '@backend/types';
-import type { DatosClienteAPI } from '@/api/venta';
+import type { CampoDuplicado, DatosClienteAPI } from '@/api/venta';
 
 /** Los campos del formulario, tal cual se ven en pantalla. */
 export interface DatosCliente {
@@ -110,7 +110,8 @@ const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Primer problema que impide guardar, o null si esta todo bien.
- * Obligatorios: nombre, apellido y DNI. El resto solo se valida si tiene algo.
+ * Obligatorios: nombre, apellido y telefono. El DNI y el resto solo se
+ * validan si tienen algo cargado.
  */
 export const validarCliente = (datos: DatosCliente): string | null => {
   if (datos.nombre.trim() === '') return 'El nombre del cliente es obligatorio.';
@@ -121,9 +122,14 @@ export const validarCliente = (datos: DatosCliente): string | null => {
   if (datos.apellido.trim().length > APELLIDO_MAX)
     return `El apellido no puede tener mas de ${APELLIDO_MAX} caracteres.`;
 
-  if (datos.dni.trim() === '') return 'El DNI del cliente es obligatorio.';
-  if (datos.dni.trim().length !== DNI_LARGO)
+  const dni = datos.dni.trim();
+  if (dni !== '' && dni.length !== DNI_LARGO)
     return `El DNI debe tener exactamente ${DNI_LARGO} dígitos.`;
+
+  const telefono = datos.telefono.trim();
+  if (telefono === '') return 'El teléfono del cliente es obligatorio.';
+  if (telefono.length !== TELEFONO_DIGITOS)
+    return `El teléfono debe tener exactamente ${TELEFONO_DIGITOS} dígitos.`;
 
   const email = datos.email.trim();
   if (email !== '') {
@@ -181,6 +187,23 @@ export const telefonoLegible = (datos: DatosCliente) => {
   ].filter((parte) => parte !== '');
 
   return partes.join(' ');
+};
+
+/** Mismo formato que telefonoLegible, directo desde la fila de la base (sin pasar por el formulario). */
+export const telefonoDeCliente = (cliente: CLIENTES) => telefonoLegible(desdeCliente(cliente));
+
+/** Como se nombra cada campo que no puede repetirse entre clientes (ver CampoDuplicado). */
+export const ETIQUETA_CAMPO_DUPLICADO: Record<CampoDuplicado, string> = {
+  dni: 'DNI',
+  telefono: 'teléfono',
+  email: 'email',
+};
+
+/** El valor de ese campo duplicado, para mostrar en el aviso. */
+export const valorCampoDuplicado = (cliente: CLIENTES, campo: CampoDuplicado): string => {
+  if (campo === 'telefono') return telefonoDeCliente(cliente);
+  if (campo === 'email') return cliente.email ?? '';
+  return cliente.dni ?? '';
 };
 
 /** Limites que necesitan los inputs del formulario. */

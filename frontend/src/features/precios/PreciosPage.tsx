@@ -388,13 +388,13 @@ function PreciosPage() {
       onClick={() => abrirSelector(recorte?.idLinea ?? null, recorte?.idGrupo ?? null)}
       className='rounded border px-4 py-2 font-semibold text-white bg-marca-500 whitespace-nowrap transition-colors duration-100 ease-in cursor-pointer hover:bg-marca-600'
     >
-      Buscar Talle
+      Buscar Articulo
     </button>
   );
 
   return (
     <SectionWrapper>
-      <div className='flex flex-col h-full min-h-0 px-2 sm:px-5 py-4 gap-3'>
+      <div className='flex flex-col h-full min-h-0 px-2 sm:px-5 sm:pt-10 pt-6 pb-4 gap-3'>
         <div className='flex flex-wrap items-center justify-between gap-x-4 gap-y-2'>
           <span className='text-2xl font-semibold text-black'>Precios</span>
 
