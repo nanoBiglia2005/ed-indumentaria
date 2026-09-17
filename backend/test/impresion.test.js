@@ -165,7 +165,7 @@ test('construirPayloadTicket con esPresupuesto arma encabezado y agradecimiento 
   // Sin tildes a proposito: el printer-client codifica el ticket en ASCII
   // puro (texto.encode("ascii", errors="ignore")) y las descartaria igual.
   assert.equal(payload.texto_encabezado, 'Presupuesto\nValido por 15 dias');
-  assert.equal(payload.texto_agradecimiento, 'Gracias por su consulta');
+  assert.equal(payload.texto_agradecimiento, 'GRACIAS POR SU CONSULTA');
   // No hay remito de por medio: estos campos quedan en null.
   assert.equal(payload.id_remito, null);
   assert.equal(payload.cod_mes, null);
