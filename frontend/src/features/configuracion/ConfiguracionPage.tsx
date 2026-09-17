@@ -20,6 +20,9 @@ import SectionWrapper from '@/components/layout/SectionWrapper';
 import AgrupacionSection from '@/features/configuracion/AgrupacionSection';
 import type { ItemAgrupacion } from '@/features/configuracion/AgrupacionSection';
 import ImpresorasSection from '@/features/configuracion/ImpresorasSection';
+import ConfiguracionTabs from '@/features/configuracion/ConfiguracionTabs';
+import { TABS_CONFIGURACION } from '@/features/configuracion/tabsConfiguracion';
+import type { TabConfiguracionId } from '@/features/configuracion/tabsConfiguracion';
 import { useSession } from '@/hooks/useSession';
 import { ROLES_ADMINISTRAN_IMPRESORAS } from '@backend/types';
 
@@ -30,6 +33,15 @@ function ConfiguracionPage() {
   // (ROLES_ELIGEN_IMPRESORA); administrar el registro es superadmin-only.
   const { user } = useSession();
   const puedeAdministrarImpresoras = ROLES_ADMINISTRAN_IMPRESORAS.includes(user?.rol ?? '');
+
+  // Mismo criterio que antes: si no puede administrar impresoras, la seccion
+  // (ahora la pestaña) no existe para él.
+  const tabsVisibles = useMemo(
+    () => TABS_CONFIGURACION.filter((tab) => tab.id !== 'impresoras' || puedeAdministrarImpresoras),
+    [puedeAdministrarImpresoras]
+  );
+
+  const [tabActivo, setTabActivo] = useState<TabConfiguracionId>('medios');
 
   const {
     datos: tiposDePago,
@@ -120,14 +132,22 @@ function ConfiguracionPage() {
     }));
   }, [subgrupos, grupos]);
 
+  // Separados en dos listas: cada una alimenta su propia AgrupacionSection,
+  // así el tipo no se elige en el modal (ya lo dice la sección) y no se muestra
+  // como subtítulo redundante en cada fila.
   const itemsColegios: ItemAgrupacion[] = useMemo(
     () =>
-      clientes.map((c) => ({
-        id: c.id_cliente,
-        nombre: c.nombre,
-        subtitulo: c.grupo_venta_exclusivo === 2 ? 'Club' : c.grupo_venta_exclusivo === 1 ? 'Colegio' : 'Sin tipo',
-        tipoCliente: c.grupo_venta_exclusivo === 2 ? 2 : 1,
-      })),
+      clientes
+        .filter((c) => c.grupo_venta_exclusivo !== 2)
+        .map((c) => ({ id: c.id_cliente, nombre: c.nombre, tipoCliente: 1 as const })),
+    [clientes]
+  );
+
+  const itemsClubes: ItemAgrupacion[] = useMemo(
+    () =>
+      clientes
+        .filter((c) => c.grupo_venta_exclusivo === 2)
+        .map((c) => ({ id: c.id_cliente, nombre: c.nombre, tipoCliente: 2 as const })),
     [clientes]
   );
 
@@ -138,55 +158,59 @@ function ConfiguracionPage() {
 
   return (
     <SectionWrapper>
-      <div className='flex flex-col w-full h-full px-3 pt-6 sm:px-5 sm:pt-10 overflow-y-auto'>
-        <span className='text-h1 font-semibold text-neutro-900 mb-5'>Medios de Pago</span>
+      <div className='flex flex-col w-full h-full px-2 pt-6 sm:px-5 sm:pt-10 overflow-y-auto'>
+        <ConfiguracionTabs tabs={tabsVisibles} activo={tabActivo} onSeleccionar={setTabActivo} />
 
-        {cargando && <span className='text-neutro-400'>Cargando medios de pago...</span>}
+        {tabActivo === 'medios' && (
+          <div className='flex flex-col'>
+            <span className='text-h1 font-semibold text-neutro-900 mb-5'>Medios de Pago</span>
 
-        {!cargando && error && <span className='text-red-500'>{error}</span>}
+            {cargando && <span className='text-neutro-400'>Cargando medios de pago...</span>}
 
-        {!cargando && !error && tiposDePago.length === 0 && (
-          <span className='text-neutro-400'>No hay medios de pago registrados.</span>
-        )}
+            {!cargando && error && <span className='text-red-500'>{error}</span>}
 
-        {!cargando && !error && tiposDePago.length > 0 && (
-          <div className='w-full flex flex-wrap gap-4 mb-10'>
-            {tiposDePago.map((tipoDePago) => (
-              <div
-                key={tipoDePago.id_tipos_de_pago}
-                className='w-full sm:w-[200px] group relative h-fit hover:border-marca-500 transition-all duration-150 ease-out px-4 py-4 border-marca-500/40 border flex flex-col rounded text-neutro-900'
-              >
-                <span className='text-h2 font-semibold truncate' title={tipoDePago.nombre_tipo_de_pago}>
-                  {tipoDePago.nombre_tipo_de_pago ?? 'Sin nombre'}
-                </span>
-                <span className='text-body text-neutro-600'>
-                  Recargo: {tipoDePago.recargo}
-                  {tipoDePago.signo ? '%' : ''}
-                </span>
-                {tipoDePago.modificable && (
-                  <div className='px-1 overflow-hidden max-h-0 opacity-0 -translate-y-1 group-hover:max-h-12 group-hover:opacity-100 group-hover:translate-y-0 group-hover:mt-3 transition-all duration-200 ease-in-out'>
-                    <button
-                      type='button'
-                      onClick={() => abrirEdicionRecargo(tipoDePago)}
-                      className='border border-transparent transition-colors duration-100 ease-in bg-marca-500 hover:bg-marca-600 text-white rounded w-full py-1 text-sm text-center cursor-pointer'
-                    >
-                      Editar
-                    </button>
+            {!cargando && !error && tiposDePago.length === 0 && (
+              <span className='text-neutro-400'>No hay medios de pago registrados.</span>
+            )}
+
+            {!cargando && !error && tiposDePago.length > 0 && (
+              <div className='w-full flex flex-wrap gap-4'>
+                {tiposDePago.map((tipoDePago) => (
+                  <div
+                    key={tipoDePago.id_tipos_de_pago}
+                    className='w-full sm:w-[200px] group relative h-fit hover:border-marca-500 transition-all duration-150 ease-out px-4 py-4 border-marca-500/40 border flex flex-col rounded text-neutro-900'
+                  >
+                    <span className='text-h2 font-semibold truncate' title={tipoDePago.nombre_tipo_de_pago}>
+                      {tipoDePago.nombre_tipo_de_pago ?? 'Sin nombre'}
+                    </span>
+                    <span className='text-body text-neutro-600'>
+                      Recargo: {tipoDePago.recargo}
+                      {tipoDePago.signo ? '%' : ''}
+                    </span>
+                    {tipoDePago.modificable && (
+                      <div className='px-1 overflow-hidden max-h-0 opacity-0 -translate-y-1 group-hover:max-h-12 group-hover:opacity-100 group-hover:translate-y-0 group-hover:mt-3 transition-all duration-200 ease-in-out'>
+                        <button
+                          type='button'
+                          onClick={() => abrirEdicionRecargo(tipoDePago)}
+                          className='border border-transparent transition-colors duration-100 ease-in bg-marca-500 hover:bg-marca-600 text-white rounded w-full py-1 text-sm text-center cursor-pointer'
+                        >
+                          Editar
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
 
-        {puedeAdministrarImpresoras && (
-          <div className='mb-10'>
-            <ImpresorasSection />
-          </div>
-        )}
+        {tabActivo === 'impresoras' && puedeAdministrarImpresoras && <ImpresorasSection />}
 
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 w-full items-start'>
-          <div className='min-w-0 w-full'>
+        {/* Las secciones de una sola lista se limitan en ancho: una fila de 1600px
+            con el nombre a la izquierda y los botones al otro extremo no se lee. */}
+        {tabActivo === 'lineas' && (
+          <div className='w-full'>
             <AgrupacionSection
               titulo='Líneas'
               tipo='linea'
@@ -197,44 +221,72 @@ function ConfiguracionPage() {
               onRefrescar={fetchLineas}
             />
           </div>
+        )}
 
-          <div className='min-w-0 w-full'>
-            <AgrupacionSection
-              titulo='Grupos'
-              tipo='grupo'
-              crearLabel='Crear Grupo'
-              emptyMessage='No hay grupos registrados.'
-              items={itemsGrupos}
-              grupos={grupos}
-              onRefrescar={refrescarGrupos}
-              lineasDisponibles={lineas}
-            />
-          </div>
+        {/* Grupos y Subgrupos comparten pestaña: en pantalla ancha van lado a lado
+            (un subgrupo se lee mirando su grupo), y apilados abajo de lg. */}
+        {tabActivo === 'grupos' && (
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 w-full items-start'>
+            <div className='min-w-0 w-full'>
+              <AgrupacionSection
+                titulo='Grupos'
+                tipo='grupo'
+                crearLabel='Crear Grupo'
+                emptyMessage='No hay grupos registrados.'
+                items={itemsGrupos}
+                grupos={grupos}
+                onRefrescar={refrescarGrupos}
+                lineasDisponibles={lineas}
+              />
+            </div>
 
-          <div className='min-w-0 w-full'>
-            <AgrupacionSection
-              titulo='Subgrupos'
-              tipo='subgrupo'
-              crearLabel='Crear Subgrupo'
-              emptyMessage='No hay subgrupos registrados.'
-              items={itemsSubgrupos}
-              grupos={grupos}
-              onRefrescar={fetchSubgrupos}
-            />
+            <div className='min-w-0 w-full'>
+              <AgrupacionSection
+                titulo='Subgrupos'
+                tipo='subgrupo'
+                crearLabel='Crear Subgrupo'
+                emptyMessage='No hay subgrupos registrados.'
+                items={itemsSubgrupos}
+                grupos={grupos}
+                onRefrescar={fetchSubgrupos}
+              />
+            </div>
           </div>
+        )}
 
-          <div className='min-w-0 w-full'>
-            <AgrupacionSection
-              titulo='Colegios/Clubes'
-              tipo='colegio'
-              crearLabel='Crear Colegio/Club'
-              emptyMessage='No hay colegios/clubes registrados.'
-              items={itemsColegios}
-              grupos={grupos}
-              onRefrescar={fetchClientes}
-            />
+        {tabActivo === 'colegios' && (
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 w-full items-start'>
+            <div className='min-w-0 w-full'>
+              <AgrupacionSection
+                titulo='Colegios'
+                tipo='colegio'
+                crearLabel='Crear Colegio'
+                emptyMessage='No hay colegios registrados.'
+                items={itemsColegios}
+                grupos={grupos}
+                onRefrescar={fetchClientes}
+                tipoClienteFijo={1}
+                tituloModalCrear='Crear Colegio'
+                tituloModalEditar='Editar Colegio'
+              />
+            </div>
+
+            <div className='min-w-0 w-full'>
+              <AgrupacionSection
+                titulo='Clubes'
+                tipo='colegio'
+                crearLabel='Crear Club'
+                emptyMessage='No hay clubes registrados.'
+                items={itemsClubes}
+                grupos={grupos}
+                onRefrescar={fetchClientes}
+                tipoClienteFijo={2}
+                tituloModalCrear='Crear Club'
+                tituloModalEditar='Editar Club'
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <EditRecargoModal

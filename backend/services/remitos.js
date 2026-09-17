@@ -8,7 +8,7 @@
 const prisma = require('../db');
 const { aId } = require('../lib/validaciones');
 const { ESTADO_CONFIRMADO } = require('../constants/ventas');
-const { redondearPrecio } = require('./preciosPorMetodo');
+const { redondearPrecio, listarMetodosDePago, remitoConTotales } = require('./preciosPorMetodo');
 
 // Relaciones que se incluyen al consultar REMITOS en TODAS las rutas.
 // OJO: backend/types.ts declara este mismo shape a nivel de tipos para el
@@ -154,10 +154,42 @@ const itemsDeRemito = (remito) =>
     precio: detalle.precio,
   }));
 
+// Tamano de pagina por defecto de "ventas de este cliente" (ABM de clientes
+// finales). Mismo numero que services/clientesFinales.js: no hay una razon
+// para que difieran, pero cada uno lo declara para no crear un acoplamiento
+// artificial entre los dos modulos por una constante que podria divergir.
+const PAGINA_TAMANO_DEFAULT = 30;
+
+/**
+ * Remitos de un cliente final, paginados y mas nuevos primero, con la MISMA
+ * forma que ya consume RemitoCard.tsx (totales_por_metodo + precios_por_metodo
+ * por linea): se le aplica remitoConTotales antes de devolverlos, igual que
+ * responderPaginaDeRemitos en routes/remitos.js.
+ */
+const remitosDeCliente = async (id_cliente, { pagina = 1, tamano = PAGINA_TAMANO_DEFAULT } = {}) => {
+  const where = { id_cliente };
+
+  const [remitos, total] = await Promise.all([
+    prisma.REMITOS.findMany({
+      where,
+      include: remitosInclude,
+      orderBy: { fecha_de_creacion: 'desc' },
+      skip: (pagina - 1) * tamano,
+      take: tamano,
+    }),
+    prisma.REMITOS.count({ where }),
+  ]);
+
+  const metodos = await listarMetodosDePago();
+
+  return { remitos: remitos.map((remito) => remitoConTotales(remito, metodos)), total };
+};
+
 module.exports = {
   remitosInclude,
   resolverItemsVenta,
   buscarRemitoEnEstado,
   buscarRemitoPendiente,
   itemsDeRemito,
+  remitosDeCliente,
 };

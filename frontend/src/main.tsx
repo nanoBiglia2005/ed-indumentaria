@@ -14,6 +14,7 @@ const VentasPage        = lazy(() => import('@/features/ventas/VentasPage'))
 const ConfiguracionPage = lazy(() => import('@/features/configuracion/ConfiguracionPage'))
 const HistorialPage     = lazy(() => import('@/features/ventas/HistorialPage'))
 const PreciosPage       = lazy(() => import('@/features/precios/PreciosPage'))
+const ClientesPage      = lazy(() => import('@/features/clientes/ClientesPage'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -44,6 +45,10 @@ createRoot(document.getElementById('root')!).render(
                 </Route>
                 <Route element={<RolGuard roles={ROLES_HISTORIAL} />}>
                   <Route path='historial' element={<HistorialPage />} />
+                  {/* El ABM de clientes finales comparte el gate de Historial:
+                      el backend gatea /api/clientes-finales con el mismo rol
+                      (routes/clientesFinales.js). */}
+                  <Route path='clientes' element={<ClientesPage />} />
                 </Route>
                 {/* Precios es solo para ROLES_PRECIOS; el backend igual responde
                     403 al resto (routes/precios.js). */}

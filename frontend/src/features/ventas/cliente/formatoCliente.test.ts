@@ -8,11 +8,11 @@ import { validarCliente } from '@/features/ventas/cliente/formatoCliente';
 const VALIDO = {
   nombre: 'Ana',
   apellido: 'Perez',
-  dni: '12345678',
+  dni: '',
   email: '',
   cod_pais: '',
   cod_area: '',
-  telefono: '',
+  telefono: '12345678',
   fecha_nacimiento: '',
 };
 
@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 describe('campos obligatorios', () => {
-  it('acepta el minimo: nombre, apellido y DNI', () => {
+  it('acepta el minimo: nombre, apellido y telefono', () => {
     expect(validarCliente(VALIDO)).toBeNull();
   });
 
@@ -36,13 +36,25 @@ describe('campos obligatorios', () => {
     expect(con({ apellido: '' })).toBe('El apellido del cliente es obligatorio.');
   });
 
-  it('exige DNI', () => {
-    expect(con({ dni: '' })).toBe('El DNI del cliente es obligatorio.');
+  it('exige telefono', () => {
+    expect(con({ telefono: '' })).toBe('El teléfono del cliente es obligatorio.');
+  });
+});
+
+describe('teléfono', () => {
+  it('exige largo EXACTO, no un maximo', () => {
+    expect(con({ telefono: '1234567' })).toMatch(/exactamente/);
+    expect(con({ telefono: '123456789' })).toMatch(/exactamente/);
+    expect(con({ telefono: '12345678' })).toBeNull();
   });
 });
 
 describe('DNI', () => {
-  it('exige largo EXACTO, no un maximo', () => {
+  it('es opcional', () => {
+    expect(con({ dni: '' })).toBeNull();
+  });
+
+  it('si se completa, exige largo EXACTO, no un maximo', () => {
     expect(con({ dni: '1234567' })).toMatch(/exactamente/);
     expect(con({ dni: '123456789' })).toMatch(/exactamente/);
     expect(con({ dni: '12345678' })).toBeNull();

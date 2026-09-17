@@ -214,7 +214,10 @@ export default function NuevaVentaModal({
       // el ticket. El metodo de pago se elige despues, al cobrar.
       //
       // El cliente solo viaja si se le editaron datos: el backend los pisa en la
-      // misma transaccion en la que crea el remito.
+      // misma transaccion en la que crea el remito. Si ese dato editado ya es
+      // de OTRO cliente, el backend corta con 409 y aca se muestra como
+      // cualquier otro error: no se ofrece asignar/sobrescribir (esa decision
+      // queda solo para el alta de un cliente nuevo, ver SeccionCliente).
       const remitoCreado = await crearRemito({
         detalles: productos.map((p) => ({
           id_articulo: p.articulo.id_articulo,

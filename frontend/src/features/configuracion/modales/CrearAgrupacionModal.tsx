@@ -29,6 +29,14 @@ interface CrearAgrupacionModalProps {
   edicion?: EdicionAgrupacion | null;
   /** Solo tipo 'grupo' en edicion: para el editor de líneas asociadas. */
   lineasDisponibles?: LINEAS[];
+  /**
+   * Solo tipo 'colegio': cuando la sección ya es "Colegios" o "Clubes" por
+   * separado, el tipo no se elige (se manda fijo) y el toggle no se muestra.
+   */
+  tipoClienteFijo?: 1 | 2;
+  /** Overrides de título para cuando el genérico (TITULOS/TITULOS_EDICION) no aplica. */
+  tituloCrear?: string;
+  tituloEditar?: string;
 }
 
 const TITULOS: Record<TipoAgrupacion, string> = {
@@ -65,6 +73,9 @@ export default function CrearAgrupacionModal({
   grupos,
   grupoPreseleccionado = null,
   edicion = null,
+  tipoClienteFijo,
+  tituloCrear,
+  tituloEditar,
 }: CrearAgrupacionModalProps) {
   const [nombre, setNombre] = useState('');
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
@@ -76,11 +87,11 @@ export default function CrearAgrupacionModal({
     if (!abierto) return;
     setNombre(edicion?.nombre ?? '');
     setGrupoSeleccionado(edicion?.idGrupo ?? grupoPreseleccionado);
-    setTipoCliente(edicion?.tipoCliente ?? 1);
+    setTipoCliente(tipoClienteFijo ?? edicion?.tipoCliente ?? 1);
     setError(null);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, tipo, edicion]);
+  }, [abierto, tipo, edicion, tipoClienteFijo]);
 
   const maxLength = NOMBRE_MAX[tipo];
 
@@ -105,9 +116,10 @@ export default function CrearAgrupacionModal({
       return { id: data.id_subgrupo, nombre: data.nombre_subgrupo };
     }
     if (tipo === 'colegio') {
+      const tipoClienteAEnviar = tipoClienteFijo ?? tipoCliente;
       const data = modoEdicion
-        ? await actualizarCliente(edicion!.id, nombreTrimeado, tipoCliente)
-        : await crearCliente(nombreTrimeado, tipoCliente);
+        ? await actualizarCliente(edicion!.id, nombreTrimeado, tipoClienteAEnviar)
+        : await crearCliente(nombreTrimeado, tipoClienteAEnviar);
       return { id: data.id_cliente, nombre: data.nombre };
     }
     const data = modoEdicion
@@ -139,7 +151,7 @@ export default function CrearAgrupacionModal({
     <BaseModal
       abierto={abierto}
       onCerrar={handleClose}
-      titulo={modoEdicion ? TITULOS_EDICION[tipo] : TITULOS[tipo]}
+      titulo={modoEdicion ? tituloEditar ?? TITULOS_EDICION[tipo] : tituloCrear ?? TITULOS[tipo]}
       z='z-[70]'
       permitirDesborde
       error={error ? { detalle: error } : null}
@@ -194,7 +206,7 @@ export default function CrearAgrupacionModal({
           </div>
         )}
 
-        {tipo === 'colegio' && (
+        {tipo === 'colegio' && tipoClienteFijo === undefined && (
           <div>
             <label className='block text-sm font-medium text-neutro-600 mb-1'>Tipo</label>
             <SegmentedToggle<1 | 2>

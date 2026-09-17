@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { ROLES_PRECIOS, ROLES_ARTICULOS, ROLES_CONFIGURACION, ROLES_HISTORIAL } from '@backend/types';
 import { useCsrfToken, useSession } from '@/hooks/useSession';
 
-type ItemId = 'articulos' | 'precios' | 'ventas' | 'configuracion' | 'historial';
+type ItemId = 'articulos' | 'precios' | 'ventas' | 'configuracion' | 'historial' | 'clientes';
 
 /** `roles` ausente = lo ve cualquier usuario logueado. */
 const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode; roles?: readonly string[] }[] = [
@@ -64,6 +64,22 @@ const ITEMS: { id: ItemId; ruta: string; nombre: string; icon: ReactNode; roles?
     ),
   },
   {
+    id: 'clientes',
+    ruta: '/gestion/clientes',
+    nombre: 'Clientes',
+    roles: ROLES_HISTORIAL,
+    icon: (
+      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={1.8} className='w-5 h-5'>
+        <path strokeLinecap='round' strokeLinejoin='round' d='M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z' />
+        <path
+          strokeLinecap='round'
+          strokeLinejoin='round'
+          d='M4.5 20.25a7.5 7.5 0 0115 0'
+        />
+      </svg>
+    ),
+  },
+  {
     id: 'configuracion',
     ruta: '/gestion/configuracion',
     nombre: 'Configuración',
@@ -102,7 +118,7 @@ function Sidebar() {
   return (
     <>
       {/* Reserva el espacio en el flujo normal; la sidebar real flota encima */}
-      <div className='h-screen w-16 md:w-56 shrink-0' aria-hidden='true' />
+      <div className='h-screen w-16 md:w-45 shrink-0' aria-hidden='true' />
 
       {expandido && (
         <div
@@ -115,9 +131,9 @@ function Sidebar() {
       <aside
         ref={asideRef}
         onClick={() => setExpandido(true)}
-        className={`fixed left-0 top-0 z-40 flex flex-col h-screen border-r border-black/10 bg-neutro-50 py-10 px-3 gap-10 select-none overflow-hidden transition-[width] duration-200 ease-in-out ${
-          expandido ? 'w-56' : 'w-16'
-        } md:w-56`}
+        className={`fixed left-0 top-0 z-40 flex flex-col h-screen border-r border-black/10 bg-neutro-50 pt-10 pb-5 px-1 gap-10 select-none overflow-hidden transition-[width] duration-200 ease-in-out ${
+          expandido ? 'w-45' : 'w-16'
+        } md:w-45`}
       >
         <img src='/img/ED Indumentaria Deportiva.png'></img>
         <nav className='flex flex-col gap-1'>
@@ -176,7 +192,7 @@ function Sidebar() {
             }`}
           >
             <span
-              className={`whitespace-nowrap overflow-hidden text-sm font-semibold text-neutro-600 ${
+              className={`whitespace-nowrap overflow-hidden text-sm ms-3 font-semibold text-neutro-600 ${
                 expandido ? 'inline' : 'hidden md:inline'
               }`}
             >

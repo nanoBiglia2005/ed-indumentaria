@@ -224,9 +224,9 @@ model CLIENTES {
   fecha_alta       DateTime  @default(now()) @db.Date
   nombre           String    @db.VarChar(50)
   apellido         String?   @db.VarChar(50)
-  dni              String    @db.VarChar(8)
-  email            String?   @db.VarChar(50)
-  telefono         Int?
+  dni              String?   @unique(map: "clientes_dni_key") @db.VarChar(8)
+  email            String?   @unique(map: "clientes_email_key") @db.VarChar(50)
+  telefono         Int       @unique(map: "clientes_telefono_key")
   fecha_nacimiento DateTime? @db.Date
   cod_pais         Int?      @default(54) @db.SmallInt
   cod_area         Int?      @default(11) @db.SmallInt

@@ -123,6 +123,9 @@ export const EMAIL_MAX = clientes.EMAIL_MAX;
 export const COD_PAIS_DIGITOS = clientes.COD_PAIS_DIGITOS;
 export const COD_AREA_DIGITOS = clientes.COD_AREA_DIGITOS;
 export const TELEFONO_DIGITOS = clientes.TELEFONO_DIGITOS;
+/** Valor que guarda el backend si se deja vacio (mismo default que la columna). */
+export const COD_PAIS_DEFAULT = clientes.COD_PAIS_DEFAULT;
+export const COD_AREA_DEFAULT = clientes.COD_AREA_DEFAULT;
 
 /**
  * ID's de los metodos de pago existentes en el sistema.

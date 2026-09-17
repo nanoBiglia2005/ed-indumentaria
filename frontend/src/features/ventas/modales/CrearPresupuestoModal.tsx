@@ -189,6 +189,12 @@ export default function CrearPresupuestoModal({
       setImprimiendo(true);
       setError(null);
 
+      // Manda a imprimir el ticket y, si el cliente asignado tenia datos
+      // editados, los guarda (el backend los pisa antes de imprimir). Si ese
+      // dato editado ya es de OTRO cliente, el backend corta con 409 y aca se
+      // muestra como cualquier otro error: no se ofrece asignar/sobrescribir
+      // (esa decision queda solo para el alta de un cliente nuevo, ver
+      // SeccionCliente).
       const presupuesto = await crearPresupuesto({
         detalles: productos.map((p) => ({
           id_articulo: p.articulo.id_articulo,
@@ -201,7 +207,9 @@ export default function CrearPresupuestoModal({
         ...(cliente.asignado && cliente.hayCambios ? { cliente: aDatosAPI(cliente.borrador) } : {}),
       });
 
-      // Imprimir ES la accion: si el ticket no salio, no hay nada hecho.
+      // Imprimir ES la accion: si el ticket no salio, no hay nada hecho (el
+      // cliente, si se edito, ya quedo guardado igual: ver el comentario de
+      // cabecera de api/presupuestos.ts).
       if (presupuesto.impresion.status === 'error') {
         setPidiendoConfirmacion(false);
         setError(presupuesto.impresion.message ?? 'No se pudo imprimir el presupuesto.');

@@ -1,13 +1,19 @@
 // Presupuestos: mismo wizard de seleccion que una venta, pero NADA se
-// persiste. No hay REMITOS.create, no hay transaccion: solo se valida, se
-// arma el ticket y se imprime. Ver backend/services/remitos.js
+// persiste salvo, si vino editado, el cliente asignado. No hay REMITOS.create,
+// no hay transaccion: solo se valida, se actualiza el cliente si corresponde,
+// se arma el ticket y se imprime. Ver backend/services/remitos.js
 // (resolverItemsVenta) y routes/remitos.js (POST /) como referencia de estilo.
 const express = require('express');
+const prisma = require('../db');
 const { asyncHandler, HttpError } = require('../lib/http');
 const { parseId } = require('../lib/validaciones');
 const { resolverItemsVenta } = require('../services/remitos');
 const { listarMetodosDePago } = require('../services/preciosPorMetodo');
-const { obtenerCliente } = require('../services/clientesFinales');
+const {
+  obtenerCliente,
+  parsearDatosCliente,
+  assertDatosDisponibles,
+} = require('../services/clientesFinales');
 const { construirPayloadTicket, enviarTrabajoDeImpresion } = require('../services/impresion');
 const { resolverDestinoParaSesion } = require('../services/impresoras');
 
@@ -15,8 +21,11 @@ const router = express.Router();
 
 /**
  * Arma el ticket de presupuesto y lo manda a imprimir. A diferencia de la
- * venta, imprimir NO es best-effort: no hay nada guardado que salvar, asi
- * que si falla la impresion, falla la request entera.
+ * venta, imprimir NO es best-effort para el presupuesto en si (no hay
+ * REMITOS que guardar), pero el cliente es una excepcion: si vino editado se
+ * guarda de verdad, ANTES de intentar imprimir, y esa correccion queda
+ * aunque despues falle la impresion — es un dato real del cliente, no algo
+ * atado al ticket.
  */
 router.post(
   '/',
@@ -28,13 +37,23 @@ router.post(
       throw new HttpError(error.status, { message: error.message });
     }
 
-    // El cliente es opcional. Si viene, solo se LEE para armar el texto del
-    // ticket: nunca se hace update/create de CLIENTES ni de REMITOS aca (el
-    // alta/edicion de cliente la maneja routes/venta.js aparte).
+    // El cliente es opcional. Si vino con datos editados en pantalla, se
+    // guardan (misma validacion y mismo chequeo de dni/telefono/email
+    // repetido que el alta/edicion del ABM y de la venta, via
+    // assertDatosDisponibles): un 409 con el cliente en conflicto deja que el
+    // frontend ofrezca asignar el existente o sobrescribirlo, en vez de que
+    // el presupuesto entero falle con un error de base a secas.
     let clienteCompleto = null;
     if (req.body.id_cliente !== undefined && req.body.id_cliente !== null) {
       const id_cliente = parseId(req.body.id_cliente, 'El id del cliente debe ser un numero.');
-      const cliente = await obtenerCliente(id_cliente);
+      let cliente = await obtenerCliente(id_cliente);
+
+      if (req.body.cliente) {
+        const datosCliente = parsearDatosCliente(req.body.cliente);
+        await assertDatosDisponibles(datosCliente, id_cliente);
+        cliente = await prisma.CLIENTES.update({ where: { id_cliente }, data: datosCliente });
+      }
+
       clienteCompleto = `${cliente.nombre} ${cliente.apellido}`.trim();
     }
 

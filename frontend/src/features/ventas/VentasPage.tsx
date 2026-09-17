@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { RemitoConDetalles, RemitoCreado, TIPOS_DE_PAGO } from '@backend/types';
 import { listarTiposDePago } from '@/api/tiposDePago';
 import { useTablaServidor } from '@/components/tabla/useTablaServidor';
@@ -9,6 +10,8 @@ import type { ParamsRemitos } from '@/api/remitos';
 import ConfirmarAccionRemitoModal from '@/features/ventas/modales/ConfirmarAccionRemitoModal';
 import { ACCION_ANULAR } from '@/features/ventas/modales/accionesDeRemito';
 import ListaDeRemitos from '@/features/ventas/ListaDeRemitos';
+import RemitoDestacado from '@/features/ventas/RemitoDestacado';
+import { idRemitoDeQuery } from '@/features/ventas/deepLinkRemito';
 import { useOpcionesDeFiltro } from '@/features/ventas/useOpcionesDeFiltro';
 import type { OpcionesCargadas } from '@/features/ventas/useOpcionesDeFiltro';
 import { camposVentasPendientes } from '@/features/ventas/campos';
@@ -41,6 +44,11 @@ function VentasPage() {
   // estado vive aca, ANTES de useTablaServidor, porque este lo necesita de
   // entrada — ver el comentario de cabecera de useOpcionesDeFiltro.
   const [opciones, setOpciones] = useState<OpcionesCargadas | null>(null);
+
+  // Deep-link `?remito=<id>`: una venta puntual por encima de la lista, sin
+  // tocar filtros ni paginacion (ver deepLinkRemito.ts).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const idRemitoDestacado = idRemitoDeQuery(searchParams);
 
   // Estado de filtros por columna + multi-orden (sin filtrar en memoria):
   // Ventas no ofrece Estado ni Fecha de emision (ver campos.ts).
@@ -169,7 +177,7 @@ function VentasPage() {
     <SectionWrapper>
       <Notificacion mensaje={notificacion} posicion='pagina' />
 
-      <div className='flex flex-col w-full h-full px-5 pt-10 min-h-0 items-center'>
+      <div className='flex flex-col w-full h-full px-2 sm:px-5 sm:pt-10 pt-6 min-h-0 items-center'>
         {/* Dos acciones de arranque: la venta es la principal (boton lleno) y
             el presupuesto la alternativa (contorno de marca). */}
         <div className='flex flex-wrap items-center justify-center gap-3'>
@@ -192,6 +200,13 @@ function VentasPage() {
         <span className='text-2xl font-semibold text-black w-full mt-10 mb-4 shrink-0'>
           Ventas Pendientes
         </span>
+
+        {idRemitoDestacado !== null && (
+          <RemitoDestacado
+            idRemito={idRemitoDestacado}
+            onCerrar={() => setSearchParams({})}
+          />
+        )}
 
         <ListaDeRemitos
           remitos={pendientes}

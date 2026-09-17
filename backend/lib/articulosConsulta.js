@@ -209,7 +209,7 @@ const EXPRESIONES_ORDEN = {
 // Desempate final: replica desempateTalle de ArticulosPage (los talles vacios
 // primero, por el `?? ''`) y cierra con el id para que el orden sea TOTAL. Sin
 // el id, dos filas equivalentes pueden repetirse o desaparecer entre paginas.
-const DESEMPATE = Prisma.sql`COALESCE(a.talle, '') ASC, a.id_articulo ASC`;
+const DESEMPATE = Prisma.sql`COALESCE(a.descripcion, '') ASC, a.id_articulo ASC`;
 
 /**
  * ORDER BY completo a partir de los criterios apilados en los headers.

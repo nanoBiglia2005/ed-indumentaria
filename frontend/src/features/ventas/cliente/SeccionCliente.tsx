@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { CLIENTES } from '@backend/types';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { actualizarCliente, crearCliente } from '@/api/venta';
+import type { CampoDuplicado } from '@/api/venta';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
 import ConfirmarClienteModal from '@/features/ventas/modales/ConfirmarClienteModal';
 import QuitarClienteModal from '@/features/ventas/modales/QuitarClienteModal';
@@ -9,7 +10,13 @@ import BuscadorClientes from './BuscadorClientes';
 import FormularioCliente from './FormularioCliente';
 import type { ClienteDeVenta } from './useClienteDeVenta';
 import type { DatosCliente } from './formatoCliente';
-import { CLIENTE_VACIO, aDatosAPI, nombreCompleto, validarCliente } from './formatoCliente';
+import {
+  CLIENTE_VACIO,
+  aDatosAPI,
+  nombreCompleto,
+  telefonoDeCliente,
+  validarCliente,
+} from './formatoCliente';
 
 interface SeccionClienteProps {
   cliente: ClienteDeVenta;
@@ -22,7 +29,7 @@ interface SeccionClienteProps {
  *
  *  1. sin cliente: buscador + boton "Crear Nuevo Cliente";
  *  2. creando: el formulario vacio, que termina en el modal de confirmacion
- *     (y, si el DNI ya existe, en la decision de asignar / sobrescribir);
+ *     (y, si el dni/telefono/email ya existe, en la decision de asignar / sobrescribir);
  *  3. asignado: el mismo formulario con los datos del cliente, editable. Lo que
  *     se cambie queda en amarillo y se guarda recien al confirmar la venta.
  *
@@ -39,8 +46,9 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
 
   // Paso de confirmacion del alta. `datosAConfirmar` != null = modal abierto.
   const [datosAConfirmar, setDatosAConfirmar] = useState<DatosCliente | null>(null);
-  // Cliente que ya tenia ese DNI: cambia el modal a "que hago con este".
+  // Cliente que ya tenia ese dato (dni/telefono/email): cambia el modal a "que hago con este".
   const [duplicado, setDuplicado] = useState<CLIENTES | null>(null);
+  const [campoDuplicado, setCampoDuplicado] = useState<CampoDuplicado | null>(null);
 
   const [aQuitar, setAQuitar] = useState<CLIENTES | null>(null);
 
@@ -51,6 +59,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
   const cerrarConfirmacion = () => {
     setDatosAConfirmar(null);
     setDuplicado(null);
+    setCampoDuplicado(null);
     setError(null);
   };
 
@@ -71,6 +80,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
     }
     setErrorFormulario(null);
     setDuplicado(null);
+    setCampoDuplicado(null);
     setDatosAConfirmar(nuevo);
   };
 
@@ -79,9 +89,10 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
       if (!datosAConfirmar) return;
       const respuesta = await crearCliente(aDatosAPI(datosAConfirmar));
 
-      // DNI repetido: no se creo nada, decide el usuario.
+      // Dato repetido (dni/telefono/email): no se creo nada, decide el usuario.
       if (!respuesta.creado) {
         setDuplicado(respuesta.cliente);
+        setCampoDuplicado(respuesta.campo ?? 'dni');
         return;
       }
       terminarAsignacion(respuesta.cliente);
@@ -120,7 +131,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
           <div className='flex items-center gap-3 rounded bg-marca-500 px-3 py-1.5 text-white'>
             <div className='flex flex-col leading-tight'>
               <span className='text-sm font-semibold'>{nombreCompleto(asignado)}</span>
-              <span className='text-xs text-marca-100'>{asignado.dni}</span>
+              <span className='text-xs text-marca-100'>{telefonoDeCliente(asignado)}</span>
             </div>
             <button
               type='button'
@@ -227,6 +238,7 @@ export default function SeccionCliente({ cliente, deshabilitado = false }: Secci
         abierto={datosAConfirmar !== null}
         datos={datosAConfirmar}
         existente={duplicado}
+        campo={campoDuplicado}
         cargando={cargando}
         error={error}
         onCerrar={cerrarConfirmacion}
