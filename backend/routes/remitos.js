@@ -79,7 +79,7 @@ const imprimirTicketDeRemito = async ({ session, idImpresoraPedida, items, metod
  */
 const responderPaginaDeRemitos = async (req, res, { estadoFijo }) => {
   const consulta = parsearConsultaRemitos(req.query);
-  const where = construirWhere({ estadoFijo, filtros: consulta.filtros });
+  const where = construirWhere({ estadoFijo, busqueda: consulta.busqueda, filtros: consulta.filtros });
   const orderBy = construirOrderBy(consulta.orden);
   const offset = (consulta.pagina - 1) * consulta.tamano;
 
@@ -129,7 +129,10 @@ const responderOpcionesDeRemitos = async (req, res, { estadoFijo }) => {
   const columna = req.query.columna;
   const definicion = parseColumnaDeOpciones(columna);
   const consulta = parsearConsultaRemitos(req.query);
-  const where = construirWhere({ estadoFijo, filtros: consulta.filtros }, { excluirFiltro: columna });
+  const where = construirWhere(
+    { estadoFijo, busqueda: consulta.busqueda, filtros: consulta.filtros },
+    { excluirFiltro: columna }
+  );
 
   const [opciones, [{ existe }]] = await prisma.$transaction([
     prisma.$queryRaw(definicion.opciones(where)),

@@ -16,6 +16,12 @@ const {
   parseFiltros,
   parseOrden,
 } = require('./consultaSql');
+const {
+  ESTADO_CONFIRMADO,
+  ESTADO_FACTURADO,
+  ESTADO_ANULADO,
+  ESTADO_DEVUELTO,
+} = require('../constants/ventas');
 
 const TAMANO_PAGINA_DEFECTO = 30;
 const TAMANO_PAGINA_MAX = 200;
@@ -49,6 +55,41 @@ const TEXTO_CLIENTE = Prisma.sql`COALESCE(${nombreDeCliente}, 'No Asignado')`;
 // Monto que muestra la card: el final si ya esta facturado, si no el de
 // efectivo (ver RemitoCard.tsx: `remito.total_final ?? remito.total_efectivo`).
 const MONTO = Prisma.sql`COALESCE(r.total_final, r.total_efectivo)`;
+
+// Palabra visible del estado (RemitoCard.tsx), espejo de PALABRA_POR_ESTADO en
+// frontend/src/features/ventas/estadosRemito.ts. Los 4 ids son fijos
+// (constants/ventas.js / shared/ventas.json); COALESCE cubre un id inesperado
+// para que la busqueda no rompa si algun dia aparece un estado nuevo sin mapear.
+const TEXTO_ESTADO = Prisma.sql`
+  COALESCE(
+    CASE r.id_estado
+      WHEN ${ESTADO_CONFIRMADO} THEN 'Confirmada'
+      WHEN ${ESTADO_FACTURADO} THEN 'Paga'
+      WHEN ${ESTADO_ANULADO} THEN 'Anulada'
+      WHEN ${ESTADO_DEVUELTO} THEN 'Devuelta'
+    END,
+    ''
+  )`;
+
+// ============================================================
+//  BUSQUEDA DE TEXTO
+// ============================================================
+// Mismo patron que condicionBusqueda() de articulosConsulta.js: OR de
+// contiene() sobre cada columna de texto visible de RemitoCard. MONTO es
+// numerico: se castea a texto tal cual (sin separador de miles, a diferencia
+// de formatearPesos en el frontend) porque alcanza para encontrar un remito
+// por su total sin reproducir el formateo. Las fechas se buscan como las ve
+// el usuario (DD/MM/AAAA, igual que formatearFecha); fecha_de_emision es
+// nullable pero to_char(NULL) da NULL y contiene() ya tolera eso via COALESCE.
+const condicionBusqueda = (termino) =>
+  Prisma.sql`(
+    ${contiene(TEXTO_CODIGO, termino)}
+    OR ${contiene(TEXTO_CLIENTE, termino)}
+    OR ${contiene(TEXTO_ESTADO, termino)}
+    OR ${contiene(Prisma.sql`${MONTO}::text`, termino)}
+    OR ${contiene(Prisma.sql`COALESCE(to_char(r.fecha_de_emision, 'DD/MM/YYYY'), '')`, termino)}
+    OR ${contiene(Prisma.sql`COALESCE(to_char(r.fecha_de_creacion, 'DD/MM/YYYY'), '')`, termino)}
+  )`;
 
 // ============================================================
 //  FILTROS POR COLUMNA
@@ -107,8 +148,9 @@ const construirOrderBy = (orden) => {
  * que necesita el calculo de opciones de "cliente", que se hace sobre las
  * filas que pasan todos los DEMAS filtros.
  */
-const construirWhere = ({ estadoFijo, filtros }, { excluirFiltro = null } = {}) => {
+const construirWhere = ({ estadoFijo, busqueda = '', filtros }, { excluirFiltro = null } = {}) => {
   const partes = [estadoFijo];
+  if (busqueda !== '') partes.push(condicionBusqueda(busqueda));
   for (const [key, filtro] of Object.entries(filtros)) {
     if (key === excluirFiltro) continue;
     partes.push(TRADUCTORES[key](filtro));
@@ -116,13 +158,14 @@ const construirWhere = ({ estadoFijo, filtros }, { excluirFiltro = null } = {}) 
   return Prisma.join(partes, ' AND ');
 };
 
-/** Lee y valida los parametros de paginacion/filtro/orden de la consulta. */
+/** Lee y valida los parametros de paginacion/busqueda/filtro/orden de la consulta. */
 const parsearConsultaRemitos = (query) => ({
   pagina: query.pagina === undefined ? 1 : parseEntero(query.pagina, 'La pagina debe ser un numero mayor a 0.'),
   tamano:
     query.tamano === undefined
       ? TAMANO_PAGINA_DEFECTO
       : Math.min(parseEntero(query.tamano, 'El tamaño de pagina debe ser un numero mayor a 0.'), TAMANO_PAGINA_MAX),
+  busqueda: typeof query.busqueda === 'string' ? query.busqueda.trim() : '',
   filtros: parseFiltros(query.filtros, TIPOS_DE_FILTRO),
   orden: parseOrden(query.orden, EXPRESIONES_ORDEN),
 });

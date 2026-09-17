@@ -13,6 +13,54 @@ export const PALABRA_POR_ESTADO: Record<number, string> = {
 };
 
 /**
+ * Color segun el estado del remito (tabla ESTADOS_REMITOS).
+ *
+ * Las clases van ENTERAS y no armadas como `'text-' + color`: Tailwind escanea
+ * el codigo buscando nombres de clase completos, asi que una clase concatenada
+ * no se genera nunca. Si alguna parecia funcionar era de rebote, porque ese
+ * mismo texto literal aparecia en otro archivo.
+ *
+ * Los tres primeros estados usan los tokens del sistema (`marca` / `acento` /
+ * `neutro`); `devuelto` se queda en rojo Tailwind literal a proposito: es
+ * semantica de perdida, ajena a la identidad de marca, igual que los botones
+ * destructivos.
+ *
+ * Vive aca (y no en RemitoCard.tsx) porque tambien lo usa DetalleRemitoModal:
+ * duplicar el objeto significaria que la pill del modal y la de la tarjeta
+ * puedan divergir de color.
+ */
+export type EstiloDeEstado = { borde: string; texto: string; fondo: string };
+
+export const ESTILO_POR_ESTADO: Record<number, EstiloDeEstado> = {
+  [ESTADO_CONFIRMADO]: {
+    borde: 'border-acento-500',
+    texto: 'text-acento-500',
+    fondo: 'bg-acento-500',
+  },
+  [ESTADO_FACTURADO]: {
+    borde: 'border-marca-500',
+    texto: 'text-marca-500',
+    fondo: 'bg-marca-500',
+  },
+  [ESTADO_ANULADO]: {
+    borde: 'border-neutro-600',
+    texto: 'text-neutro-600',
+    fondo: 'bg-neutro-600',
+  },
+  [ESTADO_DEVUELTO]: {
+    borde: 'border-red-500',
+    texto: 'text-red-500',
+    fondo: 'bg-red-500',
+  },
+};
+
+/** Estilo + palabra del estado, con FACTURADO / 'Desconocido' como respaldo. */
+export const estiloDeEstado = (id_estado: number | null) => ({
+  estilo: ESTILO_POR_ESTADO[id_estado ?? ESTADO_FACTURADO] ?? ESTILO_POR_ESTADO[ESTADO_FACTURADO],
+  palabra: PALABRA_POR_ESTADO[id_estado ?? ESTADO_FACTURADO] ?? 'Desconocido',
+});
+
+/**
  * Anchos de respaldo (px) de las 6 columnas de valor variable de RemitoCard,
  * hasta que ListaDeRemitos mida los remitos visibles (ver
  * MedidorAnchosRemitoCard). Las claves son las mismas que `filtroKey` en
