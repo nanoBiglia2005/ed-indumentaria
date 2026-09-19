@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { GRUPOS_DE_VENTA, LINEAS } from '@backend/types';
 import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
 import type { TipoAgrupacion, EdicionAgrupacion } from '@/types/agrupaciones';
@@ -6,6 +6,7 @@ import type { Opcion } from '@/types/comunes';
 import BaseModal from '@/components/ui/BaseModal';
 import SegmentedToggle from '@/components/ui/SegmentedToggle';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import {
   crearGrupo,
   actualizarGrupo,
@@ -83,15 +84,17 @@ export default function CrearAgrupacionModal({
   const { cargando, error, setError, ejecutar } = useAccionAsync();
   const modoEdicion = edicion !== null;
 
-  useEffect(() => {
+  const reiniciar = () => {
     if (!abierto) return;
     setNombre(edicion?.nombre ?? '');
     setGrupoSeleccionado(edicion?.idGrupo ?? grupoPreseleccionado);
     setTipoCliente(tipoClienteFijo ?? edicion?.tipoCliente ?? 1);
     setError(null);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, tipo, edicion, tipoClienteFijo]);
+  };
+  useResetAlCambiar(abierto, reiniciar);
+  useResetAlCambiar(tipo, reiniciar);
+  useResetAlCambiar(edicion, reiniciar);
+  useResetAlCambiar(tipoClienteFijo, reiniciar);
 
   const maxLength = NOMBRE_MAX[tipo];
 

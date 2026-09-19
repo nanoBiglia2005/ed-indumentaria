@@ -43,17 +43,18 @@ jobs:
 
       - name: Typecheck del frontend
         working-directory: frontend
-        run: npx tsc -b
+        run: npx tsc -b tsconfig.app.json tsconfig.node.json
 
       - name: Tests del frontend
         working-directory: frontend
         run: npm test
 
-      # Bloquea ante ERRORES. Quedan 24 advertencias pendientes de
-      # react-hooks/set-state-in-effect (ver el comentario de eslint.config.js):
-      # eslint sale con codigo 0 si solo hay warnings, asi que siguen visibles en
-      # cada corrida sin frenar el merge. Cuando esas 24 esten resueltas, subir la
-      # regla a 'error' en eslint.config.js y agregar --max-warnings 0 aca.
+      # Bloquea ante ERRORES. Queda 1 advertencia pendiente de
+      # react-hooks/set-state-in-effect, en useFetchLista.ts (ver el comentario
+      # de eslint.config.js): eslint sale con codigo 0 si solo hay warnings, asi
+      # que sigue visible en cada corrida sin frenar el merge. Cuando se
+      # resuelva, subir la regla a 'error' en eslint.config.js y agregar
+      # --max-warnings 0 aca.
       - name: Lint del frontend
         working-directory: frontend
         run: npm run lint

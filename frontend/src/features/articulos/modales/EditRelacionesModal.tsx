@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { ARTICULOS } from '@backend/types';
 import type { Opcion } from '@/types/comunes';
 import BaseModal from '@/components/ui/BaseModal';
 import ListaChips from '@/components/ui/ListaChips';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { diferenciaPorId } from '@/utils/relaciones';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
+import { ordenarPorNombre } from '@/utils/texto';
 
 /**
  * Modal generico para editar una asociacion muchos-a-muchos de un articulo.
@@ -51,7 +53,7 @@ export default function EditRelacionesModal({
   const [originales, setOriginales] = useState<Opcion[]>([]);
   const [seleccionadas, setSeleccionadas] = useState<Opcion[]>([]);
 
-  useEffect(() => {
+  const reiniciar = () => {
     if (!abierto || !articulo) return;
 
     setError(null);
@@ -59,8 +61,9 @@ export default function EditRelacionesModal({
     const asignadas = opciones.filter((opcion) => idsAsignados.includes(opcion.id));
     setOriginales(asignadas);
     setSeleccionadas(asignadas);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, articulo]);
+  };
+  useResetAlCambiar(abierto, reiniciar);
+  useResetAlCambiar(articulo, reiniciar);
 
   const handleGuardar = () => {
     if (!articulo) return;
@@ -113,7 +116,7 @@ export default function EditRelacionesModal({
         <div className='mb-3'>
           <InlineFilterDropdown
             label={textos.labelAgregar}
-            opciones={opciones.filter((o) => !seleccionadas.some((sel) => sel.id === o.id))}
+            opciones={ordenarPorNombre(opciones.filter((o) => !seleccionadas.some((sel) => sel.id === o.id)))}
             selectedId={null}
             onSelect={(id) => {
               const opcion = opciones.find((o) => o.id === id);
@@ -122,11 +125,12 @@ export default function EditRelacionesModal({
               }
             }}
             onClear={() => {}}
+            conBuscador
           />
         </div>
 
         <ListaChips
-          items={seleccionadas}
+          items={ordenarPorNombre(seleccionadas)}
           onQuitar={(id) => setSeleccionadas((prev) => prev.filter((o) => o.id !== id))}
           textoVacio={textos.textoVacio}
         />

@@ -25,14 +25,19 @@ export default defineConfig([
       // que estas reglas son consejos de calidad, no de correctitud: quedan
       // visibles como advertencias sin bloquear el CI.
       //
-      // set-state-in-effect marca 23 casos en tres patrones:
-      //   A) resetear al abrir un modal  -> se resuelve con el hook
-      //      useResetAlCambiar, que ya existe y ajusta el estado durante el
-      //      render (patron oficial de React). Es el pendiente prioritario.
-      //   B) limpiar una seleccion que dejo de ser valida -> mismo patron.
-      //   C) carga de datos (el setCargando(true) sincronico) -> patron
-      //      legitimo; se deja como esta.
-      // Cuando A y B esten hechos, subir esta regla a 'error'.
+      // set-state-in-effect marcaba ~23 casos en tres patrones, todos resueltos
+      // con useResetAlCambiar (ajusta el estado durante el render, patron
+      // oficial de React, en vez de con un useEffect):
+      //   A) resetear al abrir un modal.
+      //   B) limpiar una seleccion que dejo de ser valida.
+      //   C) el setCargando(true)/setError(null) sincronico antes de un fetch:
+      //      se separa del efecto (que queda solo con la llamada async) y se
+      //      dispara con useResetAlCambiar sobre el mismo valor disparador
+      //      (ver HistorialPage.tsx o ArticulosPage.tsx).
+      // Queda 1 caso pendiente en useFetchLista.ts (hook compartido por varias
+      // paginas: el `recargar()` expuesto se llama tambien fuera de efectos,
+      // asi que necesita su propio rework). Cuando se resuelva, subir esta
+      // regla a 'error'.
       'react-hooks/set-state-in-effect': 'warn',
 
       // useVirtualizer de TanStack devuelve funciones que el compilador no

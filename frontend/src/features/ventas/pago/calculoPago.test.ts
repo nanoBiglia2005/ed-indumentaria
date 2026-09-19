@@ -9,6 +9,7 @@ import {
   montoInicialDesdeFinal,
   totalesDeLineas,
   repartirEntreVacios,
+  esMetodoUnico,
   montoACobrar,
   soloDigitos,
 } from '@/features/ventas/pago/calculoPago';
@@ -25,12 +26,39 @@ describe('montoInicialDesdeFinal', () => {
     expect(montoInicialDesdeFinal(1000, 0)).toBe(1000);
   });
 
-  it('NO es round-trip exacto con precioConRecargo, por el doble redondeo', () => {
-    // Ida y vuelta pueden no coincidir: las dos funciones redondean a la decena.
-    // Este test documenta que la asimetria existe, para que nadie la asuma exacta.
-    const inicial = 1005;
-    const final = 1110; // precioConRecargo(1005, 10) redondeado
-    expect(montoInicialDesdeFinal(final, 10)).not.toBe(inicial);
+  it('redondea al ENTERO, no a la decena', () => {
+    // Con la decena, todo lo tipeado entre 8769 y 8780 caia en el mismo monto
+    // inicial (7500): el reparto cerraba en 0 restante con un importe que no era
+    // el que se iba a cobrar, y al salir del campo el numero saltaba solo.
+    expect(montoInicialDesdeFinal(8775, 17)).toBe(7500);
+    expect(montoInicialDesdeFinal(8770, 17)).toBe(7496);
+  });
+
+  it('desde un monto inicial el ida y vuelta SI es exacto', () => {
+    // Al dividir, el error del redondeo se achica (nunca llega a medio peso), asi
+    // que volver siempre cae en el mismo inicial. Es lo que hace que escribir en
+    // una columna de la tabla y leer la otra sea coherente. Con el redondeo a la
+    // decena esto NO valia.
+    for (const inicial of [7500, 7501, 999, 12345]) {
+      const final = montoACobrar({
+        montoInicial: inicial,
+        recargo: 17,
+        esMetodoUnico: false,
+        totalDelMetodo: undefined,
+      });
+
+      expect(montoInicialDesdeFinal(final, 17)).toBe(inicial);
+    }
+  });
+
+  it('desde un monto final tipeado NO siempre lo es: por eso el campo se acomoda', () => {
+    // 8772 -> 7497 -> 8771. Multiplicar SI amplifica el error del redondeo, asi
+    // que hay importes que no se pueden cobrar exactos: al salir del campo se
+    // reemplazan por el que de verdad corresponde al monto inicial derivado.
+    expect(montoInicialDesdeFinal(8772, 17)).toBe(7497);
+    expect(
+      montoACobrar({ montoInicial: 7497, recargo: 17, esMetodoUnico: false, totalDelMetodo: undefined })
+    ).toBe(8771);
   });
 });
 
@@ -88,6 +116,23 @@ describe('repartirEntreVacios', () => {
   });
 });
 
+describe('esMetodoUnico', () => {
+  it('pide que el metodo cubra TODA la venta, no que sea la unica fila cargada', () => {
+    // El bug que motivo el test: con 62000 de venta, tipear 1 en una fila y dejar
+    // el resto vacio activaba la regla y mostraba el total entero de ese metodo.
+    expect(esMetodoUnico([1, 0], 62000)).toBe(false);
+    expect(esMetodoUnico([62000, 0], 62000)).toBe(true);
+  });
+
+  it('con el reparto entre varios metodos no aplica', () => {
+    expect(esMetodoUnico([17500, 7500], 25000)).toBe(false);
+  });
+
+  it('sin ningun monto cargado no aplica', () => {
+    expect(esMetodoUnico([0, 0], 62000)).toBe(false);
+  });
+});
+
 describe('montoACobrar (regla del metodo unico)', () => {
   it('con un solo metodo cobra el total ya congelado de la venta', () => {
     // El mismo numero que muestra el boton del metodo. Notar que 1130 NO es
@@ -101,6 +146,20 @@ describe('montoACobrar (regla del metodo unico)', () => {
     expect(
       montoACobrar({ montoInicial: 500, recargo: 10, esMetodoUnico: false, totalDelMetodo: 1130 })
     ).toBe(550);
+  });
+
+  it('el monto final se redondea al ENTERO, sin forzar multiplos de 10', () => {
+    // Una parte suelta del reparto no es el precio de ningun articulo, asi que no
+    // va a la decena. El backend hace lo mismo (pagosRemito.js pasa final = true):
+    // si divergieran, se mostraria 8775 y se cobraria 8780.
+    expect(
+      montoACobrar({
+        montoInicial: 7500,
+        recargo: 17,
+        esMetodoUnico: false,
+        totalDelMetodo: undefined,
+      })
+    ).toBe(8775);
   });
 
   it('metodo unico sin total conocido cae al recargo sobre el monto', () => {

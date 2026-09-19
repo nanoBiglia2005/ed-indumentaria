@@ -51,6 +51,13 @@ const TIPOS_DE_FILTRO = {
   vigente: 'seleccion',
 };
 
+// Valores de "extra" que admite cada columna de rango (ver FiltroRango en
+// components/tabla/tipos.ts): solo la columna Cantidad, para los presets
+// "Solo stock bajo" / "Solo stock normal" (ver TRADUCTORES.cant mas abajo).
+const VALORES_EXTRA_RANGO = {
+  cant: ['bajo', 'normal'],
+};
+
 // ============================================================
 //  EXPRESIONES BASE (sobre el alias `a` de "ARTICULOS")
 // ============================================================
@@ -131,7 +138,18 @@ const TRADUCTORES = {
   nombre: (f) => contiene(TEXTO_NOMBRE, f.valor),
   talle: (f) => contiene(TEXTO_TALLE, f.valor),
 
-  cant: (f) => rango(Prisma.sql`a.cant`, f),
+  // `extra` ("bajo"/"normal") se compone con AND al rango numerico si vino
+  // alguno de los dos. Espejo EXACTO de stockBajo() en
+  // frontend/src/features/articulos/stockBajo.ts: minimo configurado (> 0) Y
+  // cantidad por debajo. Si se toca una condicion hay que tocar la otra, o el
+  // preset del filtro deja de coincidir con las filas que la tabla pinta en rojo.
+  cant: (f) => {
+    const condicionRango = rango(Prisma.sql`a.cant`, f);
+    if (!f.extra) return condicionRango;
+    const stockBajo = Prisma.sql`(a.stock_minimo > 0 AND a.cant < a.stock_minimo)`;
+    const condicionExtra = f.extra === 'bajo' ? stockBajo : Prisma.sql`NOT ${stockBajo}`;
+    return Prisma.sql`(${condicionRango} AND ${condicionExtra})`;
+  },
   precio: (f) => rango(Prisma.sql`a.precio`, f),
   stock_minimo: (f) => rango(Prisma.sql`a.stock_minimo`, f),
   // La columna trata el nulo como 0 (ver columnas.tsx).
@@ -291,7 +309,7 @@ const parsearConsultaArticulos = (query) => ({
   // clubes"); si viaja junto con id_cliente, el cliente puntual manda.
   idAgrupacion: parseIdOpcional(query.id_agrupacion, 'El id de la agrupación debe ser un numero.'),
   idLinea: parseIdOpcional(query.id_linea, 'El id de la linea debe ser un numero.'),
-  filtros: parseFiltros(query.filtros, TIPOS_DE_FILTRO),
+  filtros: parseFiltros(query.filtros, TIPOS_DE_FILTRO, VALORES_EXTRA_RANGO),
   orden: parseOrden(query.orden, EXPRESIONES_ORDEN),
 });
 

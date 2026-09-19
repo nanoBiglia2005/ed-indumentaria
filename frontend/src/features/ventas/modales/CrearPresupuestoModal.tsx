@@ -32,6 +32,7 @@ interface CrearPresupuestoModalProps {
   abierto: boolean;
   onCerrar: () => void;
   metodosConRecargo: TIPOS_DE_PAGO[];
+  metodos: TIPOS_DE_PAGO[];
   /** El ticket ya salio por la impresora. No hay nada guardado que devolver. */
   onPresupuestoImpreso: () => void;
 }
@@ -50,6 +51,7 @@ export default function CrearPresupuestoModal({
   abierto,
   onCerrar,
   metodosConRecargo,
+  metodos,
   onPresupuestoImpreso,
 }: CrearPresupuestoModalProps) {
   const [productos, setProductos] = useState<ProductoSeleccionado[]>([]);
@@ -441,7 +443,7 @@ export default function CrearPresupuestoModal({
         abierto={isAgregarOpen}
         onCerrar={() => setIsAgregarOpen(false)}
         articulosExcluidos={articulosExcluidos}
-        metodos={metodosConRecargo}
+        metodos={metodos}
         limitarPorStock={false}
         onAgregar={handleAgregarProducto}
       />

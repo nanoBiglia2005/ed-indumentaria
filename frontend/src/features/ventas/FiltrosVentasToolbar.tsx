@@ -10,7 +10,6 @@ import type {
   FiltroColumna,
   OpcionFiltro,
 } from '@/components/tabla/tipos';
-import type { AnchosRemitoCard } from './estadosRemito';
 
 /**
  * Barra de filtro/orden de Ventas/Historial: mismo motor y misma interaccion
@@ -32,7 +31,6 @@ interface FiltrosVentasToolbarProps<T> {
    * cada boton queda tan ancho como la columna que filtra, como si fuese su
    * cabecera.
    */
-  anchos: AnchosRemitoCard;
   filtrosColumna: Record<string, FiltroColumna>;
   ordenColumnas: CriterioOrden[];
   onClickHeader: (columna: ColumnaTabla<T>) => void;
@@ -52,7 +50,6 @@ interface FiltrosVentasToolbarProps<T> {
 
 export default function FiltrosVentasToolbar<T>({
   campos,
-  anchos,
   filtrosColumna,
   ordenColumnas,
   onClickHeader,
@@ -71,7 +68,7 @@ export default function FiltrosVentasToolbar<T>({
    * escritorio: dentro del Popover el boton no es la cabecera de ninguna
    * columna, asi que ahi ocupa todo el ancho del panel.
    */
-  const renderBoton = (campo: ColumnaFiltrable<T>, conAncho: boolean, alClickear?: () => void) => {
+  const renderBoton = (campo: ColumnaFiltrable<T>, alClickear?: () => void) => {
     const filtroActivo = filtrosColumna[campo.filtroKey];
     const prioridadOrden = ordenColumnas.findIndex((c) => c.key === campo.filtroKey);
     const ordenActivo = prioridadOrden === -1 ? null : ordenColumnas[prioridadOrden].direccion;
@@ -83,7 +80,6 @@ export default function FiltrosVentasToolbar<T>({
         key={campo.header}
         columna={campo}
         texto={texto}
-        ancho={conAncho ? anchos[campo.filtroKey as keyof AnchosRemitoCard] : undefined}
         filtroActivo={Boolean(filtroActivo)}
         ordenActivo={ordenActivo}
         prioridadOrden={prioridadOrden}
@@ -101,7 +97,7 @@ export default function FiltrosVentasToolbar<T>({
     <>
       {/* Escritorio: cada boton alineado como cabecera de su columna. */}
       <div className='hidden lg:flex flex-wrap gap-3 mb-2 shrink-0'>
-        {filtrables.map((campo) => renderBoton(campo, true))}
+        {filtrables.map((campo) => renderBoton(campo))}
       </div>
 
       {/* Celular: un solo boton "Filtros" con los mismos botones apilados. */}
@@ -142,7 +138,7 @@ export default function FiltrosVentasToolbar<T>({
                 {/* Elegir un filtro abre el modal: el panel se cierra para no
                     quedar flotando detras. Ordenar no lo cierra (se pueden
                     apilar varios criterios de una). */}
-                {filtrables.map((campo) => renderBoton(campo, false, close))}
+                {filtrables.map((campo) => renderBoton(campo, close))}
               </div>
             )}
           </PopoverPanel>
@@ -156,6 +152,9 @@ export default function FiltrosVentasToolbar<T>({
         tipo={columnaAbierta?.filtro.tipo ?? null}
         filtroActual={columnaAbierta ? filtrosColumna[columnaAbierta.filtroKey] : undefined}
         opciones={opcionesFiltroAbierto}
+        soportaModoExcluyente={
+          columnaAbierta?.filtro.tipo === 'seleccion' ? columnaAbierta.filtro.soportaModoExcluyente : undefined
+        }
         onAplicar={onAplicarFiltro}
       />
     </>

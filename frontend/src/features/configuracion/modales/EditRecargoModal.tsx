@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import type { TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { actualizarRecargo } from '@/api/tiposDePago';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { triggerShake } from '@/utils/formato';
@@ -26,11 +27,13 @@ export default function EditRecargoModal({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  const reiniciar = () => {
     if (!abierto || !tipoDePago) return;
     setError(null);
     setValorTexto(String(tipoDePago.recargo));
-  }, [abierto, tipoDePago, setError]);
+  };
+  useResetAlCambiar(abierto, reiniciar);
+  useResetAlCambiar(tipoDePago, reiniciar);
 
   const handleRecargoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value;

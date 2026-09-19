@@ -137,7 +137,6 @@ export default function ListaDeRemitos({
           <div className='min-w-0 flex-1'>
             <FiltrosVentasToolbar
               campos={campos}
-              anchos={anchos}
               filtrosColumna={filtrosColumna}
               ordenColumnas={ordenColumnas}
               onClickHeader={onClickHeader}

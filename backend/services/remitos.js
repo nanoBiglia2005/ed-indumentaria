@@ -18,7 +18,7 @@ const remitosInclude = {
     include: { ARTICULOS: true },
   },
   CLIENTES: true,
-  PAGOS_REMITO: true,
+  PAGOS_REMITO: { include: { TIPOS_DE_PAGO: true } },
 };
 
 /**

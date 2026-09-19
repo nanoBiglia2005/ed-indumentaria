@@ -12,8 +12,8 @@ export interface OpcionesCargadas {
 }
 
 /**
- * Opciones del filtro de seleccion recien abierto (hoy solo "cliente": Estado
- * tiene opciones fijas, ver campos.ts). El backend las calcula sobre los
+ * Opciones del filtro de seleccion recien abierto ("cliente" y "metodo_pago":
+ * Estado tiene opciones fijas, ver campos.ts). El backend las calcula sobre los
  * remitos que pasan todos los DEMAS filtros — mismo patron que ArticulosPage.
  *
  * El estado (`opciones`/`setOpciones`) vive en la PAGINA, no aca: tiene que

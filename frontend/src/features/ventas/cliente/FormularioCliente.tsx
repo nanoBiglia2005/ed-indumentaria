@@ -137,7 +137,7 @@ export default function FormularioCliente({
         </div>
       </div>
 
-      <div className='grid grid-cols-1 gap-3 border-t border-neutro-200 pt-3 sm:grid-cols-3'>
+      <div className='grid grid-cols-1 gap-3 border-t border-neutro-200 pt-3 lg:grid-cols-3'>
         <InputCliente
           {...comun('dni')}
           onCambiar={(valor) => onCambiar('dni', soloDigitos(valor, LIMITES.dni))}

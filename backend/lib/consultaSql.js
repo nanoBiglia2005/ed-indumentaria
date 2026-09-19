@@ -95,13 +95,32 @@ const parseFechaONula = (valor, mensaje) => {
   return valor;
 };
 
+// El campo `extra` de un filtro de rango (ver FiltroRango en
+// components/tabla/tipos.ts) es un estado con nombre ADEMAS del rango
+// numerico (p. ej. "Solo stock bajo" en la columna Cantidad de Articulos).
+// Es opaco para este parser generico: cada modulo (articulosConsulta.js, no
+// remitosConsulta.js por ahora) dice, por filtroKey, que strings acepta; sin
+// entrada en ese mapa, mandar `extra` para esa columna es un 400.
+const parseExtraDeRangoONulo = (valor, permitidos, mensaje) => {
+  if (valor === null || valor === undefined) return null;
+  if (typeof valor !== 'string' || !permitidos || !permitidos.includes(valor)) throw error400(mensaje);
+  return valor;
+};
+
 /**
  * Parsea y valida el JSON de "filtros" contra una lista blanca
  * {filtroKey: tipo}. El shape de cada filtro (texto/rango/seleccion/fecha) es
  * siempre el mismo objeto Record<filtroKey, FiltroColumna> que mantiene
- * useTablaServidor en el frontend.
+ * useTablaServidor en el frontend. Un filtro de tipo "seleccion" siempre sale
+ * de aca con `modo` presente ('incluyente' por defecto, o 'excluyente' si el
+ * frontend lo pidio): los traductores de columna que no distinguen modos
+ * (cliente, estado, grupos, etc.) simplemente lo ignoran.
+ *
+ * `extrasDeRango` (opcional) es {filtroKey: string[]}: los valores de `extra`
+ * que acepta cada columna de rango. Sin entrada para una clave, esa columna
+ * no admite `extra`.
  */
-const parseFiltros = (valor, tiposDeFiltro) => {
+const parseFiltros = (valor, tiposDeFiltro, extrasDeRango = {}) => {
   if (valor === undefined || valor === '') return {};
 
   let crudo;
@@ -130,18 +149,25 @@ const parseFiltros = (valor, tiposDeFiltro) => {
     } else if (tipoEsperado === 'rango') {
       const desde = parseNumeroONulo(filtro.desde, `El filtro "${key}" debe traer numeros.`);
       const hasta = parseNumeroONulo(filtro.hasta, `El filtro "${key}" debe traer numeros.`);
-      if (desde === null && hasta === null) continue;
-      filtros[key] = { tipo: 'rango', desde, hasta };
+      const extra = parseExtraDeRangoONulo(
+        filtro.extra,
+        extrasDeRango[key],
+        `El filtro "${key}" no admite ese valor de "extra".`
+      );
+      if (desde === null && hasta === null && extra === null) continue;
+      filtros[key] = { tipo: 'rango', desde, hasta, ...(extra !== null ? { extra } : {}) };
     } else if (tipoEsperado === 'fecha') {
       const desde = parseFechaONula(filtro.desde, `El filtro "${key}" debe traer fechas (yyyy-mm-dd).`);
       const hasta = parseFechaONula(filtro.hasta, `El filtro "${key}" debe traer fechas (yyyy-mm-dd).`);
       if (desde === null && hasta === null) continue;
       filtros[key] = { tipo: 'fecha', desde, hasta };
     } else {
-      filtros[key] = {
-        tipo: 'seleccion',
-        ids: parseListaDeIds(filtro.ids, `El filtro "${key}" debe traer una lista de ids.`),
-      };
+      const ids = parseListaDeIds(filtro.ids, `El filtro "${key}" debe traer una lista de ids.`);
+      const modo = filtro.modo === undefined ? 'incluyente' : filtro.modo;
+      if (modo !== 'incluyente' && modo !== 'excluyente') {
+        throw error400(`El filtro "${key}" no admite ese modo.`);
+      }
+      filtros[key] = { tipo: 'seleccion', ids, modo };
     }
   }
   return filtros;

@@ -190,20 +190,20 @@ function VentasPage() {
           <button
             type='button'
             onClick={() => setIsNuevaVentaOpen(true)}
-            className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-marca-500 hover:bg-marca-600 active:bg-marca-700 transition-colors duration-100 ease-in'
+            className='rounded flex items-center md:text-[25px] text-lg w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-marca-500 hover:bg-marca-600 active:bg-marca-700 transition-colors duration-100 ease-in'
           >
             Iniciar Nueva Venta
           </button>
           <button
             type='button'
             onClick={() => setIsPresupuestoOpen(true)}
-            className='rounded flex items-center text-[25px] w-fit py-2 px-4 font-semibold border border-marca-600 text-marca-600 cursor-pointer hover:bg-marca-500 hover:text-white active:bg-marca-600 transition-colors duration-100 ease-in'
+            className='rounded flex items-center md:text-[25px] text-lg w-fit py-2 px-4 font-semibold border border-marca-600 text-marca-600 cursor-pointer hover:bg-marca-500 hover:text-white active:bg-marca-600 transition-colors duration-100 ease-in'
           >
             Crear Presupuesto
           </button>
         </div>
 
-        <span className='text-2xl font-semibold text-black w-full mt-10 mb-4 shrink-0'>
+        <span className='text-2xl font-semibold text-black w-full mt-6 mb-4 shrink-0'>
           Ventas Pendientes
         </span>
 
@@ -211,6 +211,8 @@ function VentasPage() {
           <RemitoDestacado
             idRemito={idRemitoDestacado}
             onCerrar={() => setSearchParams({})}
+            onPagar={setRemitoACobrar}
+            onAnular={setRemitoAAnular}
           />
         )}
 
@@ -251,6 +253,7 @@ function VentasPage() {
       <NuevaVentaModal
         abierto={isNuevaVentaOpen}
         metodosConRecargo={metodosConRecargo}
+        metodos={metodos}
         onCerrar={() => setIsNuevaVentaOpen(false)}
         onVentaRegistrada={handleVentaRegistrada}
       />
@@ -258,6 +261,7 @@ function VentasPage() {
       <CrearPresupuestoModal
         abierto={isPresupuestoOpen}
         metodosConRecargo={metodosConRecargo}
+        metodos={metodos}
         onCerrar={() => setIsPresupuestoOpen(false)}
         onPresupuestoImpreso={handlePresupuestoImpreso}
       />

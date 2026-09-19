@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { ARTICULOS, LINEAS } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { actualizarArticulo } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
+import { ordenarPorNombre } from '@/utils/texto';
 
 interface EditLineaModalProps {
   abierto: boolean;
@@ -26,11 +28,18 @@ export default function EditLineaModal({
     mensajeDe: (err) => mensajeDetallesPrimero(err, 'No se pudo actualizar la línea del artículo.'),
   });
 
-  useEffect(() => {
+  const reiniciar = () => {
     if (!abierto || !articulo) return;
     setLineaSeleccionada(articulo.id_linea);
     setError(null);
-  }, [abierto, articulo, setError]);
+  };
+  useResetAlCambiar(abierto, reiniciar);
+  useResetAlCambiar(articulo, reiniciar);
+
+  const opciones = useMemo(
+    () => ordenarPorNombre(lineas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea }))),
+    [lineas]
+  );
 
   const handleGuardar = () => {
     if (!articulo) return;
@@ -71,7 +80,7 @@ export default function EditLineaModal({
         <label className='block text-sm font-medium text-neutro-600 mb-2'>Línea</label>
         <InlineFilterDropdown
           label='Sin línea'
-          opciones={lineas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea }))}
+          opciones={opciones}
           selectedId={lineaSeleccionada}
           onSelect={setLineaSeleccionada}
           onClear={() => setLineaSeleccionada(null)}

@@ -20,8 +20,9 @@ interface VentasDeClienteProps {
  *
  * Reusa RemitoCard tal cual (incluido el precio en efectivo y los totales por
  * metodo de las pendientes, que ya vienen resueltos en el remito): el boton
- * "Ver venta" va al lado de la tarjeta y no adentro para no tener que agregarle
- * un prop de accion mas a un componente que ya lo comparten dos paginas.
+ * "Ver venta" es una accion mas de RemitoCard (`onVerVenta`), no un boton
+ * aparte al lado de la tarjeta — asi queda dentro de la tarjeta en cualquier
+ * resolucion, igual que Pagar/Anular/Devolver/Reimprimir.
  *
  * El destino del link depende del estado: una venta pendiente (CONFIRMADO)
  * vive en Ventas y el resto en Historial — mismo criterio que usa la propia
@@ -119,26 +120,17 @@ export default function VentasDeCliente({ idCliente }: VentasDeClienteProps) {
       {remitos.length > 0 && (
         <div className='flex flex-col gap-3'>
           {remitos.map((remito) => (
-            <div key={remito.id_remito} className='flex items-start gap-2'>
-              <div className='min-w-0 flex-1'>
-                <RemitoCard
-                  remito={remito}
-                  metodos={metodos}
-                  mostrarCliente={false}
-                  abierto={abiertoId === remito.id_remito}
-                  onToggle={() =>
-                    setAbiertoId((previo) => (previo === remito.id_remito ? null : remito.id_remito))
-                  }
-                />
-              </div>
-              <button
-                type='button'
-                onClick={() => verVenta(remito)}
-                className='shrink-0 self-start rounded border mt-3 border-marca-500 px-3 py-1.5 text-sm font-semibold text-marca-600 transition-colors duration-100 ease-in hover:bg-marca-500 hover:text-white cursor-pointer'
-              >
-                Ver venta
-              </button>
-            </div>
+            <RemitoCard
+              key={remito.id_remito}
+              remito={remito}
+              metodos={metodos}
+              mostrarCliente={false}
+              abierto={abiertoId === remito.id_remito}
+              onToggle={() =>
+                setAbiertoId((previo) => (previo === remito.id_remito ? null : remito.id_remito))
+              }
+              onVerVenta={verVenta}
+            />
           ))}
         </div>
       )}

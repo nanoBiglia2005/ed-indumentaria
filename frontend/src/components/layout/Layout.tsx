@@ -3,7 +3,8 @@ import Sidebar from '@/components/layout/Sidebar';
 
 function Layout() {
   return (
-    <div className='flex h-screen'>
+    // Mobile: header arriba + contenido debajo. Desde md: sidebar a la izquierda.
+    <div className='flex h-screen min-h-0 flex-col md:flex-row'>
       <Sidebar />
       <Outlet />
     </div>

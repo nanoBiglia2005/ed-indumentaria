@@ -7,6 +7,7 @@
 // filtros/orden vive arriba de la lista (FiltrosVentasToolbar).
 const { Prisma } = require('../generated/prisma/client');
 const {
+  NUNCA,
   contiene,
   rango,
   rangoFecha,
@@ -35,6 +36,7 @@ const TIPOS_DE_FILTRO = {
   fecha_emision: 'fecha',
   fecha_creacion: 'fecha',
   total: 'rango',
+  metodo_pago: 'seleccion',
 };
 
 // ============================================================
@@ -107,6 +109,38 @@ const TRADUCTORES = {
   fecha_emision: (f) => rangoFecha(Prisma.sql`r.fecha_de_emision`, f),
   fecha_creacion: (f) => rangoFecha(Prisma.sql`r.fecha_de_creacion`, f),
   total: (f) => rango(MONTO, f),
+  // PAGOS_REMITO recien existe al FACTURAR (registrarCobro en
+  // services/pagosRemito.js): un remito Confirmado todavia no tiene filas ahi,
+  // por eso este filtro solo se ofrece en Historial (ver campos.ts). "modo"
+  // distingue "tiene alguno de estos metodos" (incluyente, ANY-match, default)
+  // de "el conjunto de metodos del remito es EXACTAMENTE este" (excluyente):
+  // no es una exclusion de ids, es una igualdad de conjuntos.
+  //
+  // A diferencia de cliente/colegios, NO hay "Sin asignar": id_tipo_de_pago es
+  // NOT NULL con default en PAGOS_REMITO, un pago siempre tiene un metodo
+  // (ver OPCIONES_POR_COLUMNA.metodo_pago mas abajo, que nunca ofrece esa
+  // opcion). f.ids son siempre ids reales de TIPOS_DE_PAGO.
+  metodo_pago: (f) => {
+    if (f.ids.length === 0) return Prisma.sql`FALSE`;
+
+    if (f.modo === 'excluyente') {
+      return Prisma.sql`(
+        NOT EXISTS (
+          SELECT 1 FROM "PAGOS_REMITO" p
+            WHERE p.id_remito = r.id_remito AND p.id_tipo_de_pago NOT IN (${Prisma.join(f.ids)})
+        )
+        AND (
+          SELECT COUNT(DISTINCT p.id_tipo_de_pago) FROM "PAGOS_REMITO" p
+            WHERE p.id_remito = r.id_remito AND p.id_tipo_de_pago IN (${Prisma.join(f.ids)})
+        ) = ${f.ids.length}
+      )`;
+    }
+
+    return Prisma.sql`EXISTS (
+      SELECT 1 FROM "PAGOS_REMITO" p
+        WHERE p.id_remito = r.id_remito AND p.id_tipo_de_pago IN (${Prisma.join(f.ids)})
+    )`;
+  },
 };
 
 // ============================================================
@@ -122,6 +156,11 @@ const EXPRESIONES_ORDEN = {
   fecha_emision: [Prisma.sql`r.fecha_de_emision`],
   fecha_creacion: [Prisma.sql`r.fecha_de_creacion`],
   total: [MONTO],
+  // Un remito puede tener varios metodos (pago mixto): se ordena por la
+  // concatenacion alfabetica de nombres, igual que se mostrarian en la card.
+  metodo_pago: [Prisma.sql`(SELECT string_agg(tp.nombre_tipo_de_pago, ', ' ORDER BY tp.nombre_tipo_de_pago)
+    FROM "PAGOS_REMITO" p JOIN "TIPOS_DE_PAGO" tp ON tp.id_tipos_de_pago = p.id_tipo_de_pago
+    WHERE p.id_remito = r.id_remito)`],
 };
 
 // Desempate final: cierra con el id para que el orden sea TOTAL (sin esto, dos
@@ -185,6 +224,20 @@ const OPCIONES_POR_COLUMNA = {
         WHERE ${where}
         ORDER BY nombre ASC`,
     sinAsignar: Prisma.sql`r.id_cliente IS NULL`,
+  },
+  // Sin "Sin asignar": id_tipo_de_pago es NOT NULL en PAGOS_REMITO (un pago
+  // siempre tiene metodo), a diferencia de cliente/colegios. `sinAsignar: NUNCA`
+  // hace que `haySinAsignar` de la respuesta sea siempre false, asi
+  // useOpcionesDeFiltro (frontend) nunca ofrece esa opcion para esta columna.
+  metodo_pago: {
+    opciones: (where) => Prisma.sql`
+      SELECT DISTINCT tp.id_tipos_de_pago AS id, tp.nombre_tipo_de_pago AS nombre
+        FROM "REMITOS" r
+        JOIN "PAGOS_REMITO" p ON p.id_remito = r.id_remito
+        JOIN "TIPOS_DE_PAGO" tp ON tp.id_tipos_de_pago = p.id_tipo_de_pago
+        WHERE ${where}
+        ORDER BY nombre ASC`,
+    sinAsignar: NUNCA,
   },
 };
 

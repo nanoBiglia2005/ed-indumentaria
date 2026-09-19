@@ -25,6 +25,14 @@ export function pluralizar(palabra: string): string {
   return /[aeiou]$/.test(texto) ? `${texto}s` : `${texto}es`;
 }
 
+/**
+ * Copia y ordena alfabeticamente por `nombre` (localeCompare en español, asi
+ * "Álamo" y "azul" quedan donde un hablante esperaria verlos).
+ */
+export function ordenarPorNombre<T extends { nombre: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+}
+
 export function resaltarCoincidencia(texto: string, termino: string): ReactNode {
   if (!termino) return texto;
 

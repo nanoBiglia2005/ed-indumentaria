@@ -43,7 +43,6 @@ interface BotonFiltroVentasProps<T> {
    * toma su ancho natural — es lo que usa el propio medidor oculto para
    * conocer ese ancho natural en primer lugar.
    */
-  ancho?: number;
 }
 
 export default function BotonFiltroVentas<T>({
@@ -55,11 +54,9 @@ export default function BotonFiltroVentas<T>({
   totalCriterios,
   onClickHeader,
   onClickOrdenar,
-  ancho,
 }: BotonFiltroVentasProps<T>) {
   return (
     <div
-      style={ancho !== undefined ? { width: ancho } : undefined}
       className={`flex items-stretch rounded border text-sm font-medium overflow-hidden transition-colors duration-100 ease-in ${
         filtroActivo ? 'bg-marca-500 border-marca-500 text-white' : 'bg-white border-neutro-200 text-neutro-600'
       }`}
@@ -68,11 +65,11 @@ export default function BotonFiltroVentas<T>({
         type='button'
         onClick={() => onClickHeader(columna)}
         title={filtroActivo ? `Quitar filtro de ${columna.header}` : `Filtrar por ${columna.header}`}
-        className={`flex-1 min-w-0 flex items-center gap-1.5 px-3 py-2 cursor-pointer text-left transition-colors duration-100 ease-in ${
+        className={`flex-1 min-w-0 flex items-center gap-3 px-3 py-2 cursor-pointer text-left transition-colors duration-100 ease-in ${
           filtroActivo ? 'hover:bg-marca-600' : 'hover:bg-neutro-100 hover:text-neutro-900'
         }`}
       >
-        <span className='flex-1 truncate'>{texto ?? columna.header}</span>
+        <span className='truncate'>{texto ?? columna.header}</span>
         <svg
           className={`h-3.5 w-3.5 shrink-0 ${filtroActivo ? 'text-white' : 'text-neutro-400'}`}
           fill='none'

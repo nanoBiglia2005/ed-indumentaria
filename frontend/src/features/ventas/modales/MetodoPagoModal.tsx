@@ -12,6 +12,7 @@ import SelectorMetodoPago from '@/features/ventas/pago/SelectorMetodoPago';
 import TablaPersonalizado from '@/features/ventas/pago/TablaPersonalizado';
 import type { ValoresPago } from '@/features/ventas/pago/TablaPersonalizado';
 import {
+  esMetodoUnico,
   montoACobrar,
   montoInicialDesdeFinal,
   repartirEntreVacios,
@@ -73,12 +74,17 @@ export default function MetodoPagoModal({
   });
 
   // Los recargos se leen al abrir: pueden haber cambiado en Configuracion
-  // desde que se cargo la pagina.
+  // desde que se cargo la pagina. El "cargando" se marca ya en este render
+  // (no en el efecto) para evitar setState sincronico dentro del efecto
+  // (react-hooks/set-state-in-effect).
+  useResetAlCambiar(abierto, () => {
+    if (abierto) setCargando(true);
+  });
+
   useEffect(() => {
     if (!abierto) return;
 
     let cancelado = false;
-    setCargando(true);
 
     listarTiposDePago()
       .then((data) => {
@@ -124,9 +130,6 @@ export default function MetodoPagoModal({
     ? tipos.reduce((total, tipo) => total + Number(valores[tipo.id_tipos_de_pago]?.final || 0), 0)
     : totalesDelRemito[metodoElegido ?? -1] ?? totalEfectivo;
 
-  // Con el reparto solo se cobra cuando el precio quedo cubierto exacto.
-  const puedeFinalizar = personalizado ? restante === 0 : metodoElegido !== null;
-
   // Cuanto mas se puede imputar a un metodo sin pasarse del precio de la venta.
   const maximoPara = (idTipoDePago: number) =>
     Math.max(0, totalEfectivo - (sumaIniciales - inicialDe(idTipoDePago)));
@@ -137,8 +140,10 @@ export default function MetodoPagoModal({
    * del conjunto: cargar una segunda fila cambia lo que cobra la primera.
    */
   const conFinalesRecalculados = (iniciales: Record<number, string>) => {
-    const conMonto = tipos.filter((tipo) => Number(iniciales[tipo.id_tipos_de_pago] || 0) > 0);
-    const esMetodoUnico = conMonto.length === 1;
+    const unico = esMetodoUnico(
+      tipos.map((tipo) => Number(iniciales[tipo.id_tipos_de_pago] || 0)),
+      totalEfectivo
+    );
 
     return Object.fromEntries(
       tipos.map((tipo) => {
@@ -148,7 +153,7 @@ export default function MetodoPagoModal({
         const final = montoACobrar({
           montoInicial: Number(inicial),
           recargo: tipo.recargo,
-          esMetodoUnico,
+          esMetodoUnico: unico,
           totalDelMetodo: totalesDelRemito[tipo.id_tipos_de_pago],
         });
 
@@ -165,6 +170,24 @@ export default function MetodoPagoModal({
     if (cambio) iniciales[cambio.id] = cambio.inicial;
     return iniciales;
   };
+
+  /**
+   * Con el reparto solo se cobra cuando el precio quedo cubierto exacto Y
+   * ninguna fila tiene un importe tipeado a mano sin acomodar: mientras se tipea
+   * la columna "Monto a Cobrar" se respeta lo escrito, y recien el blur la
+   * devuelve al importe que se va a cobrar de verdad. Sin la segunda condicion el
+   * reparto puede cerrar mostrando un total final que no es el que se cobra.
+   */
+  const puedeFinalizar = (() => {
+    if (!personalizado) return metodoElegido !== null;
+    if (restante !== 0) return false;
+
+    const acomodados = conFinalesRecalculados(inicialesActuales());
+    return tipos.every(
+      (tipo) =>
+        (valores[tipo.id_tipos_de_pago]?.final ?? '') === acomodados[tipo.id_tipos_de_pago].final
+    );
+  })();
 
   // Ninguno de los handlers corre dentro de un efecto y cada uno escribe el
   // estado de una sola vez: por eso completar una celda no puede disparar la

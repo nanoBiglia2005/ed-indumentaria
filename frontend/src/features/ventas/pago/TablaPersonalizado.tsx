@@ -1,4 +1,4 @@
-import type { TIPOS_DE_PAGO } from '@backend/types';
+import { ID_METODO_EFECTIVO, type TIPOS_DE_PAGO } from '@backend/types';
 import { precioConRecargo } from '@/utils/precios';
 import { formatearPesos } from '@/utils/formato';
 
@@ -73,9 +73,8 @@ export default function TablaPersonalizado({
 
             return (
               <tr key={id} className={vacia ? 'bg-neutro-50/60' : ''}>
-                <td className='px-4 py-3 text-left font-semibold text-neutro-900'>
-                  {tipo.nombre_tipo_de_pago}{' '}
-                  {tipo.recargo > 0 && <span>({tipo.recargo}% de Recargo)</span>}
+                <td className={`px-4 py-3 text-left font-semibold ${id === ID_METODO_EFECTIVO ? 'text-neutro-900' : 'text-marca-600'}`}>
+                  {tipo.nombre_tipo_de_pago}
                 </td>
 
                 <td className='px-4 py-2 text-center'>
@@ -101,7 +100,7 @@ export default function TablaPersonalizado({
                     disabled={deshabilitado}
                     onChange={(e) => onCambiarFinal(id, e.target.value)}
                     onBlur={() => onSalirDeFinal(id)}
-                    placeholder={String(precioConRecargo(sugerido, tipo.recargo))}
+                    placeholder={String(precioConRecargo(sugerido, tipo.recargo, true))}
                     aria-label={`Monto a cobrar en ${tipo.nombre_tipo_de_pago}`}
                     className={`${claseInput} border-marca-400 font-semibold text-marca-700 placeholder:font-normal placeholder:text-marca-400 hover:border-marca-500 focus:border-marca-500 focus:ring-marca-500/30`}
                   />

@@ -16,7 +16,7 @@ import PaymentIcon from '@/components/ui/PaymentIcon';
  * No se exportan: un modulo que exporta un componente no puede exportar ademas
  * constantes sueltas (react-refresh/only-export-components).
  */
-const COLUMNAS = 'grid grid-cols-[minmax(300px,1fr)_3rem_minmax(7rem,auto)] items-center gap-3';
+const COLUMNAS = 'grid grid-cols-[minmax(120px,1fr)_3rem_minmax(3rem,auto)] md:grid-cols-[minmax(300px,1fr)_3rem_minmax(7rem,auto)] items-center gap-3';
 const COLUMNAS_COMPACTO =
   'grid grid-cols-[minmax(150px,1fr)_3rem_minmax(7rem,auto)] items-center gap-3';
 

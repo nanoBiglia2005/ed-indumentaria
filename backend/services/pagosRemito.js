@@ -5,6 +5,11 @@
 //                   se paga con ese metodo;
 //   monto final   = lo que realmente se cobra por ese metodo.
 //
+// Los montos finales se redondean al ENTERO, no a la decena como los precios de
+// articulo (`final = true` en precioConRecargo): una parte suelta del reparto no
+// se corresponde con ningun articulo, y forzarla a multiplos de 10 haria que
+// todas las filas del reparto terminaran en 0.
+//
 // REGLA DEL METODO UNICO: cuando un solo metodo cubre TODA la venta, lo que se
 // cobra es el total de la venta para ese metodo (la suma de sus lineas ya
 // redondeadas), no el recargo aplicado sobre el total. Si no fuera asi, pagar
@@ -90,8 +95,8 @@ const parsearPagos = (cuerpo, metodos, totalEfectivo, totalesDelRemito) => {
     id_tipo_de_pago,
     monto_inicial,
     monto_final: metodoUnico
-      ? totalesDelRemito[id_tipo_de_pago] ?? precioConRecargo(monto_inicial, recargo)
-      : precioConRecargo(monto_inicial, recargo),
+      ? totalesDelRemito[id_tipo_de_pago] ?? precioConRecargo(monto_inicial, recargo, true)
+      : precioConRecargo(monto_inicial, recargo, true),
   }));
 };
 

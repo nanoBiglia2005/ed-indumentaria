@@ -26,6 +26,12 @@ interface RemitoCardProps {
   /** Solo sobre ventas vigentes (ver `puedeReimprimir`): una anulada no se reimprime. */
   onReimprimir?: (remito: RemitoConDetalles) => void;
   /**
+   * Navega a la venta en Ventas/Historial (la usa VentasDeCliente, en la ficha
+   * de un cliente). A diferencia de las demas acciones, no depende del estado
+   * del remito: siempre se ofrece si se pasa.
+   */
+  onVerVenta?: (remito: RemitoConDetalles) => void;
+  /**
    * Oculta la columna Cliente. La usa VentasDeCliente (panel de ficha en
    * Clientes): ahi el cliente ya es el contexto de toda la pantalla, repetirlo
    * en cada tarjeta es ruido.
@@ -55,6 +61,7 @@ function RemitoCard({
   onAnular,
   onDevolver,
   onReimprimir,
+  onVerVenta,
   mostrarCliente = true,
   anchoCodigo = ANCHOS_REMITO_CARD_POR_DEFECTO.codigo,
   anchoMonto = ANCHOS_REMITO_CARD_POR_DEFECTO.total,
@@ -64,6 +71,11 @@ function RemitoCard({
   anchoFechaCreacion = ANCHOS_REMITO_CARD_POR_DEFECTO.fecha_creacion,
 }: RemitoCardProps) {
   const metodosConRecargo = metodos.filter((metodo) => metodo.recargo > 0);
+  // Metodos con los que se cobro EFECTIVAMENTE el remito (puede haber mas de
+  // uno en un pago mixto). Un remito Confirmado todavia no tiene filas en
+  // PAGOS_REMITO (se crean recien al facturar, ver services/pagosRemito.js),
+  // por eso este dato solo aplica al bloque no-Confirmado de abajo.
+  const idsMetodosPagados = [...new Set(remito.PAGOS_REMITO.map((pago) => pago.id_tipo_de_pago))];
 
   const { estilo, palabra } = estiloDeEstado(remito.id_estado);
 
@@ -83,7 +95,8 @@ function RemitoCard({
     Boolean(onReimprimir) &&
     (remito.id_estado === ESTADO_CONFIRMADO || remito.id_estado === ESTADO_FACTURADO);
   const hayAcciones =
-    !usaModal && (Boolean(onPagar || onAnular) || puedeDevolver || puedeReimprimir);
+    !usaModal &&
+    (Boolean(onPagar || onAnular || onVerVenta) || puedeDevolver || puedeReimprimir);
 
   /**
    * Los anchos medidos viajan como custom properties en vez de `style.width`
@@ -150,9 +163,17 @@ function RemitoCard({
 
           {remito.id_estado !== ESTADO_CONFIRMADO ? (
             <div className='flex flex-col'>
-              <span style={{ minWidth: anchoMonto }} className='text-xl font-bold px-2'>
+              <span style={{ minWidth: anchoMonto }} className='text-xl font-bold px-2 flex gap-1 items-center'>
+                {/* Metodos REALMENTE cobrados (PAGOS_REMITO), a diferencia del
+                    bloque CONFIRMADO de abajo que muestra el precio segun cada
+                    metodo POSIBLE antes de que se elija ninguno. */}
+                <div className='flex flex-col'>
+                  {idsMetodosPagados.map((idMetodo) => (
+                    <PaymentIcon key={idMetodo} paymentId={idMetodo} height={18}/>
+                  ))}
+                </div>
                 {formatearPesos(remito.total_final ?? remito.total_efectivo)}
-              </span>     
+              </span>
               <div className='flex flex-col px-2 whitespace-nowrap md:hidden'>
                 <span className='text-xs text-neutro-400'>Cliente</span>
                 <span className={`text-black text-[12px] font-medium`}>{remito.CLIENTES ? remito.CLIENTES.nombre + ' ' +remito.CLIENTES.apellido : 'No Asignado'}</span>
@@ -178,20 +199,20 @@ function RemitoCard({
           )}
 
           {remito.id_estado !== ESTADO_CONFIRMADO && (
-            <div className='md:flex hidden flex-col px-2 whitespace-nowrap xl:min-w-[var(--ancho-fecha-emision)]'>
+            <div className='md:flex hidden flex-col px-2 whitespace-nowrap xl:min-w-30'>
               <span className='text-xs text-neutro-400'>Fecha de Emisión</span>
-              <span className={`font-medium ${!remito.fecha_de_emision ? 'text-neutro-400 text-sm' : 'text-black'}`}>{formatearFecha(remito.fecha_de_emision)}</span>
+              <span className={`font-medium ${!remito.fecha_de_emision ? 'text-neutro-400' : 'text-black text-sm md:text-md'}`}>{formatearFecha(remito.fecha_de_emision)}</span>
             </div>
           )}
           <div className={`flex-col px-2 whitespace-nowrap ${remito.id_estado === ESTADO_CONFIRMADO ? 'md:flex hidden' : 'flex'}`}>
-            <div className='flex flex-col xl:min-w-[var(--ancho-fecha-emision)]'>
+            <div className='flex flex-col xl:min-w-30'>
               <span className='md:text-xs text-[10px] text-neutro-400'>Fecha de Creación</span>
-              <span className={`font-medium ${!remito.fecha_de_creacion ? 'text-neutro-400 text-sm' : 'text-black text-sm md:text-md'}`}>{formatearFecha(remito.fecha_de_creacion)}</span>    
+              <span className={`font-medium ${!remito.fecha_de_creacion ? 'text-neutro-400' : 'text-black text-sm md:text-md'}`}>{formatearFecha(remito.fecha_de_creacion)}</span>    
             </div>
             {remito.id_estado !== ESTADO_CONFIRMADO && (
             <div className='flex md:hidden flex-col whitespace-nowrap xl:min-w-[var(--ancho-fecha-emision)]'>
               <span className='md:text-xs text-[10px] text-neutro-400'>Fecha de Emisión</span>
-              <span className={`font-medium ${!remito.fecha_de_emision ? 'text-neutro-400 text-sm' : 'text-black text-sm md:text-md'}`}>{formatearFecha(remito.fecha_de_emision)}</span>
+              <span className={`font-medium ${!remito.fecha_de_emision ? 'text-neutro-400' : 'text-black text-sm md:text-md'}`}>{formatearFecha(remito.fecha_de_emision)}</span>
             </div>
           )}
           </div>
@@ -265,6 +286,14 @@ function RemitoCard({
                       className='rounded border border-acento-500 px-3 py-1 font-semibold text-acento-600 cursor-pointer transition-colors duration-100 ease-in hover:bg-acento-500 hover:text-white'
                     >
                       Reimprimir
+                    </div>
+                  )}
+                  {onVerVenta && (
+                    <div
+                      onClick={() => onVerVenta(remito)}
+                      className='rounded border border-marca-500 px-3 py-1 font-semibold text-marca-600 cursor-pointer transition-colors duration-100 ease-in hover:bg-marca-500 hover:text-white'
+                    >
+                      Ver Venta
                     </div>
                   )}
                 </div>
@@ -348,6 +377,14 @@ function RemitoCard({
                     className='rounded border border-acento-500 lg:px-3 text-sm lg:text-md px-2 py-1 font-semibold text-acento-600 cursor-pointer transition-colors duration-100 ease-in hover:bg-acento-500 hover:text-white'
                   >
                     Reimprimir
+                  </div>
+                )}
+                {onVerVenta && (
+                  <div
+                    onClick={() => onVerVenta(remito)}
+                    className='rounded border border-marca-500 lg:px-3 text-sm lg:text-md px-2 py-1 font-semibold text-marca-600 cursor-pointer transition-colors duration-100 ease-in hover:bg-marca-500 hover:text-white'
+                  >
+                    Ver Venta
                   </div>
                 )}
               </div>

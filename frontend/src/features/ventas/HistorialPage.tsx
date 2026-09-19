@@ -45,8 +45,8 @@ function HistorialPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const idRemitoDestacado = idRemitoDeQuery(searchParams);
 
-  // Opciones del filtro de seleccion recien abierto (hoy solo "Cliente":
-  // "Estado" tiene opciones fijas, ver campos.ts). El estado vive aca, ANTES
+  // Opciones del filtro de seleccion recien abierto ("Cliente" y "Método de
+  // Pago": "Estado" tiene opciones fijas, ver campos.ts). Vive aca, ANTES
   // de useTablaServidor, porque este lo necesita de entrada — ver el
   // comentario de cabecera de useOpcionesDeFiltro.
   const [opciones, setOpciones] = useState<OpcionesCargadas | null>(null);
@@ -140,6 +140,7 @@ function HistorialPage() {
           <RemitoDestacado
             idRemito={idRemitoDestacado}
             onCerrar={() => setSearchParams({})}
+            onDevolver={setRemitoADevolver}
           />
         )}
 

@@ -80,7 +80,7 @@ export default function ClientesPage() {
 
         <div className='flex min-h-0 flex-1 gap-4 mb-2'>
           <div
-            className={`min-h-0 md:w-80 md:shrink-0 ${hayFicha ? 'hidden md:block' : 'w-full'}`}
+            className={`min-h-0 xl:w-80 md:shrink-0 ${hayFicha ? 'hidden md:block' : 'w-full'}`}
           >
             <ListaClientes
               idSeleccionado={creando ? null : seleccionado?.id_cliente ?? null}

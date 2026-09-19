@@ -11,11 +11,21 @@
 // `total * (1 + recargo/100)` sino la suma de sus lineas ya redondeadas.
 const prisma = require('../db');
 
-/** Redondeo comercial: a multiplos de 10. */
-const redondearPrecio = (valor) => Math.round(Math.round(valor) / 10) * 10;
+/**
+ * Redondeo comercial: a multiplos de 10. `final = true` se queda en el entero,
+ * sin el paso a la decena: es para los MONTOS FINALES del cobro (pagosRemito.js),
+ * que son una parte suelta de la venta y no el precio de ningun articulo. Los
+ * precios de articulo van siempre a la decena.
+ *
+ * ESPEJO de frontend/src/utils/precios.ts: si divergen, la pantalla muestra un
+ * importe y se cobra otro.
+ */
+const redondearPrecio = (valor, final = false) =>
+  final ? Math.round(valor) : Math.round(Math.round(valor) / 10) * 10;
 
 /** Precio base con el recargo de un metodo aplicado. */
-const precioConRecargo = (precio, recargo) => redondearPrecio(precio * (1 + recargo / 100));
+const precioConRecargo = (precio, recargo, final = false) =>
+  redondearPrecio(precio * (1 + recargo / 100), final);
 
 /** Los metodos de pago configurados, siempre en el mismo orden. */
 const listarMetodosDePago = () =>

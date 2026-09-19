@@ -76,7 +76,7 @@ function IndicadorDeCambio({ className = '' }: { className?: string }) {
 // Mismo esquema de bordes/foco para el input del talle y el de cada articulo:
 // el segundo solo es mas compacto.
 const CLASES_INPUT_PRECIO =
-  'w-40 sm:w-50 h-fit rounded border border-neutro-200 bg-white pl-7 pr-3 text-neutro-600 placeholder:text-neutro-400 transition-colors duration-100 ease-in hover:border-marca-400 focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30';
+  'w-25 md:w-50 h-fit rounded border border-neutro-200 bg-white pl-4 ext-neutro-600 placeholder:text-neutro-400 transition-colors duration-100 ease-in hover:border-marca-400 focus:border-marca-500 focus:outline-none focus:ring-2 focus:ring-marca-500/30';
 
 /**
  * Tabla de "un precio por talle", con cada talle desplegable para editar el
@@ -106,7 +106,7 @@ export default function TablaPreciosPorTalle({
         <thead className='sticky top-0 z-10 bg-marca-500 text-white'>
           <tr>
             <th className='px-4 py-3 text-left font-semibold'>Talle</th>
-            <th className='px-4 py-3 text-left font-semibold whitespace-nowrap'>Artículos</th>
+            <th className='md:px-4 ps-4 py-3 text-left font-semibold whitespace-nowrap'>Artículos</th>
             <th className='px-4 py-3 text-left font-semibold'>Precio</th>
           </tr>
         </thead>
@@ -162,28 +162,36 @@ export default function TablaPreciosPorTalle({
                         esto un click para enfocar el input lo cerraria. */}
                     <div className='relative w-full' onClick={(e) => e.stopPropagation()}>
                       <div className='flex items-center gap-2'>
-                        <span className='pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutro-400'>
-                          $
-                        </span>
                         {/* type='text' + inputMode='numeric': el type='number' deja
                             escribir "e", "-" y comas, y ademas value queda vacio
                             cuando el texto es invalido. Aca el filtro de digitos lo
                             hace la pagina y el input muestra siempre lo que se acepto. */}
-                        <input
-                          type='text'
-                          inputMode='numeric'
-                          autoComplete='off'
-                          maxLength={maxDigitos}
-                          value={fila.valor}
-                          onChange={(e) => onCambiarPrecio(fila.clave, e.target.value)}
-                          // `valor` es un precio concreto cuando todos sus
-                          // articulos valen lo mismo; si no, queda vacio y el
-                          // placeholder muestra el rango (el input no puede
-                          // representar un rango como valor).
-                          placeholder={fila.placeholder}
-                          aria-label={`Precio para el talle ${fila.etiqueta}`}
-                          className={`${CLASES_INPUT_PRECIO} py-1.5`}
-                        />
+                        <div className='flex flex-col items-center'>
+                          <input
+                            type='text'
+                            inputMode='numeric'
+                            autoComplete='off'
+                            maxLength={maxDigitos}
+                            value={fila.valor}
+                            onChange={(e) => onCambiarPrecio(fila.clave, e.target.value)}
+                            // `valor` es un precio concreto cuando todos sus
+                            // articulos valen lo mismo; si no, queda vacio y el
+                            // placeholder muestra el rango (el input no puede
+                            // representar un rango como valor).
+                            placeholder={fila.placeholder}
+                            aria-label={`Precio para el talle ${fila.etiqueta}`}
+                            className={`${CLASES_INPUT_PRECIO} py-1.5`}
+                          />
+                          {fila.valor !== '' && (
+                              <PreciosPorMetodo
+                                precio={Number(fila.valor)}
+                                metodos={metodosDePago}
+                                tamanoIcono={10}
+                                tamanoTexto='xs'
+                                claseContenedor='select-none flex items-center w-fit text-black md:hidden'
+                              />
+                            )}
+                        </div>
                         <div className='relative'>
                           {fila.valor !== '' && (
                             <PreciosPorMetodo
@@ -191,7 +199,7 @@ export default function TablaPreciosPorTalle({
                               metodos={metodosDePago}
                               tamanoIcono={15}
                               tamanoTexto='sm'
-                              claseContenedor='select-none flex flex-col items-center w-fit gap-y-1'
+                              claseContenedor='select-none md:flex hidden flex-col items-center w-fit gap-y-1 text-black'
                             />
                           )}
                           {fila.cambiado && (
@@ -267,7 +275,7 @@ export default function TablaPreciosPorTalle({
                                               metodos={metodosDePago}
                                               tamanoIcono={15}
                                               tamanoTexto='sm'
-                                              claseContenedor='select-none flex items-center w-fit gap-y-1 bg-white'
+                                              claseContenedor='select-none flex items-center w-fit gap-y-1 bg-white text-black'
                                             />
                                           )}
                                           {articulo.cambiado && <IndicadorDeCambio className='absolute left-full ml-2 top-1/2 -translate-y-1/2'/>}
