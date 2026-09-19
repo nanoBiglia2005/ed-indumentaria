@@ -151,21 +151,28 @@ export default function NuevaVentaModal({
   };
 
   // Solo digitos: la cantidad se sube y baja con los botones - / + o
-  // escribiendo el numero, nunca con decimales ni signos.
+  // escribiendo el numero, nunca con decimales ni signos. El tope es el stock
+  // del articulo (misma regla que ConfirmarProductoModal): el backend vuelve a
+  // validarlo al crear el remito, esto es solo comodidad.
   const handleCantidadChange = (id_articulo: number, valor: string) => {
     const digitos = valor.replace(/\D/g, '');
-    const cantidad = digitos === '' ? null : Number(digitos);
+    let cantidad = digitos === '' ? null : Number(digitos);
+    const producto = productos.find((p) => p.articulo.id_articulo === id_articulo);
+    if (cantidad !== null && producto && cantidad > producto.articulo.cant) {
+      cantidad = producto.articulo.cant;
+    }
     setProductos((prev) =>
       prev.map((p) => (p.articulo.id_articulo === id_articulo ? { ...p, cantidad } : p))
     );
   };
 
-  // Botones - / +: nunca bajan de 1 (para sacar el articulo esta la X).
+  // Botones - / +: nunca bajan de 1 (para sacar el articulo esta la X) ni
+  // suben por encima del stock disponible.
   const handleAjustarCantidad = (id_articulo: number, delta: number) => {
     setProductos((prev) =>
       prev.map((p) =>
         p.articulo.id_articulo === id_articulo
-          ? { ...p, cantidad: Math.max(1, (p.cantidad ?? 0) + delta) }
+          ? { ...p, cantidad: Math.min(p.articulo.cant, Math.max(1, (p.cantidad ?? 0) + delta)) }
           : p
       )
     );
@@ -341,6 +348,9 @@ export default function NuevaVentaModal({
                     style={estiloLineClamp(MAX_LINEAS_DESCRIPCION)}
                   >
                     {articulo.descripcion ?? 'Sin Nombre'}
+                    <span className='ml-2 text-xs font-normal text-neutro-400'>
+                      {Math.max(articulo.cant - (cantidad ?? 0), 0)} restantes
+                    </span>
                   </span>
                   {/* Precio unitario: el base y el de cada metodo, lado a lado. */}
                   <div className='flex flex-wrap items-center gap-2'>
@@ -387,6 +397,7 @@ export default function NuevaVentaModal({
                   <button
                     type='button'
                     onClick={() => handleAjustarCantidad(articulo.id_articulo, 1)}
+                    disabled={(cantidad ?? 0) >= articulo.cant}
                     aria-label='Agregar una unidad'
                     className={claseBotonCantidad}
                   >

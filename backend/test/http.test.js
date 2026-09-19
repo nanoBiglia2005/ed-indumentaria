@@ -6,7 +6,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { HttpError, asyncHandler } = require('../lib/http');
+const { HttpError, asyncHandler, errorDeStock } = require('../lib/http');
 
 /** `res` minimo que captura lo que el handler respondio. */
 const resFalso = () => {
@@ -156,4 +156,49 @@ test('asyncHandler usa el texto de `log` cuando la ruta lo especifica', async ()
   const logueado = await sinRuido(() => handler({}, res));
 
   assert.equal(logueado[0][0], 'Fallo la consulta de articulos:');
+});
+
+// errorDeStock protege POST /remitos: cuando el trigger de stock de la base
+// (fn_mover_stock, SQLSTATE ED001, ver
+// prisma/migrations/20260919193941_flujo_de_stock_remitos/migration.sql)
+// rechaza una venta por falta de stock, el error de Prisma NO puede llegar
+// crudo al usuario ("Invalid `prisma.rEMITOS.create()` invocation..."). Este
+// test fabrica el error con la MISMA forma que se observo corriendo
+// `prisma.REMITOS.create()` contra la base local (con el driver adapter
+// @prisma/adapter-pg que usa backend/db.js): PrismaClientKnownRequestError,
+// code P2039, con el SQLSTATE y el mensaje real de Postgres colgados en
+// `error.meta.driverAdapterError.cause`.
+test('errorDeStock reconoce el error ED001 del trigger y devuelve el mensaje limpio', () => {
+  const mensaje = 'No hay stock suficiente de "Buzo colegial ALEMAN 026": quedan 18 unidades.';
+  const error = new Error(
+    'Invalid `prisma.rEMITOS.create()` invocation:\n\n\nDatabase error. Code: `ED001`. Message: `' +
+      mensaje +
+      '`'
+  );
+  error.code = 'P2039';
+  error.meta = {
+    modelName: 'REMITOS',
+    driverAdapterError: {
+      name: 'DriverAdapterError',
+      cause: {
+        originalCode: 'ED001',
+        originalMessage: mensaje,
+        kind: 'postgres',
+        code: 'ED001',
+        severity: 'ERROR',
+        message: mensaje,
+      },
+    },
+  };
+
+  assert.equal(errorDeStock(error), mensaje);
+});
+
+test('errorDeStock devuelve null ante cualquier otro error de Prisma', () => {
+  const error = new Error('Record to delete does not exist.');
+  error.code = 'P2025';
+
+  assert.equal(errorDeStock(error), null);
+  assert.equal(errorDeStock(new Error('boom')), null);
+  assert.equal(errorDeStock(null), null);
 });
