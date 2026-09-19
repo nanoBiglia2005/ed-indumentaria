@@ -22,7 +22,6 @@ jobs:
           port:     ${{ secrets.VPS_PORT }}   # 5299 en DonWeb, NO el 22 por defecto
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
-          script_stop: true
           command_timeout: 5m
           script: |
             set -euo pipefail
@@ -58,7 +57,6 @@ jobs:
           port:     ${{ secrets.VPS_PORT }}
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
-          script_stop: true
           command_timeout: 2m
           script: |
             set -euo pipefail
@@ -72,7 +70,6 @@ jobs:
           port:     ${{ secrets.VPS_PORT }}
           username: ${{ secrets.VPS_USER }}
           key:      ${{ secrets.VPS_SSH_KEY }}
-          script_stop: true
           command_timeout: 10m     # el build del frontend puede tardar
           script: |
             set -euo pipefail
@@ -134,9 +131,19 @@ jobs:
             psql -tAc "SHOW TimeZone;" | grep -qx "America/Buenos_Aires"
 
             # Prisma no modela los triggers: si se pierden en una migracion, los
-            # articulos dejan de recibir barcode y los remitos, codigo.
-            echo "-> los 3 triggers siguen vivos"
-            test "$(psql -tAc 'SELECT count(*) FROM information_schema.triggers;')" = "3"
+            # articulos dejan de recibir barcode, los remitos codigo, y el stock
+            # de los remitos deja de moverse. Se compara por nombre (no por
+            # cantidad): un conteo fijo se rompe con cada trigger nuevo que se
+            # agregue de forma legitima, que es justo lo que paso el 2026-09-19
+            # con la migracion de flujo de stock (3 -> 8 triggers).
+            echo "-> los triggers criticos siguen vivos"
+            TRIGGERS_ESPERADOS="trg_cod_remito_final trg_fecha_de_emision trg_stock_detalle_delete trg_stock_detalle_insert trg_stock_detalle_update trg_stock_estado_remito trg_stock_remito_borrado trigger_asignar_numero"
+            TRIGGERS_VIVOS=$(psql -tAc "SELECT tgname FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace WHERE NOT t.tgisinternal AND n.nspname = 'public' ORDER BY tgname;" | tr '\n' ' ' | sed 's/ *$//')
+            echo "   esperados: $TRIGGERS_ESPERADOS"
+            echo "   vivos:     $TRIGGERS_VIVOS"
+            for T in $TRIGGERS_ESPERADOS; do
+              echo "$TRIGGERS_VIVOS" | grep -qw "$T" || { echo "FALTA el trigger $T"; exit 1; }
+            done
 
             # Una secuencia desincronizada hace que el proximo INSERT choque
             # contra la primary key. Es silencioso hasta la primera venta.
