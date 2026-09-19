@@ -1,4 +1,4 @@
-import type { TIPOS_DE_PAGO } from '@backend/types';
+import { ID_METODO_EFECTIVO, type TIPOS_DE_PAGO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import PaymentIcon from '@/components/ui/PaymentIcon';
 import { formatearPesos } from '@/utils/formato';
@@ -91,16 +91,12 @@ export default function ConfirmarPagoModal({
                 className='flex items-center justify-between gap-3 px-3 py-2.5'
               >
                 <span
-                  className='flex min-w-0 items-center gap-2 text-sm font-semibold text-neutro-900'
+                  className={`flex min-w-0 items-center gap-2 text-sm font-semibold 
+                    ${tipo.id_tipos_de_pago ===ID_METODO_EFECTIVO ? 'text-neutro-900' : 'text-marca-600'}`}
                   title={`Pago con ${tipo.nombre_tipo_de_pago}`}
                 >
                   <PaymentIcon paymentId={tipo.id_tipos_de_pago} height={20} />
                   <span className='truncate'>{tipo.nombre_tipo_de_pago}</span>
-                  {tipo.recargo > 0 && (
-                    <span className='shrink-0 text-xs font-medium text-marca-500'>
-                      ({tipo.recargo}% de Recargo)
-                    </span>
-                  )}
                 </span>
 
                 <span className='flex shrink-0 flex-col items-end'>

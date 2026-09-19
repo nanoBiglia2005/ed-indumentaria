@@ -2,8 +2,25 @@ import type { ReactNode } from 'react';
 
 // --- Filtros de columna (el valor elegido por el usuario) ---
 export type FiltroTexto = { tipo: 'texto'; valor: string };
-export type FiltroRango = { tipo: 'rango'; desde: number | null; hasta: number | null };
-export type FiltroSeleccion = { tipo: 'seleccion'; ids: number[] };
+/**
+ * `extra` es un estado con nombre, ADEMAS del rango numerico (p. ej. la
+ * columna Cantidad de Articulos: "Solo stock bajo" / "Solo stock normal").
+ * Es opaco para el motor de la tabla: lo define y lo interpreta la columna
+ * que lo declara (ver `presetsExtra` en FiltroDefRango), tanto en el
+ * traductor a SQL del backend como en la lista blanca de valores permitidos
+ * para ese filtro. Las demas columnas de rango nunca lo mandan.
+ */
+export type FiltroRango = { tipo: 'rango'; desde: number | null; hasta: number | null; extra?: string };
+/**
+ * `modo` solo lo manda una columna que declare `soportaModoExcluyente` (ver
+ * FiltroDefSeleccion). Sin `modo` — el caso de TODAS las columnas de seleccion
+ * de hoy — el backend lo trata como 'incluyente', que es el comportamiento
+ * historico: el item pasa si alguno de sus valores esta entre los ids
+ * tildados. 'excluyente' exige que el CONJUNTO de valores del item sea
+ * exactamente el tildado (ni mas ni menos), y solo tiene sentido en columnas
+ * donde un item puede tener varios valores a la vez (Metodo de Pago).
+ */
+export type FiltroSeleccion = { tipo: 'seleccion'; ids: number[]; modo?: 'incluyente' | 'excluyente' };
 /** Rango de fechas en formato ISO (yyyy-mm-dd), como lo entrega <input type="date">. */
 export type FiltroFecha = { tipo: 'fecha'; desde: string | null; hasta: string | null };
 export type FiltroColumna = FiltroTexto | FiltroRango | FiltroSeleccion | FiltroFecha;
@@ -15,11 +32,27 @@ export const SIN_ASIGNAR_ID = -1;
 
 // --- Definicion de filtro de una columna (como se filtra) ---
 export type FiltroDefTexto = { tipo: 'texto' };
-export type FiltroDefRango<T> = { tipo: 'rango'; getValor: (item: T) => number | null };
+export type FiltroDefRango<T> = {
+  tipo: 'rango';
+  getValor: (item: T) => number | null;
+  /**
+   * Botones de estado que se aplican solos con el click (como los presets de
+   * fecha), ADEMAS de los inputs "Desde"/"Hasta". El `valor` de cada uno viaja
+   * como `FiltroRango.extra`; el backend valida que sea uno de estos strings
+   * para esta columna puntual.
+   */
+  presetsExtra?: { valor: string; etiqueta: string }[];
+};
 export type FiltroDefSeleccion<T> = {
   tipo: 'seleccion';
   getValores: (item: T) => OpcionFiltro[];
   opcionesEstaticas?: OpcionFiltro[];
+  /**
+   * Si esta en true, ColumnFilterModal ofrece elegir entre incluyente y
+   * excluyente (ver FiltroSeleccion.modo). Sin esto, el filtro es siempre
+   * incluyente y no manda `modo` (comportamiento de hoy).
+   */
+  soportaModoExcluyente?: boolean;
 };
 export type FiltroDefFecha<T> = { tipo: 'fecha'; getValor: (item: T) => string | null };
 export type FiltroDef<T> = FiltroDefTexto | FiltroDefRango<T> | FiltroDefSeleccion<T> | FiltroDefFecha<T>;

@@ -15,6 +15,7 @@ export interface ParamsArticulos {
   idGrupo: number | null;
   idSubgrupo: number | null;
   idCliente: number | null;
+  idLinea: number | null;
   filtros: Record<string, FiltroColumna>;
   orden: CriterioOrden[];
 }
@@ -37,6 +38,7 @@ const querystring = (params: ParamsArticulos, extra: Record<string, number> = {}
   if (params.idGrupo !== null) query.set('id_grupo', String(params.idGrupo));
   if (params.idSubgrupo !== null) query.set('id_subgrupo', String(params.idSubgrupo));
   if (params.idCliente !== null) query.set('id_cliente', String(params.idCliente));
+  if (params.idLinea !== null) query.set('id_linea', String(params.idLinea));
   if (Object.keys(params.filtros).length > 0) query.set('filtros', JSON.stringify(params.filtros));
   if (params.orden.length > 0) {
     query.set('orden', params.orden.map((c) => `${c.key}:${c.direccion}`).join(','));

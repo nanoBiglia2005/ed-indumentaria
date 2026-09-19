@@ -141,9 +141,13 @@
   Refresh (`react-refresh/only-export-components`). Si hace falta, el componente va a su propio
   archivo (ver `features/articulos/ListaDeChips.tsx`, separado de `columnas.tsx`).
 - **Resetear estado cuando cambia una prop va con `useResetAlCambiar`**, que ajusta durante el render
-  (patrón oficial de React), no con `useEffect` + `setState`. Quedan ~23 advertencias de
-  `react-hooks/set-state-in-effect` de código anterior a esta regla: al tocar un archivo que las
-  tenga, migrarlo. Cuando no queden, subir la regla a `error` en `eslint.config.js`.
+  (patrón oficial de React), no con `useEffect` + `setState`. El mismo patrón sirve para el
+  `setCargando(true)`/`setError(null)` síncrono antes de un fetch: se saca del efecto (que queda
+  solo con la llamada async) y se dispara con `useResetAlCambiar` sobre el mismo valor disparador
+  (ver `HistorialPage.tsx` o `ArticulosPage.tsx`). Queda 1 advertencia de
+  `react-hooks/set-state-in-effect` pendiente, en `useFetchLista.ts` (hook compartido por varias
+  páginas, necesita su propio rework). Cuando se resuelva, subir la regla a `error` en
+  `eslint.config.js`.
 - No cambiar comportamiento al refactorizar. Bug encontrado = se documenta y se pregunta;
   no se arregla en silencio.
 - Priorizar la claridad visual y simpleza de uso para todas las partes de la pagina ya que

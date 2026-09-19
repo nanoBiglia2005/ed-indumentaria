@@ -16,6 +16,7 @@ export default function FilterDropdown({
   disabled = false,
   onCrear,
   crearLabel,
+  onAbrir,
 }: {
   label: string;
   opciones: Opcion[];
@@ -25,6 +26,10 @@ export default function FilterDropdown({
   disabled?: boolean;
   onCrear?: () => void;
   crearLabel?: string;
+  /** Se dispara al abrir el modal de seleccion (antes de `setAbierto`): el
+   * boton "Filtrar Por" en celular lo usa para cerrar su Popover, igual que
+   * FiltrosVentasToolbar cierra el suyo al elegir un filtro. */
+  onAbrir?: () => void;
 }) {
   const [abierto, setAbierto] = useState(false);
   const seleccionada = opciones.find((o) => o.id === selectedId) ?? null;
@@ -39,7 +44,10 @@ export default function FilterDropdown({
     <div className='relative'>
       <button
         disabled={disabled}
-        onClick={() => setAbierto(true)}
+        onClick={() => {
+          onAbrir?.();
+          setAbierto(true);
+        }}
         className={`flex items-center justify-between gap-1 sm:gap-1.5 lg:gap-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 rounded border min-w-0 lg:min-w-[140px] font-semibold whitespace-nowrap transition-colors duration-100 ease-in ${
           disabled
             ? 'cursor-not-allowed border-neutro-200 text-neutro-400'

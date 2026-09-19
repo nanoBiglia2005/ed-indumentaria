@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 
 /**
  * Cuenta regresiva de confirmacion de los modales destructivos: arranca en
@@ -8,10 +9,18 @@ import { useEffect, useState } from 'react';
 export function useCuentaRegresiva(activo: boolean, segundosIniciales = 5) {
   const [segundos, setSegundos] = useState(segundosIniciales);
 
+  // El reinicio del contador se ajusta DURANTE el render (antes de que corra
+  // el efecto de abajo), no dentro del efecto: evita setState sincronico ahi
+  // (react-hooks/set-state-in-effect).
+  const reiniciar = () => {
+    if (activo) setSegundos(segundosIniciales);
+  };
+  useResetAlCambiar(activo, reiniciar);
+  useResetAlCambiar(segundosIniciales, reiniciar);
+
   useEffect(() => {
     if (!activo) return;
 
-    setSegundos(segundosIniciales);
     const intervalo = setInterval(() => {
       setSegundos((actual) => (actual <= 1 ? 0 : actual - 1));
     }, 1000);

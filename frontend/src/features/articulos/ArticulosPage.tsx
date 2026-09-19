@@ -3,6 +3,7 @@
 // paginacion viajan al backend como parametros y vuelven 30 filas + el total
 // que coincide (ver api/articulos.ts y backend/lib/articulosConsulta.js).
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import type {
   GRUPOS_DE_VENTA,
   CLIENTES_MAYORISTAS,
@@ -19,6 +20,7 @@ import SearchInput from '@/components/ui/SearchInput';
 import SelectorImpresora from '@/components/ui/SelectorImpresora';
 import { useImpresoras } from '@/hooks/useImpresoras';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { useToggleSet } from '@/hooks/useToggleSet';
 import { ApiError, mensajeDetallesPrimero } from '@/api/cliente';
 import {
@@ -53,6 +55,7 @@ import {
   ANCHO_COL_SELECCION,
 } from './columnas';
 import FilterDropdown from './FilterDropdown';
+import { descripcionStockBajo } from './stockBajo';
 import ToolbarSeleccionArticulos from './ToolbarSeleccionArticulos';
 import SectionWrapper from '@/components/layout/SectionWrapper';
 
@@ -102,6 +105,7 @@ function ArticulosPage() {
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<number | null>(null);
   const [subgrupoSeleccionado, setSubgrupoSeleccionado] = useState<number | null>(null);
+  const [lineaSeleccionada, setLineaSeleccionada] = useState<number | null>(null);
 
   const [busquedaInput, setBusquedaInput] = useState('');
   // Un poco mas largo que en la original: cada tecleo es una consulta a la base.
@@ -184,6 +188,9 @@ function ArticulosPage() {
     } else if (crearModalTipo === 'colegio') {
       fetchClientes();
       setClienteSeleccionado(opcion.id);
+    } else if (crearModalTipo === 'linea') {
+      fetchLineas();
+      setLineaSeleccionada(opcion.id);
     }
     setCrearModalTipo(null);
   };
@@ -326,6 +333,7 @@ function ArticulosPage() {
       idGrupo: grupoSeleccionado,
       idSubgrupo: subgrupoSeleccionado,
       idCliente: clienteSeleccionado,
+      idLinea: lineaSeleccionada,
       filtros: tabla.filtrosColumna,
       orden: tabla.ordenColumnas,
     }),
@@ -334,6 +342,7 @@ function ArticulosPage() {
       grupoSeleccionado,
       subgrupoSeleccionado,
       clienteSeleccionado,
+      lineaSeleccionada,
       tabla.filtrosColumna,
       tabla.ordenColumnas,
     ]
@@ -352,9 +361,16 @@ function ArticulosPage() {
   // una rapida): solo se acepta la de la ultima peticion disparada.
   const secuenciaPagina = useRef(0);
 
+  // Cualquier disparador de una consulta nueva (filtro/orden, pagina o
+  // recarga) marca "cargando" ya en este render — evita setState sincronico
+  // dentro del efecto (react-hooks/set-state-in-effect).
+  const marcarCargando = () => setCargando(true);
+  useResetAlCambiar(params, marcarCargando);
+  useResetAlCambiar(pagina, marcarCargando);
+  useResetAlCambiar(recarga, marcarCargando);
+
   useEffect(() => {
     const peticion = ++secuenciaPagina.current;
-    setCargando(true);
 
     listarArticulosPagina(params, pagina, TAMANO_PAGINA)
       .then((respuesta) => {
@@ -516,10 +532,61 @@ function ArticulosPage() {
 
   const idsClientesDelArticulo = articuloAEditar ? articuloAEditar.clientes.map((c) => c.id) : [];
 
+  // Filtros de pagina (Grupo/Subgrupo/Colegio-Club/Linea): un solo array para
+  // no duplicar la lista de botones entre el layout de escritorio y el
+  // Popover "Filtrar Por" de celular (ver FiltrosVentasToolbar, mismo patron).
+  const filtrosPagina = [
+    {
+      id: 'grupo',
+      label: 'Filtrar por Grupo',
+      opciones: grupos.map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` })),
+      selectedId: grupoSeleccionado,
+      onSelect: setGrupoSeleccionado,
+      onClear: () => {
+        setGrupoSeleccionado(null);
+        setSubgrupoSeleccionado(null);
+      },
+      onCrear: () => setCrearModalTipo('grupo'),
+      crearLabel: 'Crear Grupo',
+    },
+    {
+      id: 'subgrupo',
+      label: 'Filtrar por Subgrupo',
+      opciones: subgruposFiltrados.map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo })),
+      selectedId: subgrupoSeleccionado,
+      onSelect: handleSeleccionarSubgrupo,
+      onClear: () => setSubgrupoSeleccionado(null),
+      onCrear: () => setCrearModalTipo('subgrupo'),
+      crearLabel: 'Crear Subgrupo',
+    },
+    {
+      id: 'colegio',
+      label: 'Filtrar por Colegio/Club',
+      opciones: clientes.map((c) => ({ id: c.id_cliente, nombre: c.nombre })),
+      selectedId: clienteSeleccionado,
+      onSelect: setClienteSeleccionado,
+      onClear: () => setClienteSeleccionado(null),
+      onCrear: () => setCrearModalTipo('colegio'),
+      crearLabel: 'Crear Colegio/Club',
+    },
+    {
+      id: 'linea',
+      label: 'Filtrar por Linea',
+      opciones: lineas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea })),
+      selectedId: lineaSeleccionada,
+      onSelect: setLineaSeleccionada,
+      onClear: () => setLineaSeleccionada(null),
+      onCrear: () => setCrearModalTipo('linea'),
+      crearLabel: 'Crear Linea',
+    },
+  ];
+
+  const cantidadFiltrosPaginaActivos = filtrosPagina.filter((f) => f.selectedId !== null).length;
+
   return (
     <>
       <SectionWrapper>
-          <div className='flex flex-wrap gap-y-2 justify-between my-2'>
+          <div className='flex flex-wrap items-center gap-3 gap-y-2 my-2'>
             <div className='flex flex-wrap gap-1.5 sm:gap-2 lg:gap-4 select-none'>
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -528,66 +595,77 @@ function ArticulosPage() {
               >
                 <span>Nuevo Articulo</span>
               </button>
-              <div className='flex flex-wrap items-center gap-1.5 sm:gap-2'>
-                <FilterDropdown
-                  label='Filtrar por Grupo'
-                  opciones={grupos.map((g) => ({
-                    id: g.id_grupo,
-                    nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}`,
-                  }))}
-                  selectedId={grupoSeleccionado}
-                  onSelect={setGrupoSeleccionado}
-                  onClear={() => {
-                    setGrupoSeleccionado(null);
-                    setSubgrupoSeleccionado(null);
-                  }}
-                  onCrear={() => setCrearModalTipo('grupo')}
-                  crearLabel='Crear Grupo'
-                />
+              {/* Escritorio (md+): un boton por filtro, igual que antes. */}
+              <div className='hidden md:flex flex-wrap items-center gap-1.5 sm:gap-2'>
+                {filtrosPagina.map((filtro) => (
+                  <FilterDropdown key={filtro.id} {...filtro} />
+                ))}
+              </div>
 
-                <FilterDropdown
-                  label='Filtrar por Subgrupo'
-                  opciones={subgruposFiltrados.map((s) => ({
-                    id: s.id_subgrupo,
-                    nombre: s.nombre_subgrupo,
-                  }))}
-                  selectedId={subgrupoSeleccionado}
-                  onSelect={handleSeleccionarSubgrupo}
-                  onClear={() => setSubgrupoSeleccionado(null)}
-                  onCrear={() => setCrearModalTipo('subgrupo')}
-                  crearLabel='Crear Subgrupo'
-                />
+              {/* Celular (debajo de md): se colapsan en un unico boton
+                  "Filtrar Por" con los mismos botones apilados, igual que
+                  FiltrosVentasToolbar en Ventas/Historial. */}
+              <div className='md:hidden'>
+                <Popover className='relative'>
+                  <PopoverButton
+                    className={`flex items-center gap-2 rounded border px-3 py-2 text-sm font-medium cursor-pointer transition-colors duration-100 ease-in focus:outline-none ${
+                      cantidadFiltrosPaginaActivos > 0
+                        ? 'bg-marca-500 border-marca-500 text-white hover:bg-marca-600'
+                        : 'bg-white border-neutro-200 text-neutro-600 hover:bg-neutro-100 hover:text-neutro-900'
+                    }`}
+                  >
+                    <svg
+                      className={`h-3.5 w-3.5 shrink-0 ${
+                        cantidadFiltrosPaginaActivos > 0 ? 'text-white' : 'text-neutro-400'
+                      }`}
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        d='M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z'
+                      />
+                    </svg>
+                    Filtrar Por
+                    {cantidadFiltrosPaginaActivos > 0 && (
+                      <span className='flex items-center justify-center h-4 w-4 shrink-0 rounded-full bg-white text-marca-600 text-[10px] font-bold leading-none'>
+                        {cantidadFiltrosPaginaActivos}
+                      </span>
+                    )}
+                  </PopoverButton>
 
-                <FilterDropdown
-                  label='Filtrar por Colegio/Club'
-                  opciones={clientes.map((c) => ({
-                    id: c.id_cliente,
-                    nombre: c.nombre,
-                  }))}
-                  selectedId={clienteSeleccionado}
-                  onSelect={setClienteSeleccionado}
-                  onClear={() => setClienteSeleccionado(null)}
-                  onCrear={() => setCrearModalTipo('colegio')}
-                  crearLabel='Crear Colegio/Club'
-                />
+                  {/* shadow-sm: excepcion documentada para elementos flotantes. */}
+                  <PopoverPanel className='absolute z-20 mt-1 w-64 max-w-[85vw] rounded border border-neutro-200 bg-white p-2 shadow-sm focus:outline-none'>
+                    {({ close }) => (
+                      <div className='flex flex-col gap-2'>
+                        {filtrosPagina.map((filtro) => (
+                          <FilterDropdown key={filtro.id} {...filtro} onAbrir={close} />
+                        ))}
+                      </div>
+                    )}
+                  </PopoverPanel>
+                </Popover>
               </div>
             </div>
-            <div className='flex items-center gap-3'>
-              {/* No se muestra a quien no puede elegir: sus etiquetas salen por
-                  la impresora predeterminada. */}
-              <div className='w-52'>
-                <SelectorImpresora
-                  impresoras={impresoras.impresoras}
-                  valor={impresoras.seleccionada}
-                  onChange={impresoras.setSeleccionada}
-                  puedeElegir={impresoras.puedeElegir}
-                />
-              </div>
-              <SearchInput
-                valor={busquedaInput}
-                onCambio={setBusquedaInput}
-                placeholder='Buscar articulo...'
-                claseContenedor='relative w-72 flex items-center py-2'
+
+            <SearchInput
+              valor={busquedaInput}
+              onCambio={setBusquedaInput}
+              placeholder='Buscar articulo...'
+              claseContenedor='relative flex-1 min-w-[180px] flex items-center py-2'
+            />
+
+            {/* No se muestra a quien no puede elegir: sus etiquetas salen por
+                la impresora predeterminada. */}
+            <div className='w-52 shrink-0'>
+              <SelectorImpresora
+                impresoras={impresoras.impresoras}
+                valor={impresoras.seleccionada}
+                onChange={impresoras.setSeleccionada}
+                puedeElegir={impresoras.puedeElegir}
               />
             </div>
           </div>
@@ -665,9 +743,15 @@ function ArticulosPage() {
                 </button>
               </>
             )}
+            // La fila se marca en rojo cuando la cantidad quedo por debajo del
+            // minimo configurado: es lo que hay que reponer, y tiene que verse
+            // de un vistazo entre 30 filas. La regla vive en stockBajo.ts.
+            alertaFila={descripcionStockBajo}
+            // Esta celda la pinta la pagina, asi que repite las clases
+            // `group-data-[alerta]:*` que el DataGrid usa en las demas.
             claseCeldaAccion={(item) =>
-              `py-3 border-black/20 border-l border-b group-hover:bg-neutro-100 transition-colors duration-100 ease-in flex flex-col items-center justify-center gap-2 ${
-                seleccionados.has(item.id_articulo) ? 'bg-neutro-200' : ''
+              `py-2 md:py-3 border-black/20 border-l border-b group-hover:bg-neutro-100 transition-colors duration-100 ease-in flex flex-col items-center justify-center gap-2 group-data-[alerta]:border-red-300 group-data-[alerta]:group-hover:bg-red-100 ${
+                seleccionados.has(item.id_articulo) ? 'bg-neutro-200 group-data-[alerta]:bg-red-200' : ''
               }`
             }
             // Solo se vacia la tabla en la primera carga: al cambiar de pagina o
@@ -774,6 +858,9 @@ function ArticulosPage() {
         tipo={tabla.columnaAbierta?.filtro.tipo ?? null}
         filtroActual={tabla.columnaAbierta ? tabla.filtrosColumna[tabla.columnaAbierta.filtroKey] : undefined}
         opciones={tabla.opcionesFiltroAbierto}
+        presetsExtra={
+          tabla.columnaAbierta?.filtro.tipo === 'rango' ? tabla.columnaAbierta.filtro.presetsExtra : undefined
+        }
         onAplicar={tabla.handleAplicarFiltro}
       />
     </>

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import BaseModal from '@/components/ui/BaseModal';
 import SearchInput from '@/components/ui/SearchInput';
 import { useToggleSet } from '@/hooks/useToggleSet';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { normalizarBusqueda } from '@/utils/texto';
 import { presetsDeFecha } from '@/components/tabla/presetsFecha';
 
@@ -17,6 +18,15 @@ interface ColumnFilterModalProps {
   tipo: 'texto' | 'rango' | 'seleccion' | 'fecha' | null;
   filtroActual?: FiltroColumna;
   opciones?: OpcionFiltro[];
+  /** Botones de estado del filtro de rango (ver FiltroDefRango.presetsExtra). */
+  presetsExtra?: { valor: string; etiqueta: string }[];
+  /**
+   * Solo para filtros de seleccion: ofrece elegir entre incluyente y
+   * excluyente (ver FiltroDefSeleccion.soportaModoExcluyente). Las demas
+   * columnas de seleccion no lo declaran y ni muestran el selector ni mandan
+   * `modo` en el filtro.
+   */
+  soportaModoExcluyente?: boolean;
   onAplicar: (filtro: FiltroColumna | null) => void;
   /**
    * z-index del modal. Por defecto queda en la capa base (z-50), que alcanza
@@ -33,17 +43,24 @@ export default function ColumnFilterModal({
   tipo,
   filtroActual,
   opciones = [],
+  presetsExtra,
+  soportaModoExcluyente = false,
   onAplicar,
   z,
 }: ColumnFilterModalProps) {
   const [valorTexto, setValorTexto] = useState('');
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
+  // Que preset de estado esta activo (si el filtro actual llego con `extra`),
+  // solo para resaltar el boton correspondiente al reabrir el filtro.
+  const [extraActivo, setExtraActivo] = useState<string | null>(null);
   // Vista del filtro de fecha: arranca en los presets (Hoy/7 dias/30 dias/Mes/
   // Año); "Personalizado" pasa a los inputs de rango existentes.
   const [mostrarPersonalizado, setMostrarPersonalizado] = useState(false);
   const { seleccionados: idsSeleccionados, toggle: toggleId, setSeleccionados: setIdsSeleccionados } =
     useToggleSet<number>();
+  // Solo se usa (y se muestra) si la columna declara soportaModoExcluyente.
+  const [modoSeleccion, setModoSeleccion] = useState<'incluyente' | 'excluyente'>('incluyente');
   const [busqueda, setBusqueda] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -54,7 +71,9 @@ export default function ColumnFilterModal({
     return opciones.filter((opcion) => normalizarBusqueda(opcion.nombre).includes(termino));
   }, [opciones, busqueda]);
 
-  useEffect(() => {
+  // Reset al abrir / cambiar de tipo de columna: se ajusta DURANTE el render
+  // (useResetAlCambiar) en vez de con un useEffect, segun la convencion del repo.
+  const reiniciar = () => {
     if (!abierto) return;
     setError(null);
     setBusqueda('');
@@ -65,6 +84,7 @@ export default function ColumnFilterModal({
       const rango = filtroActual?.tipo === 'rango' ? filtroActual : null;
       setDesde(rango && rango.desde !== null ? String(rango.desde) : '');
       setHasta(rango && rango.hasta !== null ? String(rango.hasta) : '');
+      setExtraActivo(rango?.extra ?? null);
     } else if (tipo === 'fecha') {
       const fecha = filtroActual?.tipo === 'fecha' ? filtroActual : null;
       setDesde(fecha?.desde ?? '');
@@ -74,16 +94,29 @@ export default function ColumnFilterModal({
       // "Personalizado" mas, igual que elegir cualquier otro preset.
       setMostrarPersonalizado(false);
     } else if (tipo === 'seleccion') {
-      const seleccion = filtroActual?.tipo === 'seleccion' ? filtroActual.ids : null;
-      setIdsSeleccionados(new Set(seleccion ?? opciones.map((o) => o.id)));
+      const seleccion = filtroActual?.tipo === 'seleccion' ? filtroActual : null;
+      setIdsSeleccionados(new Set(seleccion?.ids ?? opciones.map((o) => o.id)));
+      setModoSeleccion(seleccion?.modo ?? 'incluyente');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto, tipo]);
+  };
+
+  useResetAlCambiar(abierto, reiniciar);
+  useResetAlCambiar(tipo, reiniciar);
 
   /** Un preset SE APLICA con el click: no pasa por el footer "Aplicar". */
   const handleAplicarPreset = (desdePreset: string, hastaPreset: string) => {
     onAplicar({ tipo: 'fecha', desde: desdePreset, hasta: hastaPreset });
     onCerrar();
+  };
+
+  /**
+   * Preset de estado del filtro de rango (ver presetsExtra): a diferencia de
+   * los de fecha, NO se aplica solo con el click. Es una seleccion excluyente
+   * (como un radio) que se junta con "Desde"/"Hasta" recien al apretar
+   * "Aplicar": clickear el que ya esta activo lo desmarca.
+   */
+  const handleClickExtra = (valor: string) => {
+    setExtraActivo((actual) => (actual === valor ? null : valor));
   };
 
   const handleAplicar = () => {
@@ -115,17 +148,32 @@ export default function ColumnFilterModal({
 
       setError(null);
       onAplicar(
-        valorDesde === null && valorHasta === null
+        valorDesde === null && valorHasta === null && extraActivo === null
           ? null
-          : { tipo: 'rango', desde: valorDesde, hasta: valorHasta }
+          : { tipo: 'rango', desde: valorDesde, hasta: valorHasta, ...(extraActivo !== null ? { extra: extraActivo } : {}) }
       );
       onCerrar();
       return;
     }
 
     if (tipo === 'seleccion') {
-      const todasSeleccionadas = opciones.length > 0 && idsSeleccionados.size === opciones.length;
-      onAplicar(todasSeleccionadas ? null : { tipo: 'seleccion', ids: [...idsSeleccionados] });
+      const excluyente = soportaModoExcluyente && modoSeleccion === 'excluyente';
+      // Tildar TODO es "no filtrar nada"... salvo en modo excluyente, donde
+      // significa "que tenga exactamente todos estos metodos", que si deja
+      // remitos afuera.
+      const todasSeleccionadas =
+        !excluyente && opciones.length > 0 && idsSeleccionados.size === opciones.length;
+      onAplicar(
+        todasSeleccionadas
+          ? null
+          : {
+              tipo: 'seleccion',
+              ids: [...idsSeleccionados],
+              // Las columnas que no ofrecen el selector siguen mandando el
+              // mismo payload de siempre, sin `modo`.
+              ...(soportaModoExcluyente ? { modo: modoSeleccion } : {}),
+            }
+      );
       onCerrar();
       return;
     }
@@ -198,6 +246,25 @@ export default function ColumnFilterModal({
         />
       )}
 
+      {tipo === 'rango' && presetsExtra && presetsExtra.length > 0 && (
+        <div className='flex gap-2 mb-4'>
+          {presetsExtra.map((preset) => (
+            <button
+              key={preset.valor}
+              type='button'
+              onClick={() => handleClickExtra(preset.valor)}
+              className={`w-full px-3 py-2 text-left text-sm font-medium rounded border transition-colors cursor-pointer ${
+                extraActivo === preset.valor
+                  ? 'bg-marca-500 border-marca-500 text-white'
+                  : 'text-neutro-600 border-neutro-200 hover:bg-marca-50 hover:border-marca-400 hover:text-marca-700'
+              }`}
+            >
+              {preset.etiqueta}
+            </button>
+          ))}
+        </div>
+      )}
+
       {tipo === 'rango' && (
         <div className='flex gap-3'>
           <div className='flex-1'>
@@ -265,6 +332,37 @@ export default function ColumnFilterModal({
               className='w-full px-3 py-2 border border-neutro-200 rounded text-neutro-600 focus:outline-none focus:ring-2 focus:ring-marca-500'
             />
           </div>
+        </div>
+      )}
+
+      {tipo === 'seleccion' && soportaModoExcluyente && (
+        <div className='flex flex-col gap-2 mb-3'>
+          <div className='flex gap-2'>
+            {(
+              [
+                { modo: 'incluyente', etiqueta: 'Alguno de estos' },
+                { modo: 'excluyente', etiqueta: 'Exactamente estos' },
+              ] as const
+            ).map((opcion) => (
+              <button
+                key={opcion.modo}
+                type='button'
+                onClick={() => setModoSeleccion(opcion.modo)}
+                className={`w-full px-3 py-2 text-left text-sm font-medium rounded border transition-colors cursor-pointer ${
+                  modoSeleccion === opcion.modo
+                    ? 'bg-marca-500 border-marca-500 text-white'
+                    : 'text-neutro-600 border-neutro-200 hover:bg-marca-50 hover:border-marca-400 hover:text-marca-700'
+                }`}
+              >
+                {opcion.etiqueta}
+              </button>
+            ))}
+          </div>
+          <p className='text-xs text-neutro-400'>
+            {modoSeleccion === 'incluyente'
+              ? 'Muestra las ventas que tengan al menos uno de los tildados, aunque además tengan otros.'
+              : 'Muestra solo las ventas que tengan justo los tildados y ninguno más.'}
+          </p>
         </div>
       )}
 

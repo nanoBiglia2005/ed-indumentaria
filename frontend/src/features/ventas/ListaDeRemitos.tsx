@@ -5,7 +5,9 @@ import RemitoCard from '@/features/ventas/RemitoCard';
 import MedidorAnchosRemitoCard from '@/features/ventas/MedidorAnchosRemitoCard';
 import { ANCHOS_REMITO_CARD_POR_DEFECTO } from '@/features/ventas/estadosRemito';
 import ReimprimirRemitoModal from '@/features/ventas/modales/ReimprimirRemitoModal';
+import DetalleRemitoModal from '@/features/ventas/modales/DetalleRemitoModal';
 import FiltrosVentasToolbar from '@/features/ventas/FiltrosVentasToolbar';
+import SearchInput from '@/components/ui/SearchInput';
 import type {
   ColumnaFiltrable,
   ColumnaTabla,
@@ -51,6 +53,12 @@ interface ListaDeRemitosProps {
   opcionesListas: boolean;
   onCerrarFiltro: () => void;
   onAplicarFiltro: (filtro: FiltroColumna | null) => void;
+
+  // --- Buscador de texto libre (opcional: sin `onCambiarBusqueda` no se
+  // muestra). El estado vive en la pagina, no aca: quien consulta al backend
+  // con la busqueda es ella, esto solo dibuja el input.
+  busquedaInput?: string;
+  onCambiarBusqueda?: (valor: string) => void;
 }
 
 export default function ListaDeRemitos({
@@ -73,6 +81,8 @@ export default function ListaDeRemitos({
   opcionesListas,
   onCerrarFiltro,
   onAplicarFiltro,
+  busquedaInput = '',
+  onCambiarBusqueda,
 }: ListaDeRemitosProps) {
   // Los metodos se piden una sola vez para toda la lista: cada tarjeta los
   // necesita solo para poner el nombre al lado de cada total.
@@ -92,6 +102,12 @@ export default function ListaDeRemitos({
   // La reimpresion vive aca y no en cada pagina: no necesita nada del padre y
   // asi VentasPage e HistorialPage la tienen sin repetir el modal.
   const [remitoAReimprimir, setRemitoAReimprimir] = useState<RemitoConDetalles | null>(null);
+
+  // Ficha completa de una venta ya cerrada (facturada / anulada / devuelta):
+  // esas no se despliegan inline, abren DetalleRemitoModal. Vive aca, al lado
+  // de `abiertoId`, porque es el otro modo de "abrir" una tarjeta.
+  const [remitoEnDetalle, setRemitoEnDetalle] = useState<RemitoConDetalles | null>(null);
+
   const toggleAbierto = (id_remito: number) =>
     setAbiertoId((prev) => (prev === id_remito ? null : id_remito));
 
@@ -114,19 +130,34 @@ export default function ListaDeRemitos({
   return (
     <div className='border-1 px-3 pb-2 rounded border-black/20 w-full flex-1 min-h-0 overflow-y-auto'>
       <div className={`sticky top-0 z-10 bg-white pt-2 pb-1${anchoCompleto ? ' w-full' : ''}`}>
-        <FiltrosVentasToolbar
-          campos={campos}
-          anchos={anchos}
-          filtrosColumna={filtrosColumna}
-          ordenColumnas={ordenColumnas}
-          onClickHeader={onClickHeader}
-          onClickOrdenar={onClickOrdenar}
-          columnaAbierta={columnaAbierta}
-          opcionesFiltroAbierto={opcionesFiltroAbierto}
-          opcionesListas={opcionesListas}
-          onCerrarFiltro={onCerrarFiltro}
-          onAplicarFiltro={onAplicarFiltro}
-        />
+        {/* El buscador comparte fila con la barra de filtros: en escritorio
+            queda a la derecha de los chips, y en celular al lado del unico
+            boton "Filtros" (mismo corte `lg` que usa la barra por dentro). */}
+        <div className='flex items-start gap-2'>
+          <div className='min-w-0 flex-1'>
+            <FiltrosVentasToolbar
+              campos={campos}
+              filtrosColumna={filtrosColumna}
+              ordenColumnas={ordenColumnas}
+              onClickHeader={onClickHeader}
+              onClickOrdenar={onClickOrdenar}
+              columnaAbierta={columnaAbierta}
+              opcionesFiltroAbierto={opcionesFiltroAbierto}
+              opcionesListas={opcionesListas}
+              onCerrarFiltro={onCerrarFiltro}
+              onAplicarFiltro={onAplicarFiltro}
+            />
+          </div>
+
+          {onCambiarBusqueda && (
+            <SearchInput
+              valor={busquedaInput}
+              onCambio={onCambiarBusqueda}
+              placeholder='Buscar venta...'
+              claseContenedor='relative flex items-center shrink-0 mb-2 w-40 sm:w-56 lg:w-72'
+            />
+          )}
+        </div>
       </div>
 
       {cargando && <span className={`text-neutro-400${claseEstado}`}>{textoCargando}</span>}
@@ -148,6 +179,7 @@ export default function ListaDeRemitos({
               metodos={metodos}
               abierto={abiertoId === remito.id_remito}
               onToggle={() => toggleAbierto(remito.id_remito)}
+              onAbrirDetalle={setRemitoEnDetalle}
               onPagar={onPagar}
               onAnular={onAnular}
               onDevolver={onDevolver}
@@ -168,6 +200,24 @@ export default function ListaDeRemitos({
         metodosConRecargo={metodosConRecargo}
         campos={campos}
         onMedido={setAnchos}
+      />
+
+      <DetalleRemitoModal
+        abierto={remitoEnDetalle !== null}
+        onCerrar={() => setRemitoEnDetalle(null)}
+        remito={remitoEnDetalle}
+        metodos={metodos}
+        // La devolucion abre su propio modal desde la pagina, al mismo z que
+        // este: hay que cerrar la ficha antes o quedarian encimados.
+        onDevolver={
+          onDevolver &&
+          ((remito) => {
+            setRemitoEnDetalle(null);
+            onDevolver(remito);
+          })
+        }
+        // La reimpresion si se apila (z-[60]): se vuelve a la ficha al cerrarla.
+        onReimprimir={setRemitoAReimprimir}
       />
 
       <ReimprimirRemitoModal

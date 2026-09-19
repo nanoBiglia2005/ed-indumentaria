@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Opcion } from '@/types/comunes';
 import BaseModal from '@/components/ui/BaseModal';
 import SearchInput from '@/components/ui/SearchInput';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { normalizarBusqueda, resaltarCoincidencia } from '@/utils/texto';
 
 interface SelectListModalProps {
@@ -28,9 +29,9 @@ export default function SelectListModal({
 }: SelectListModalProps) {
   const [busqueda, setBusqueda] = useState('');
 
-  useEffect(() => {
+  useResetAlCambiar(abierto, () => {
     if (abierto) setBusqueda('');
-  }, [abierto]);
+  });
 
   const opcionesFiltradas = useMemo(() => {
     if (busqueda === '') return opciones;

@@ -41,6 +41,7 @@ interface NuevaVentaModalProps {
   abierto: boolean;
   onCerrar: () => void;
   metodosConRecargo: TIPOS_DE_PAGO[];
+  metodos: TIPOS_DE_PAGO[];
   /** El remito ya quedo guardado como pendiente de cobro (y se imprimio). */
   onVentaRegistrada: (remito: RemitoCreado) => void;
 }
@@ -58,6 +59,7 @@ export default function NuevaVentaModal({
   abierto,
   onCerrar,
   metodosConRecargo,
+  metodos,
   onVentaRegistrada,
 }: NuevaVentaModalProps) {
   const [productos, setProductos] = useState<ProductoSeleccionado[]>([]);
@@ -294,22 +296,24 @@ export default function NuevaVentaModal({
           </div>
         }
       >
-        <div className='flex flex-wrap items-center gap-3 mb-2'>
+        <div className='flex flex-wrap items-center justify-between mb-2'>
           <span className='text-lg font-medium text-neutro-600'>Artículos</span>
-          <button
-            type='button'
-            onClick={() => setIsAgregarOpen(true)}
-            className='text-sm px-3 py-1.5 border border-marca-600 text-marca-600 font-medium rounded hover:bg-marca-500 hover:text-white transition-colors cursor-pointer'
-          >
-            Agregar por Búsqueda
-          </button>
-          <button
-            type='button'
-            onClick={() => setIsCodigoOpen(true)}
-            className='text-sm px-3 py-1.5 border border-marca-500 bg-marca-500 text-white font-medium rounded hover:bg-marca-600 hover:border-marca-600 transition-colors cursor-pointer'
-          >
-            Agregar por Código de Barras
-          </button>
+          <span className='flex md:gap-3 gap-1'>
+            <button
+              type='button'
+              onClick={() => setIsAgregarOpen(true)}
+              className='md:text-sm text-xs md:px-3 px-1.5 py-1.5 border border-marca-600 text-marca-600 font-medium rounded hover:bg-marca-500 hover:text-white transition-colors cursor-pointer'
+            >
+              Agregar por Búsqueda
+            </button>
+            <button
+              type='button'
+              onClick={() => setIsCodigoOpen(true)}
+              className='md:text-sm text-xs md:px-3 px-1.5 py-1.5 border border-marca-500 bg-marca-500 text-white font-medium rounded hover:bg-marca-600 hover:border-marca-600 transition-colors cursor-pointer'
+            >
+              Agregar por Código de Barras
+            </button>
+          </span>
         </div>
 
         <div className='border border-neutro-200 rounded max-h-72 overflow-y-auto divide-y divide-neutro-100'>
@@ -457,7 +461,7 @@ export default function NuevaVentaModal({
         abierto={isAgregarOpen}
         onCerrar={() => setIsAgregarOpen(false)}
         articulosExcluidos={articulosExcluidos}
-        metodos={metodosConRecargo}
+        metodos={metodos}
         onAgregar={handleAgregarProducto}
       />
 

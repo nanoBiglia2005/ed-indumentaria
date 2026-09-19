@@ -64,6 +64,22 @@ test('precioConRecargo siempre devuelve un multiplo de 10', () => {
   }
 });
 
+test('redondearPrecio con final = true se queda en el entero', () => {
+  // Los MONTOS FINALES del cobro (pagosRemito.js) no se fuerzan a multiplos de
+  // 10: una parte suelta del reparto no es el precio de ningun articulo.
+  assert.equal(redondearPrecio(8775, true), 8775);
+  assert.equal(redondearPrecio(14.6, true), 15);
+  assert.equal(redondearPrecio(14.4, true), 14);
+});
+
+test('precioConRecargo con final = true NO fuerza el multiplo de 10', () => {
+  // El caso que motivo el parametro: 7500 con 17% se cobra 8775, no 8780. Si
+  // este test se rompe, la pantalla del reparto muestra un importe y se cobra
+  // otro (el frontend tiene el mismo caso en src/utils/precios.test.ts).
+  assert.equal(precioConRecargo(7500, 17, true), 8775);
+  assert.equal(precioConRecargo(7500, 17), 8780);
+});
+
 test('preciosDeArticulo devuelve un precio por metodo, indexado por id', () => {
   assert.deepEqual(preciosDeArticulo(1000, [EFECTIVO, TARJETA]), { 1: 1000, 2: 1100 });
 });

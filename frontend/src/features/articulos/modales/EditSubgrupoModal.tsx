@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { ARTICULOS, GRUPOS_DE_VENTA, SUBGRUPOS_DE_VENTA } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { actualizarArticulo } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
+import { ordenarPorNombre } from '@/utils/texto';
 
 interface EditSubgrupoModalProps {
   abierto: boolean;
@@ -33,19 +35,23 @@ export default function EditSubgrupoModal({
     mensajeDe: (err) => mensajeDetallesPrimero(err, 'No se pudo actualizar el subgrupo del artículo.'),
   });
 
-  useEffect(() => {
+  const reiniciar = () => {
     if (!abierto || !articulo) return;
     setSubgrupoSeleccionado(articulo.id_subgrupo);
     setError(null);
-  }, [abierto, articulo, setError]);
+  };
+  useResetAlCambiar(abierto, reiniciar);
+  useResetAlCambiar(articulo, reiniciar);
 
   const grupo = articulo ? grupos.find((g) => g.id_grupo === articulo.id_grupo) ?? null : null;
 
   const opciones = useMemo(() => {
     if (!articulo) return [];
-    return subgrupos
-      .filter((s) => s.id_grupo === articulo.id_grupo)
-      .map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo }));
+    return ordenarPorNombre(
+      subgrupos
+        .filter((s) => s.id_grupo === articulo.id_grupo)
+        .map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo }))
+    );
   }, [articulo, subgrupos]);
 
   const handleGuardar = () => {

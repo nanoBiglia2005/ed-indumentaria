@@ -4,6 +4,7 @@ import type { ColumnaTabla } from '@/components/tabla/tipos';
 import { codigoBarcodeCompleto } from '@/utils/barcode';
 import { compararTalles, valorOrdenTalle } from '@/utils/talles';
 import { formatearPesos } from '@/utils/formato';
+import PreciosPorMetodo from '@/components/ui/PreciosPorMetodo';
 
 // Medidas historicas de la tabla del modal de venta (mas compacta que la de
 // ArticulosPage).
@@ -44,25 +45,6 @@ export function crearColumnasVenta(
   lineas: LINEAS[],
   metodos: TIPOS_DE_PAGO[] = []
 ): ColumnaTabla<ArticuloDeVenta>[] {
-  const columnasDePago: ColumnaTabla<ArticuloDeVenta>[] = metodos
-    // El metodo sin recargo cobra el precio base: su columna seria un duplicado
-    // exacto de "Precio".
-    .filter((metodo) => metodo.recargo > 0)
-    .map((metodo) => {
-      const precioDe = (item: ArticuloDeVenta) =>
-        item.precios_por_metodo?.[metodo.id_tipos_de_pago] ?? 0;
-
-      // Sin filtroKey/filtro a proposito: es un valor DERIVADO del precio con
-      // el recargo del metodo, no una columna de la base, y la tabla filtra y
-      // ordena en la base. Ordenar por el daria exactamente el mismo orden que
-      // por "Precio", que si es filtrable.
-      return {
-        header: `Precio ${metodo.nombre_tipo_de_pago}`,
-        render: (item) => `${formatearPesos(precioDe(item))}`,
-        width: 145,
-      };
-    });
-
   return [
     {
       header: 'Código',
@@ -110,11 +92,19 @@ export function crearColumnasVenta(
     {
       header: 'Precio',
       render: (item) => `${formatearPesos(item.precio)}`,
+      renderCell: (item) => (
+        <PreciosPorMetodo
+          precio={item.precio ?? 0}
+          metodos={metodos}
+          tamanoTexto='xs'
+          tamanoIcono={17}
+          claseContenedor='flex flex-col items-center gap-y-1 rounded border bg-white border-neutro-200 divide-y divide-neutro-200'
+        />
+      ),
       width: 110,
       filtroKey: 'precio',
       filtro: { tipo: 'rango', getValor: (item) => item.precio },
     },
-    ...columnasDePago,
     {
       header: 'Color/Modelo',
       render: (item) => item.detalle ?? 'Sin Detalle',

@@ -54,6 +54,24 @@ describe('precioConRecargo (espejo del backend)', () => {
   });
 });
 
+describe('redondeo de montos finales (final = true)', () => {
+  it('se queda en el entero, sin el paso a la decena', () => {
+    // Los MONTOS FINALES del cobro (calculoPago.ts) no se fuerzan a multiplos de
+    // 10: una parte suelta del reparto no es el precio de ningun articulo.
+    expect(redondearPrecio(8775, true)).toBe(8775);
+    expect(redondearPrecio(14.6, true)).toBe(15);
+    expect(redondearPrecio(14.4, true)).toBe(14);
+  });
+
+  it('precioConRecargo con final NO fuerza el multiplo de 10', () => {
+    // El caso que motivo el parametro: 7500 con 17% se cobra 8775, no 8780. Si
+    // este test se rompe, la pantalla del reparto muestra un importe y se cobra
+    // otro (el backend tiene el mismo caso en test/precios.test.js).
+    expect(precioConRecargo(7500, 17, true)).toBe(8775);
+    expect(precioConRecargo(7500, 17)).toBe(8780);
+  });
+});
+
 describe('preciosDeArticuloPorMetodo', () => {
   it('NO redondea el metodo sin recargo (diferencia deliberada con el backend)', () => {
     // Documentado en precios.ts:10-13: el metodo sin recargo no cobra nada de

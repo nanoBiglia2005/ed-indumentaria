@@ -167,6 +167,28 @@ test('con dos o mas metodos se aplica el recargo a cada parte', () => {
   assert.equal(tarjeta.monto_final, 550); // 500 * 1.1, NO 1130
 });
 
+test('el monto final se redondea al ENTERO, sin forzar multiplos de 10', () => {
+  // Una parte suelta del reparto no es el precio de ningun articulo, asi que no
+  // va a la decena (pagosRemito.js pasa final = true). El frontend calcula lo
+  // mismo en calculoPago.ts: si divergieran, la pantalla mostraria 8775 y aca se
+  // guardaria 8780, y ese es el numero que termina en el ticket y en el historial.
+  const TARJETA_17 = { id_tipos_de_pago: 2, nombre_tipo_de_pago: 'Tarjeta', recargo: 17 };
+  const resultado = parsearPagos(
+    {
+      pagos: [
+        { id_tipo_de_pago: 1, monto_inicial: 17500 },
+        { id_tipo_de_pago: 2, monto_inicial: 7500 },
+      ],
+    },
+    [EFECTIVO, TARJETA_17],
+    25000,
+    {}
+  );
+
+  const tarjeta = resultado.find((pago) => pago.id_tipo_de_pago === 2);
+  assert.equal(tarjeta.monto_final, 8775);
+});
+
 test('metodo unico sin total congelado cae al recargo sobre el monto', () => {
   const resultado = parsearPagos(
     { pagos: [{ id_tipo_de_pago: 2, monto_inicial: 1000 }] },

@@ -6,6 +6,7 @@ import type { CampoEditable } from '@/features/articulos/modales/EditFieldModal'
 import type { ArticuloListado } from '@/api/articulos';
 import { codigoBarcodeCompleto } from '@/utils/barcode';
 import ListaDeChips from '@/features/articulos/ListaDeChips';
+import { stockBajo } from '@/features/articulos/stockBajo';
 
 // Medidas historicas de la tabla de articulos.
 export const ALTO_LINEA = 20;
@@ -170,10 +171,22 @@ export function crearColumnasArticulos({
     {
       header: 'Cantidad',
       render: (item) => item.cant,
+      // El numero que dispara la alerta de la fila (ver stockBajo.ts) se
+      // remarca para que se entienda que es ESA columna la que esta mal.
+      extraClassName: (item) => (stockBajo(item) ? 'text-red-600 font-semibold' : ''),
       onClick: (item) => abrirEdicionCampo(item, 'cant'),
       width: 120,
       filtroKey: 'cant',
-      filtro: { tipo: 'rango', getValor: (item) => item.cant },
+      filtro: {
+        tipo: 'rango',
+        getValor: (item) => item.cant,
+        // Mismo criterio que stockBajo.ts (cant < stock_minimo, solo con
+        // minimo configurado). El backend lo traduce en articulosConsulta.js.
+        presetsExtra: [
+          { valor: 'bajo', etiqueta: 'Solo stock bajo' },
+          { valor: 'normal', etiqueta: 'Solo stock normal' },
+        ],
+      },
     },
     {
       header: 'Precio Unitario',

@@ -90,6 +90,33 @@ const CAMPO_FECHA_CREACION: ColumnaTabla<RemitoConDetalles> = {
   filtro: { tipo: 'fecha', getValor: (r) => fechaISO(r.fecha_de_creacion) },
 };
 
+/** Los metodos con los que se cobro la venta, en el orden en que se registraron. */
+const metodosDePago = (remito: RemitoConDetalles): OpcionFiltro[] =>
+  remito.PAGOS_REMITO.map((pago) => ({
+    id: pago.TIPOS_DE_PAGO.id_tipos_de_pago,
+    nombre: pago.TIPOS_DE_PAGO.nombre_tipo_de_pago,
+  }));
+
+const CAMPO_METODO_PAGO: ColumnaTabla<RemitoConDetalles> = {
+  header: 'Método de Pago',
+  render: (r) => {
+    const metodos = metodosDePago(r);
+    return metodos.length === 0 ? 'Sin pagos' : metodos.map((m) => m.nombre).join(', ');
+  },
+  width: 140,
+  filtroKey: 'metodo_pago',
+  filtro: {
+    tipo: 'seleccion',
+    // Igual que Cliente: las opciones reales las calcula el backend
+    // (GET /api/remitos/opciones?columna=metodo_pago, ver useOpcionesDeFiltro).
+    getValores: metodosDePago,
+    // Una venta puede pagarse con varios metodos a la vez: ademas de "alguno
+    // de estos" hace falta poder pedir "exactamente estos" (p. ej. las ventas
+    // 100% en efectivo, sin ninguna parte con tarjeta).
+    soportaModoExcluyente: true,
+  },
+};
+
 const CAMPO_TOTAL: ColumnaTabla<RemitoConDetalles> = {
   header: 'Total',
   render: (r) => formatearPesos(monto(r)),
@@ -98,7 +125,7 @@ const CAMPO_TOTAL: ColumnaTabla<RemitoConDetalles> = {
   filtro: { tipo: 'rango', getValor: monto },
 };
 
-/** Historial: los 6 campos. */
+/** Historial: los 7 campos. */
 export const camposHistorial: ColumnaTabla<RemitoConDetalles>[] = [
   CAMPO_CODIGO,
   CAMPO_ESTADO,
@@ -106,12 +133,15 @@ export const camposHistorial: ColumnaTabla<RemitoConDetalles>[] = [
   CAMPO_FECHA_EMISION,
   CAMPO_FECHA_CREACION,
   CAMPO_CLIENTE,
+  CAMPO_METODO_PAGO,
 ];
 
 /**
- * Ventas (pendientes de cobro): sin Estado (siempre CONFIRMADO) ni Fecha de
+ * Ventas (pendientes de cobro): sin Estado (siempre CONFIRMADO), sin Fecha de
  * emision (siempre null hasta que se factura o anula/devuelve, ver
- * trg_fecha_de_emision en la migracion 0_init).
+ * trg_fecha_de_emision en la migracion 0_init) y sin Metodo de Pago (un remito
+ * Confirmado todavia no tiene ningun PAGOS_REMITO: el filtro seria un unico
+ * checkbox "Sin pagos" que no descarta nada).
  */
 export const camposVentasPendientes: ColumnaTabla<RemitoConDetalles>[] = [
   CAMPO_CODIGO,

@@ -4,6 +4,7 @@ import type { Agrupacion, ArticuloDeVenta, ItemAConfirmar } from '@/types/ventas
 import BaseModal from '@/components/ui/BaseModal';
 import Notificacion from '@/components/ui/Notificacion';
 import { useNotificacion } from '@/hooks/useNotificacion';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { useTablaServidor } from '@/components/tabla/useTablaServidor';
 import { SIN_ASIGNAR_ID } from '@/components/tabla/tipos';
 import type { OpcionFiltro } from '@/components/tabla/tipos';
@@ -145,19 +146,21 @@ export default function AgregarProductoModal({
   const [confirmacionEsMasiva, setConfirmacionEsMasiva] = useState(false);
   const {
     notificacion,
+    tipoNotificacion,
     mostrar: mostrarNotificacion,
     ocultar: ocultarNotificacion,
   } = useNotificacion();
 
   /**
    * En una venta no se puede agregar lo que no hay: el articulo igual se ve en
-   * la tabla (atenuado), pero el click y el tilde son no-op con un aviso. El
-   * backend vuelve a validarlo al crear el remito; esto es solo comodidad.
+   * la tabla (gris, no-permitido), pero el click y el tilde son no-op con un
+   * aviso. El backend vuelve a validarlo al crear el remito; esto es solo
+   * comodidad.
    */
   const bloqueadoPorStock = (articulo: ArticuloDeVenta) =>
     limitarPorStock && sinStock(articulo);
 
-  const avisarSinStock = () => mostrarNotificacion('Sin stock disponible.');
+  const avisarSinStock = () => mostrarNotificacion('Sin stock disponible.', 'error');
 
   const toggleSeleccion = (id: number) => {
     const articulo = articulos.find((a) => a.id_articulo === id);
@@ -183,10 +186,10 @@ export default function AgregarProductoModal({
     if (destino === 1) setLinea(null);
   };
 
-  // Al abrirse arranca de cero y trae las lineas, que son el primer paso.
-  useEffect(() => {
+  // Al abrirse arranca de cero, ya en este render (evita setState sincronico
+  // dentro de un efecto), y el efecto de abajo trae las lineas del paso 1.
+  useResetAlCambiar(abierto, () => {
     if (!abierto) return;
-
     setLinea(null);
     setCliente(null);
     setGrupo(null);
@@ -195,6 +198,10 @@ export default function AgregarProductoModal({
     setSeleccionadosPorId(new Map());
     setPagina(1);
     ocultarNotificacion();
+  });
+
+  useEffect(() => {
+    if (!abierto) return;
 
     listarLineas()
       .then((lineasData) => setLineas(lineasData))
@@ -203,16 +210,17 @@ export default function AgregarProductoModal({
         setError(mensajeDetallesPrimero(err, 'No se pudieron cargar las líneas.'));
       })
       .finally(() => setCargando(false));
-    // ocultarNotificacion es estable (useCallback sin dependencias): no hace
-    // que el efecto se vuelva a correr.
-  }, [abierto, ocultarNotificacion]);
+  }, [abierto]);
 
   // Paso 2: colegios/clubes con articulos vigentes de la linea elegida.
+  useResetAlCambiar(linea, () => {
+    if (linea !== null) setCargando(true);
+  });
+
   useEffect(() => {
     if (linea === null) return;
 
     let cancelado = false;
-    setCargando(true);
 
     obtenerAgrupaciones(idLinea)
       .then((data) => {
@@ -235,11 +243,16 @@ export default function AgregarProductoModal({
   }, [linea, idLinea]);
 
   // Paso 3: grupos que tienen articulos de este cliente en esta linea.
+  const marcarCargandoPaso3 = () => {
+    if (linea !== null && cliente !== null) setCargando(true);
+  };
+  useResetAlCambiar(cliente, marcarCargandoPaso3);
+  useResetAlCambiar(linea, marcarCargandoPaso3);
+
   useEffect(() => {
     if (linea === null || cliente === null) return;
 
     let cancelado = false;
-    setCargando(true);
 
     obtenerGruposDeCliente(idCliente, idAgrupacion, idLinea)
       .then((data) => {
@@ -318,12 +331,20 @@ export default function AgregarProductoModal({
   // una rapida): solo se acepta la de la ultima peticion disparada.
   const secuenciaPagina = useRef(0);
 
-  // Paso 4: la pagina actual de articulos del recorte elegido.
+  // Paso 4: la pagina actual de articulos del recorte elegido. El "cargando"
+  // se marca ya en este render para evitar setState sincronico dentro del
+  // efecto (react-hooks/set-state-in-effect).
+  const marcarCargandoPaso4 = () => {
+    if (paso === 4) setCargando(true);
+  };
+  useResetAlCambiar(paso, marcarCargandoPaso4);
+  useResetAlCambiar(params, marcarCargandoPaso4);
+  useResetAlCambiar(pagina, marcarCargandoPaso4);
+
   useEffect(() => {
     if (paso !== 4) return;
 
     const peticion = ++secuenciaPagina.current;
-    setCargando(true);
 
     listarArticulosVentaPagina(params, pagina, TAMANO_PAGINA)
       .then((respuesta) => {
@@ -346,12 +367,14 @@ export default function AgregarProductoModal({
   }, [paso, params, pagina]);
 
   // Los subgrupos del desplegable solo tienen sentido con un grupo concreto:
-  // la base filtra por subgrupo unicamente dentro de un grupo.
+  // la base filtra por subgrupo unicamente dentro de un grupo. Sin grupo se
+  // vacian ya en este render (evita setState sincronico dentro del efecto).
+  useResetAlCambiar(idGrupo, () => {
+    if (idGrupo === null) setSubgrupos([]);
+  });
+
   useEffect(() => {
-    if (idGrupo === null) {
-      setSubgrupos([]);
-      return;
-    }
+    if (idGrupo === null) return;
 
     let cancelado = false;
 
@@ -368,13 +391,16 @@ export default function AgregarProductoModal({
 
   // Al cambiar de recorte se arranca de cero: sin filtros, sin busqueda y sin
   // seleccion de la combinacion anterior.
-  useEffect(() => {
+  const resetearRecorte = () => {
     setSubgrupoSeleccionado(null);
     setBusqueda('');
     resetearTabla();
     setSeleccionadosPorId(new Map());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idCliente, idAgrupacion, idGrupo, idLinea]);
+  };
+  useResetAlCambiar(idCliente, resetearRecorte);
+  useResetAlCambiar(idAgrupacion, resetearRecorte);
+  useResetAlCambiar(idGrupo, resetearRecorte);
+  useResetAlCambiar(idLinea, resetearRecorte);
 
   // Opciones del filtro de seleccion recien abierto: las calcula el backend
   // sobre las filas que pasan todos los DEMAS filtros.
@@ -514,7 +540,7 @@ export default function AgregarProductoModal({
         encabezado={
           /* Avisa que se agrego un producto SIN cerrar el modal, asi se puede
              seguir agregando. */
-          <Notificacion mensaje={notificacion} />
+          <Notificacion mensaje={notificacion} tipo={tipoNotificacion} />
         }
         debajoDelTitulo={
           <>
@@ -607,6 +633,7 @@ export default function AgregarProductoModal({
             onDeseleccionar={() => setSeleccionadosPorId(new Map())}
             onAgregarSeleccionados={handleAgregarSeleccionados}
             onAgregar={handleAgregar}
+            filaDeshabilitada={limitarPorStock ? sinStock : undefined}
           />
         )}
       </BaseModal>

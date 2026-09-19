@@ -4,6 +4,7 @@ import type { RemitoConDetalles, RemitoCreado, TIPOS_DE_PAGO } from '@backend/ty
 import { listarTiposDePago } from '@/api/tiposDePago';
 import { useTablaServidor } from '@/components/tabla/useTablaServidor';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
+import { useDebounce } from '@/hooks/useDebounce';
 import Paginador from '@/components/tabla/Paginador';
 import { listarRemitosPendientesPagina } from '@/api/remitos';
 import type { ParamsRemitos } from '@/api/remitos';
@@ -54,10 +55,15 @@ function VentasPage() {
   // Ventas no ofrece Estado ni Fecha de emision (ver campos.ts).
   const tabla = useTablaServidor({ columnas: camposVentasPendientes, opciones: opciones?.valores ?? [] });
 
-  // Cambia de identidad solo cuando cambia algun filtro o el orden.
+  // Buscador de texto libre (cruza codigo, cliente, estado, total y fechas en
+  // la base). Con retraso: cada tecleo seria una consulta.
+  const [busquedaInput, setBusquedaInput] = useState('');
+  const busqueda = useDebounce(busquedaInput, 300).trim();
+
+  // Cambia de identidad solo cuando cambia la busqueda, algun filtro o el orden.
   const params = useMemo<ParamsRemitos>(
-    () => ({ filtros: tabla.filtrosColumna, orden: tabla.ordenColumnas }),
-    [tabla.filtrosColumna, tabla.ordenColumnas]
+    () => ({ busqueda, filtros: tabla.filtrosColumna, orden: tabla.ordenColumnas }),
+    [busqueda, tabla.filtrosColumna, tabla.ordenColumnas]
   );
 
   const opcionesListas = useOpcionesDeFiltro('pendientes', params, tabla.columnaAbierta, opciones, setOpciones);
@@ -184,20 +190,20 @@ function VentasPage() {
           <button
             type='button'
             onClick={() => setIsNuevaVentaOpen(true)}
-            className='rounded flex items-center text-[25px] w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-marca-500 hover:bg-marca-600 active:bg-marca-700 transition-colors duration-100 ease-in'
+            className='rounded flex items-center md:text-[25px] text-lg w-fit py-2 px-4 text-white font-semibold border cursor-pointer bg-marca-500 hover:bg-marca-600 active:bg-marca-700 transition-colors duration-100 ease-in'
           >
             Iniciar Nueva Venta
           </button>
           <button
             type='button'
             onClick={() => setIsPresupuestoOpen(true)}
-            className='rounded flex items-center text-[25px] w-fit py-2 px-4 font-semibold border border-marca-600 text-marca-600 cursor-pointer hover:bg-marca-500 hover:text-white active:bg-marca-600 transition-colors duration-100 ease-in'
+            className='rounded flex items-center md:text-[25px] text-lg w-fit py-2 px-4 font-semibold border border-marca-600 text-marca-600 cursor-pointer hover:bg-marca-500 hover:text-white active:bg-marca-600 transition-colors duration-100 ease-in'
           >
             Crear Presupuesto
           </button>
         </div>
 
-        <span className='text-2xl font-semibold text-black w-full mt-10 mb-4 shrink-0'>
+        <span className='text-2xl font-semibold text-black w-full mt-6 mb-4 shrink-0'>
           Ventas Pendientes
         </span>
 
@@ -205,6 +211,8 @@ function VentasPage() {
           <RemitoDestacado
             idRemito={idRemitoDestacado}
             onCerrar={() => setSearchParams({})}
+            onPagar={setRemitoACobrar}
+            onAnular={setRemitoAAnular}
           />
         )}
 
@@ -227,6 +235,8 @@ function VentasPage() {
           opcionesListas={opcionesListas}
           onCerrarFiltro={() => tabla.setColumnaFiltroAbierta(null)}
           onAplicarFiltro={tabla.handleAplicarFiltro}
+          busquedaInput={busquedaInput}
+          onCambiarBusqueda={setBusquedaInput}
         />
 
         <div className='w-full'>
@@ -243,6 +253,7 @@ function VentasPage() {
       <NuevaVentaModal
         abierto={isNuevaVentaOpen}
         metodosConRecargo={metodosConRecargo}
+        metodos={metodos}
         onCerrar={() => setIsNuevaVentaOpen(false)}
         onVentaRegistrada={handleVentaRegistrada}
       />
@@ -250,6 +261,7 @@ function VentasPage() {
       <CrearPresupuestoModal
         abierto={isPresupuestoOpen}
         metodosConRecargo={metodosConRecargo}
+        metodos={metodos}
         onCerrar={() => setIsPresupuestoOpen(false)}
         onPresupuestoImpreso={handlePresupuestoImpreso}
       />

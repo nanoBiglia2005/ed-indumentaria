@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { ARTICULOS, GRUPOS_DE_VENTA, SUBGRUPOS_DE_VENTA } from '@backend/types';
 import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { actualizarArticulo } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
+import { ordenarPorNombre } from '@/utils/texto';
 
 interface EditGrupoModalProps {
   abierto: boolean;
@@ -34,17 +36,21 @@ export default function EditGrupoModal({
     mensajeDe: (err) => mensajeDetallesPrimero(err, 'No se pudo actualizar el grupo del artículo.'),
   });
 
-  useEffect(() => {
+  const reiniciar = () => {
     if (!abierto || !articulo) return;
     setGrupoSeleccionado(articulo.id_grupo);
     setError(null);
-  }, [abierto, articulo, setError]);
+  };
+  useResetAlCambiar(abierto, reiniciar);
+  useResetAlCambiar(articulo, reiniciar);
 
   const opciones = useMemo(
     () =>
-      grupos
-        .filter((g) => g.id_grupo !== ID_GRUPO_NO_ASIGNADO)
-        .map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` })),
+      ordenarPorNombre(
+        grupos
+          .filter((g) => g.id_grupo !== ID_GRUPO_NO_ASIGNADO)
+          .map((g) => ({ id: g.id_grupo, nombre: g.nombre_grupo ?? `Grupo ${g.id_grupo}` }))
+      ),
     [grupos]
   );
 

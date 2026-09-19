@@ -4,6 +4,7 @@ import { mensajeDetallesPrimero } from '@/api/cliente';
 import { buscarClientes } from '@/api/venta';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { nombreCompleto, telefonoDeCliente } from './formatoCliente';
 
 const RETRASO_BUSQUEDA_MS = 300;
@@ -34,16 +35,23 @@ export default function BuscadorClientes({
 
   useClickOutside(contenedorRef, abierto, () => setAbierto(false));
 
-  useEffect(() => {
+  // Ya en este render se limpia el resultado anterior (busqueda vaciada) o se
+  // marca "cargando" (busqueda nueva): evita setState sincronico dentro del
+  // efecto (react-hooks/set-state-in-effect).
+  useResetAlCambiar(terminoDebounced, () => {
     if (terminoDebounced === '') {
       setResultados([]);
       setError(null);
       setCargando(false);
-      return;
+    } else {
+      setCargando(true);
     }
+  });
+
+  useEffect(() => {
+    if (terminoDebounced === '') return;
 
     let cancelado = false;
-    setCargando(true);
 
     buscarClientes(terminoDebounced)
       .then((clientes) => {

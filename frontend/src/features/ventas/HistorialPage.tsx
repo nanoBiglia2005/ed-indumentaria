@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { RemitoConDetalles } from '@backend/types';
 import { useNotificacion } from '@/hooks/useNotificacion';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useTablaServidor } from '@/components/tabla/useTablaServidor';
 import { preset30Dias } from '@/components/tabla/presetsFecha';
 import Paginador from '@/components/tabla/Paginador';
@@ -44,8 +45,8 @@ function HistorialPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const idRemitoDestacado = idRemitoDeQuery(searchParams);
 
-  // Opciones del filtro de seleccion recien abierto (hoy solo "Cliente":
-  // "Estado" tiene opciones fijas, ver campos.ts). El estado vive aca, ANTES
+  // Opciones del filtro de seleccion recien abierto ("Cliente" y "Método de
+  // Pago": "Estado" tiene opciones fijas, ver campos.ts). Vive aca, ANTES
   // de useTablaServidor, porque este lo necesita de entrada — ver el
   // comentario de cabecera de useOpcionesDeFiltro.
   const [opciones, setOpciones] = useState<OpcionesCargadas | null>(null);
@@ -62,10 +63,15 @@ function HistorialPage() {
     filtrosIniciales: { fecha_creacion: { tipo: 'fecha', ...preset30Dias() } },
   });
 
-  // Cambia de identidad solo cuando cambia algun filtro o el orden.
+  // Buscador de texto libre (cruza codigo, cliente, estado, total y fechas en
+  // la base). Con retraso: cada tecleo seria una consulta.
+  const [busquedaInput, setBusquedaInput] = useState('');
+  const busqueda = useDebounce(busquedaInput, 300).trim();
+
+  // Cambia de identidad solo cuando cambia la busqueda, algun filtro o el orden.
   const params = useMemo<ParamsRemitos>(
-    () => ({ filtros: tabla.filtrosColumna, orden: tabla.ordenColumnas }),
-    [tabla.filtrosColumna, tabla.ordenColumnas]
+    () => ({ busqueda, filtros: tabla.filtrosColumna, orden: tabla.ordenColumnas }),
+    [busqueda, tabla.filtrosColumna, tabla.ordenColumnas]
   );
 
   const opcionesListas = useOpcionesDeFiltro('historial', params, tabla.columnaAbierta, opciones, setOpciones);
@@ -134,6 +140,7 @@ function HistorialPage() {
           <RemitoDestacado
             idRemito={idRemitoDestacado}
             onCerrar={() => setSearchParams({})}
+            onDevolver={setRemitoADevolver}
           />
         )}
 
@@ -154,6 +161,8 @@ function HistorialPage() {
           opcionesListas={opcionesListas}
           onCerrarFiltro={() => tabla.setColumnaFiltroAbierta(null)}
           onAplicarFiltro={tabla.handleAplicarFiltro}
+          busquedaInput={busquedaInput}
+          onCambiarBusqueda={setBusquedaInput}
         />
 
         <Paginador

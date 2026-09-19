@@ -19,6 +19,8 @@ const RUTA_BASE: Record<TipoDeListaRemitos, string> = {
 
 /** Todo lo que define QUE remitos pide la pagina (sin la pagina en si). */
 export interface ParamsRemitos {
+  /** Texto libre que cruza codigo, cliente, estado, total y fechas. */
+  busqueda: string;
   filtros: Record<string, FiltroColumna>;
   orden: CriterioOrden[];
 }
@@ -32,6 +34,8 @@ export interface RespuestaRemitos {
 const querystring = (params: ParamsRemitos, extra: Record<string, number> = {}) => {
   const query = new URLSearchParams();
 
+  // Mismo contrato que api/articulos.ts: si esta vacia, no se manda.
+  if (params.busqueda !== '') query.set('busqueda', params.busqueda);
   if (Object.keys(params.filtros).length > 0) query.set('filtros', JSON.stringify(params.filtros));
   if (params.orden.length > 0) {
     query.set('orden', params.orden.map((c) => `${c.key}:${c.direccion}`).join(','));

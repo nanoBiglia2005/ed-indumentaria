@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type {
   GRUPOS_DE_VENTA,
   SUBGRUPOS_DE_VENTA,
@@ -14,6 +14,7 @@ import SelectListModal from '@/components/ui/SelectListModal';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
 import PreciosPorMetodo from '@/components/ui/PreciosPorMetodo';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
+import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { crearArticulo, asignarCliente } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { formatearPesos } from '@/utils/formato';
@@ -109,15 +110,15 @@ export default function CreateArticleModal({
       .map((s) => ({ id: s.id_subgrupo, nombre: s.nombre_subgrupo }));
   }, [subgrupos, grupoSeleccionado]);
 
-  // Si se cambia de grupo, el subgrupo elegido (si era de otro grupo) deja de valer.
-  useEffect(() => {
-    if (
-      subgrupoSeleccionado !== null &&
-      !opcionesSubgrupo.some((o) => o.id === subgrupoSeleccionado)
-    ) {
-      setSubgrupoSeleccionado(null);
-    }
-  }, [opcionesSubgrupo, subgrupoSeleccionado]);
+  // Si se cambia de grupo, el subgrupo elegido (si era de otro grupo) deja de
+  // valer: se corrige DURANTE el render (la condicion se vuelve falsa apenas
+  // se limpia, asi que no hay riesgo de loop), no con un efecto.
+  if (
+    subgrupoSeleccionado !== null &&
+    !opcionesSubgrupo.some((o) => o.id === subgrupoSeleccionado)
+  ) {
+    setSubgrupoSeleccionado(null);
+  }
 
   // El selector de subgrupo recien aparece con un grupo elegido que tenga alguno.
   const mostrarSubgrupo = grupoSeleccionado !== null && opcionesSubgrupo.length > 0;
@@ -155,12 +156,9 @@ export default function CreateArticleModal({
     setClientesSeleccionados([]);
   };
 
-  useEffect(() => {
-    if (!abierto) {
-      resetForm();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [abierto]);
+  useResetAlCambiar(abierto, () => {
+    if (!abierto) resetForm();
+  });
 
   const handleCantidadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value;

@@ -7,9 +7,16 @@
 import type { ImportesPorMetodo, TIPOS_DE_PAGO } from '@backend/types';
 import { redondearPrecio, precioConRecargo } from '@/utils/precios';
 
-/** La vuelta: cuanto de la venta cubre un importe cobrado con ese metodo. */
+/**
+ * La vuelta: cuanto de la venta cubre un importe cobrado con ese metodo.
+ *
+ * Redondea al entero (`final`) igual que montoACobrar: si redondeara a la decena,
+ * un rango entero de importes tipeados caeria en el mismo monto inicial (con 17%,
+ * de 8769 a 8780 daban todos 7500) y el reparto cerraria con un importe que no es
+ * el que se va a cobrar.
+ */
 export const montoInicialDesdeFinal = (montoFinal: number, recargo: number) =>
-  redondearPrecio(montoFinal / (1 + recargo / 100));
+  redondearPrecio(montoFinal / (1 + recargo / 100), true);
 
 /**
  * Total de un conjunto de lineas con cada metodo. Se redondea LINEA POR LINEA y
@@ -50,6 +57,21 @@ export const repartirEntreVacios = (restante: number, idsVacios: number[]) => {
 };
 
 /**
+ * Si el reparto lo cubre UN SOLO metodo que ademas se lleva TODA la venta: la
+ * condicion de la regla del metodo unico (ver montoACobrar).
+ *
+ * Las dos partes importan. Alcanzar con "es la unica fila cargada" haria que
+ * tipear 1 y dejar el resto vacio mostrara el total entero de ese metodo, porque
+ * el monto tipeado ni siquiera entra en la cuenta. El backend llega a lo mismo
+ * por otro camino: valida que los iniciales sumen exacto ANTES de mirar si hay un
+ * solo pago (pagosRemito.js:83-92).
+ */
+export const esMetodoUnico = (montosIniciales: number[], totalEfectivo: number) => {
+  const conMonto = montosIniciales.filter((monto) => monto > 0);
+  return conMonto.length === 1 && conMonto[0] === totalEfectivo;
+};
+
+/**
  * Cuanto se cobra por un metodo al que se le imputo `montoInicial`.
  *
  * REGLA DEL METODO UNICO: si ese metodo se lleva TODA la venta, se cobra el
@@ -74,7 +96,7 @@ export const montoACobrar = ({
 }) =>
   esMetodoUnico && totalDelMetodo !== undefined
     ? totalDelMetodo
-    : precioConRecargo(montoInicial, recargo);
+    : precioConRecargo(montoInicial, recargo, true);
 
 /** Lo tipeado, sin nada que no sea un digito (los importes son enteros). */
 export const soloDigitos = (valor: string) => valor.replace(/\D/g, '');

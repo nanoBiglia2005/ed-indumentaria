@@ -36,6 +36,8 @@ interface PasoTablaProps {
   onDeseleccionar: () => void;
   onAgregarSeleccionados: () => void;
   onAgregar: (articulo: ArticuloDeVenta) => void;
+  /** Sin stock en una venta: la fila se ve pero se pinta gris y no-permitido. */
+  filaDeshabilitada?: (articulo: ArticuloDeVenta) => boolean;
 }
 
 export default function PasoTabla({
@@ -58,6 +60,7 @@ export default function PasoTabla({
   onDeseleccionar,
   onAgregarSeleccionados,
   onAgregar,
+  filaDeshabilitada,
 }: PasoTablaProps) {
   return (
     <>
@@ -135,6 +138,7 @@ export default function PasoTabla({
           </>
         }
         onFilaClick={onAgregar}
+        filaDeshabilitada={filaDeshabilitada}
         renderAccion={(item) => (
           <button
             type='button'
@@ -148,7 +152,7 @@ export default function PasoTabla({
           </button>
         )}
         claseCeldaAccion={() =>
-          'py-2 border-black/20 border-l border-b group-hover:bg-neutro-100 transition-colors duration-100 ease-in flex items-center justify-center'
+          'py-2 border-black/20 border-l border-b group-hover:bg-neutro-100 group-data-[deshabilitada]:bg-neutro-200 group-data-[deshabilitada]:group-hover:bg-neutro-200 transition-colors duration-100 ease-in flex items-center justify-center'
         }
         cargando={cargando}
         estadoCargando={<p className='px-3 py-6 text-sm text-neutro-400 text-center'>Cargando artículos...</p>}
