@@ -25,11 +25,18 @@ const remitosInclude = {
  * Valida los articulos que llegan del modal de venta y los devuelve con su
  * precio base ya redondeado (el que se va a congelar en la venta).
  *
- * `exigirStock` es la red de seguridad final de una Venta: compara la
- * cantidad pedida contra `ARTICULOS.cant` y rechaza si se pide de mas. El
- * sistema NO descuenta stock al vender (se ajusta a mano aparte), asi que
- * esto es solo una validacion de tope, no una reserva. Los Presupuestos
- * llaman a esta misma funcion sin `exigirStock` (no limitan por stock).
+ * `exigirStock` compara la cantidad pedida contra `ARTICULOS.cant` y rechaza
+ * si se pide de mas, con el mensaje amable del caso comun. El descuento de
+ * stock real lo hacen los triggers de la base (fn_mover_stock, ver
+ * prisma/migrations/20260919193941_flujo_de_stock_remitos/migration.sql):
+ * al crear el remito, `cant` baja y `cant_reservada` sube por cada detalle
+ * (DETALLES_REMITO); la transicion de id_estado despues mueve entre las dos.
+ * Este chequeo es solo la validacion previa: si dos ventas del mismo articulo
+ * corren a la vez, el trigger es la red final y rechaza la que pierde la
+ * carrera aunque esta validacion ya haya pasado (routes/remitos.js lo traduce
+ * a un 409 con `lib/http.js#errorDeStock`). Los Presupuestos llaman a esta
+ * misma funcion sin `exigirStock` (no limitan por stock; tampoco crean
+ * REMITOS ni DETALLES_REMITO, asi que no hay trigger que dispare).
  */
 const resolverItemsVenta = async (detalles, { exigirStock = false } = {}) => {
   if (!Array.isArray(detalles) || detalles.length === 0) {

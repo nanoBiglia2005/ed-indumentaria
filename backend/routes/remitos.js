@@ -1,7 +1,7 @@
 const express = require('express');
 const { Prisma } = require('../generated/prisma/client');
 const prisma = require('../db');
-const { asyncHandler, HttpError } = require('../lib/http');
+const { asyncHandler, HttpError, errorDeStock } = require('../lib/http');
 const { parseId } = require('../lib/validaciones');
 const { requireRol } = require('../lib/roles');
 const { ROLES_HISTORIAL } = require('../constants/roles');
@@ -254,22 +254,36 @@ router.post(
       0
     );
 
-    const nuevoRemito = await prisma.$transaction(async (tx) => {
-      if (datosCliente) {
-        await tx.CLIENTES.update({ where: { id_cliente }, data: datosCliente });
-      }
+    // `exigirStock` (arriba) ya valido el caso comun con un mensaje amable.
+    // El trigger de la base (fn_mover_stock, ED001) es la red final para la
+    // carrera entre dos ventas simultaneas del mismo articulo: si perdio la
+    // carrera, la venta ya no tiene stock aunque la validacion previa haya
+    // pasado, y esto lo traduce a un 409 igual de prolijo.
+    let nuevoRemito;
+    try {
+      nuevoRemito = await prisma.$transaction(async (tx) => {
+        if (datosCliente) {
+          await tx.CLIENTES.update({ where: { id_cliente }, data: datosCliente });
+        }
 
-      return tx.REMITOS.create({
-        data: {
-          fecha_de_creacion: new Date(),
-          id_estado: ESTADO_CONFIRMADO,
-          id_cliente,
-          total_efectivo: totalEfectivo,
-          DETALLES_REMITO: { create: detallesData },
-        },
-        include: remitosInclude,
+        return tx.REMITOS.create({
+          data: {
+            fecha_de_creacion: new Date(),
+            id_estado: ESTADO_CONFIRMADO,
+            id_cliente,
+            total_efectivo: totalEfectivo,
+            DETALLES_REMITO: { create: detallesData },
+          },
+          include: remitosInclude,
+        });
       });
-    });
+    } catch (error) {
+      const mensajeDeStock = errorDeStock(error);
+      if (mensajeDeStock) {
+        throw new HttpError(409, { message: mensajeDeStock });
+      }
+      throw error;
+    }
 
     const metodos = await listarMetodosDePago();
 
@@ -324,7 +338,10 @@ router.put(
 /**
  * Cambio de estado de un remito, que es todo lo que hacen anular y devolver:
  * el remito NO se borra ni se toca por dentro, queda registrado con su nuevo
- * estado. Los detalles y los pagos se conservan tal cual.
+ * estado. Los detalles y los pagos se conservan tal cual. El movimiento de
+ * stock que corresponde a cada transicion (liberar la reserva al anular,
+ * reingresar el fisico al devolver) lo hace el trigger `trg_stock_estado_remito`
+ * de la base, no este handler.
  */
 const cambiarEstadoDelRemito = async (res, idParam, { desde, mensajeDesde, hacia }) => {
   const { error, remito } = await buscarRemitoEnEstado(idParam, desde, mensajeDesde);

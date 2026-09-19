@@ -59,11 +59,17 @@ export default function ConfirmarProductoModal({
 
   const cantidadDe = (id_articulo: number) => cantidades[id_articulo] ?? null;
 
+  // El tope es el stock del articulo, y solo en una venta: en un presupuesto
+  // (limitarPorStock=false) se puede cotizar lo que no hay.
   const handleCantidadChange = (id_articulo: number, valor: string) => {
-    setCantidades((prev) => ({
-      ...prev,
-      [id_articulo]: valor === '' ? null : Math.trunc(Number(valor)),
-    }));
+    const articulo = items.find((p) => p.id_articulo === id_articulo);
+    const maximo = limitarPorStock && articulo ? articulo.cant : null;
+
+    setCantidades((prev) => {
+      let cantidad = valor === '' ? null : Math.trunc(Number(valor));
+      if (cantidad !== null && maximo !== null && cantidad > maximo) cantidad = maximo;
+      return { ...prev, [id_articulo]: cantidad };
+    });
   };
 
   const esValida = (cantidad: number | null) =>
@@ -178,6 +184,11 @@ export default function ConfirmarProductoModal({
               <div className='min-w-0 text-left'>
                 <p className='text-sm font-semibold text-neutro-900 break-words'>
                   {articulo.descripcion ?? 'Sin Nombre'}
+                  {limitarPorStock && (
+                    <span className='ml-2 text-xs font-normal text-neutro-400'>
+                      {Math.max(articulo.cant - (cantidad ?? 0), 0)} restantes
+                    </span>
+                  )}
                 </p>
                 {/* Precio registrado y, debajo, lo que sale con cada metodo. */}
                 <div className='flex gap-2 items-center'>
@@ -199,6 +210,7 @@ export default function ConfirmarProductoModal({
               <input
                 type='number'
                 min={1}
+                max={limitarPorStock ? articulo.cant : undefined}
                 step={1}
                 value={cantidad === null ? '' : cantidad}
                 onChange={(e) => handleCantidadChange(articulo.id_articulo, e.target.value)}
