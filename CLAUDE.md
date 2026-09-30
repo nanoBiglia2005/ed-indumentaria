@@ -134,7 +134,7 @@
 - Línea, grupo, subgrupo y colegio/club de un artículo son campos propios (`id_linea`, `id_grupo`,
   `id_subgrupo`, `id_cliente`; relación uno-a-muchos): se editan con `actualizarArticulo` desde su
   modal (`EditLineaModal`, `EditClienteModal`, ...). Ya no hay asociaciones muchos-a-muchos de un
-  artículo; `ARTICULOS_X_CLIENTE` está deprecada (sin uso) hasta que una migración la borre.
+  artículo (la tabla `ARTICULOS_X_CLIENTE` se eliminó).
 - Tipos compartidos en `src/types/` ({id, nombre} = `Opcion`). Los tipos de dominio no viven
   dentro de componentes.
 - Compartido entre features → `components/`, `hooks/`, `utils/`. De una sola feature → dentro

@@ -9,8 +9,7 @@
 //
 // Tambien congela que el colegio/club es UN campo del articulo (ARTICULOS.id_cliente,
 // como linea/grupo/subgrupo) y que ningun filtro vuelve a leer ARTICULOS_X_CLIENTE:
-// esa tabla queda sin uso hasta que una migracion la borre, y una consulta que
-// siguiera apuntandole devolveria datos que dejan de actualizarse.
+// esa tabla ya no existe, asi que una consulta que le apuntara fallaria en la base.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
