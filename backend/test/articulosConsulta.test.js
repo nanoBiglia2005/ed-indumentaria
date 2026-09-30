@@ -6,6 +6,11 @@
 // frontend/src/features/articulos/stockBajo.ts (minimo configurado > 0 Y
 // cantidad por debajo): si diverge, el preset del filtro deja de coincidir
 // con las filas que la tabla pinta en rojo.
+//
+// Tambien congela que el colegio/club es UN campo del articulo (ARTICULOS.id_cliente,
+// como linea/grupo/subgrupo) y que ningun filtro vuelve a leer ARTICULOS_X_CLIENTE:
+// esa tabla queda sin uso hasta que una migracion la borre, y una consulta que
+// siguiera apuntandole devolveria datos que dejan de actualizarse.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
@@ -55,4 +60,30 @@ test('sin "extra", el filtro de Cantidad queda igual que antes (solo el rango nu
   const resultado = where({ cant: { tipo: 'rango', desde: 5, hasta: null } });
   assert.equal(resultado.sql, '(a.cant >= ?::numeric)');
   assert.deepEqual(resultado.values, [5]);
+});
+
+const whereDeConsulta = (query) => construirWhere(parsearConsultaArticulos(query));
+
+test('el filtro por cliente puntual compara ARTICULOS.id_cliente, sin tabla intermedia', () => {
+  const resultado = whereDeConsulta({ id_cliente: '7' });
+  assert.match(resultado.sql, /a\.id_cliente = /);
+  assert.doesNotMatch(resultado.sql, /ARTICULOS_X_CLIENTE/);
+});
+
+test('el filtro por agrupacion busca el grupo del cliente del articulo', () => {
+  const resultado = whereDeConsulta({ id_agrupacion: '1' });
+  assert.match(resultado.sql, /c\.id_cliente = a\.id_cliente/);
+  assert.doesNotMatch(resultado.sql, /ARTICULOS_X_CLIENTE/);
+});
+
+test('exigir cliente (recorrido de venta) pide que el articulo tenga alguno', () => {
+  const resultado = construirWhere({ ...parsearConsultaArticulos({}), exigeCliente: true });
+  assert.match(resultado.sql, /a\.id_cliente IS NOT NULL/);
+});
+
+test('la columna Colegios/Clubes filtra por id y "Sin asignar" es id_cliente NULL', () => {
+  const resultado = where({ colegios: { tipo: 'seleccion', ids: [4, -1] } });
+  assert.match(resultado.sql, /a\.id_cliente IN \(/);
+  assert.match(resultado.sql, /a\.id_cliente IS NULL/);
+  assert.doesNotMatch(resultado.sql, /ARTICULOS_X_CLIENTE/);
 });

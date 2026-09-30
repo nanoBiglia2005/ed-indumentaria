@@ -5,9 +5,6 @@
  * porque un modulo que define un componente no puede exportar ademas constantes
  * ni funciones sin romper Fast Refresh: columnas.tsx exporta ROW_HEIGHT,
  * ALTO_LINEA y la factory crearColumnasArticulos.
- *
- * `formatearListaConLimite` en columnas.tsx es la version texto de esta misma
- * regla, para busqueda y orden: si cambia CHIP_MAXIMO, revisar tambien aquella.
  */
 const CHIP_MAXIMO = 2;
 

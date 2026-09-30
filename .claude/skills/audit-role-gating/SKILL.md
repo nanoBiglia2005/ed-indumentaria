@@ -45,7 +45,7 @@ Dos advertencias de bash aprendidas a las malas la primera vez que se corrió es
 
 ## Paso 3 — qué rutas cubrir
 
-Al momento de escribir esto, 11 de los 13 routers en `backend/routes/` importan `requireRol`: `precios.js`, `venta.js` (excepción — sin gate, es la página universal), `interno.js` (excepción — usa `X-Print-Secret`, no rol), `tiposDePago.js`, `remitos.js`, `articulos.js`, `grupos.js`, `subgrupos.js`, `clientes.js`, `lineas.js`, `print.js`, `asociaciones.js`, `impresoras.js`. **No copiar esta lista sin revisar** — si se agregó o quitó un router desde entonces, `grep -rln "requireRol" backend/routes/` da la lista vigente.
+Al momento de escribir esto, 10 de los 12 routers en `backend/routes/` importan `requireRol`: `precios.js`, `venta.js` (excepción — sin gate, es la página universal), `interno.js` (excepción — usa `X-Print-Secret`, no rol), `tiposDePago.js`, `remitos.js`, `articulos.js`, `grupos.js`, `subgrupos.js`, `clientes.js`, `lineas.js`, `print.js`, `impresoras.js`. **No copiar esta lista sin revisar** — si se agregó o quitó un router desde entonces, `grep -rln "requireRol" backend/routes/` da la lista vigente.
 
 Para cada ruta gateada: probar con cada rol que la constante correspondiente **excluye** (debe dar 403) y con al menos uno que **incluye** (no debe dar 403 — puede dar 200, 400 de validación, o 404 si el recurso no existe; lo único que confirma que el gate falló es un 403 inesperado o un 200/aceptado inesperado).
 

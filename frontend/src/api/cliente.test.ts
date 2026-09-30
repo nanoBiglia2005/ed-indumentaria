@@ -18,7 +18,7 @@ const respuesta = ({
 }) => ({ ok, status, json }) as Response;
 
 const mockFetch = (valor: Response) => {
-  const fn = vi.fn(async () => valor);
+  const fn = vi.fn<typeof fetch>(async () => valor);
   vi.stubGlobal('fetch', fn);
   return fn;
 };

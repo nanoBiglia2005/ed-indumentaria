@@ -77,6 +77,7 @@ const TEXTO_TALLE = Prisma.sql`COALESCE(a.talle, 'Sin Talle')`;
 const TEXTO_VIGENTE = Prisma.sql`CASE WHEN a.vigente THEN 'Vigente' ELSE 'No Vigente' END`;
 
 const nombreDeLinea = Prisma.sql`(SELECT l.nombre_linea FROM "LINEAS" l WHERE l.id_linea = a.id_linea)`;
+const nombreDeCliente = Prisma.sql`(SELECT c.nombre FROM "CLIENTES_MAYORISTAS" c WHERE c.id_cliente = a.id_cliente)`;
 const nombreDeSubgrupo = Prisma.sql`(SELECT s.nombre_subgrupo FROM "SUBGRUPOS_DE_VENTA" s WHERE s.id_subgrupo = a.id_subgrupo)`;
 // Los grupos de Colegios/Clubes no se listan en GET /api/grupos, asi que la
 // tabla los muestra como "Sin Grupo": aca quedan como NULL para que filtren y
@@ -108,11 +109,7 @@ const condicionBusqueda = (termino) =>
     OR ${contiene(TEXTO_LINEA, termino)}
     OR ${contiene(TEXTO_GRUPO, termino)}
     OR ${contiene(TEXTO_SUBGRUPO, termino)}
-    OR EXISTS (
-      SELECT 1 FROM "ARTICULOS_X_CLIENTE" ax
-        JOIN "CLIENTES_MAYORISTAS" c ON c.id_cliente = ax.id_cliente
-        WHERE ax.id_articulo = a.id_articulo AND ${contiene(Prisma.sql`c.nombre`, termino)}
-    )
+    OR ${contiene(Prisma.sql`COALESCE(${nombreDeCliente}, '')`, termino)}
   )`;
 
 // ============================================================
@@ -122,14 +119,11 @@ const condicionBusqueda = (termino) =>
 // SIEMPRE/NUNCA/rango/seleccionFk/SIN_ASIGNAR_ID viven en consultaSql.js,
 // compartidos con remitosConsulta.js.
 
-const existeCliente = (condicion) =>
-  Prisma.sql`EXISTS (SELECT 1 FROM "ARTICULOS_X_CLIENTE" ax WHERE ax.id_articulo = a.id_articulo AND ${condicion})`;
-
 // "Todos los colegios" / "todos los clubes": el articulo es de ALGUN cliente de
 // esa agrupacion. La agrupacion de un cliente es su grupo de venta exclusivo.
 const clienteDeAgrupacion = (idAgrupacion) => Prisma.sql`
   EXISTS (SELECT 1 FROM "CLIENTES_MAYORISTAS" c
-    WHERE c.id_cliente = ax.id_cliente AND c.grupo_venta_exclusivo = ${idAgrupacion})`;
+    WHERE c.id_cliente = a.id_cliente AND c.grupo_venta_exclusivo = ${idAgrupacion})`;
 
 // Una entrada por filtroKey de features/articulos/columnas.tsx.
 const TRADUCTORES = {
@@ -173,17 +167,7 @@ const TRADUCTORES = {
       { idFicticio: false }
     ),
 
-  colegios: (f) => {
-    const reales = f.ids.filter((id) => id !== SIN_ASIGNAR_ID);
-    const partes = [];
-    if (reales.length > 0) {
-      partes.push(existeCliente(Prisma.sql`ax.id_cliente IN (${Prisma.join(reales)})`));
-    }
-    if (f.ids.includes(SIN_ASIGNAR_ID)) {
-      partes.push(Prisma.sql`NOT ${existeCliente(SIEMPRE)}`);
-    }
-    return partes.length === 0 ? NUNCA : Prisma.sql`(${Prisma.join(partes, ' OR ')})`;
-  },
+  colegios: (f) => seleccionFk(Prisma.sql`a.id_cliente`, f.ids, Prisma.sql`a.id_cliente IS NULL`),
 
   // La columna es Boolean? y el render trata NULL como "No Vigente".
   vigente: (f) => {
@@ -206,11 +190,7 @@ const EXPRESIONES_ORDEN = {
   // despues de 20. Los codigos no numericos (hoy no hay ninguno) caen a NULL en
   // el primer criterio y desempatan por el texto en el segundo.
   codigo: [Prisma.sql`CASE WHEN ${CODIGO} ~ '^[0-9]+$' THEN (${CODIGO})::numeric END`, CODIGO],
-  colegios: [
-    Prisma.sql`(SELECT min(c.nombre) FROM "ARTICULOS_X_CLIENTE" ax
-       JOIN "CLIENTES_MAYORISTAS" c ON c.id_cliente = ax.id_cliente
-       WHERE ax.id_articulo = a.id_articulo)`,
-  ],
+  colegios: [nombreDeCliente],
   linea: [nombreDeLinea],
   grupos: [nombreDeGrupo],
   subgrupos: [nombreDeSubgrupo],
@@ -265,11 +245,11 @@ const construirWhere = (consulta, { excluirFiltro = null } = {}) => {
 
   // Los tres son el mismo filtro con distinto alcance, de mas a menos acotado:
   // un colegio/club puntual, una agrupacion entera, o cualquiera.
-  if (idCliente !== null) partes.push(existeCliente(Prisma.sql`ax.id_cliente = ${idCliente}`));
-  else if (idAgrupacion !== null) partes.push(existeCliente(clienteDeAgrupacion(idAgrupacion)));
+  if (idCliente !== null) partes.push(Prisma.sql`a.id_cliente = ${idCliente}`);
+  else if (idAgrupacion !== null) partes.push(clienteDeAgrupacion(idAgrupacion));
   // Sin nada elegido pero exigiendo cliente: "Todos los colegios y clubes" trae
   // lo que sea de ALGUNO, no el stock que no esta asociado a ninguno.
-  else if (exigeCliente) partes.push(existeCliente(SIEMPRE));
+  else if (exigeCliente) partes.push(Prisma.sql`a.id_cliente IS NOT NULL`);
 
   if (soloVigentes) partes.push(Prisma.sql`a.vigente IS TRUE`);
   if (excluirIds.length > 0) {
@@ -347,12 +327,10 @@ const OPCIONES_POR_COLUMNA = {
   colegios: {
     opciones: (where) => Prisma.sql`
       SELECT DISTINCT c.id_cliente AS id, c.nombre AS nombre
-        FROM "ARTICULOS" a
-        JOIN "ARTICULOS_X_CLIENTE" axc ON axc.id_articulo = a.id_articulo
-        JOIN "CLIENTES_MAYORISTAS" c ON c.id_cliente = axc.id_cliente
+        FROM "ARTICULOS" a JOIN "CLIENTES_MAYORISTAS" c ON c.id_cliente = a.id_cliente
         WHERE ${where}
         ORDER BY nombre ASC`,
-    sinAsignar: Prisma.sql`NOT EXISTS (SELECT 1 FROM "ARTICULOS_X_CLIENTE" ax WHERE ax.id_articulo = a.id_articulo)`,
+    sinAsignar: Prisma.sql`a.id_cliente IS NULL`,
   },
 };
 

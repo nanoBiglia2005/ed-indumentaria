@@ -28,16 +28,13 @@ import {
   listarIdsArticulos,
   listarOpcionesColumna,
   actualizarArticulo,
-  asignarCliente,
-  quitarCliente,
   imprimirBarcode,
 } from '@/api/articulos';
 import type { ArticuloListado, ParamsArticulos } from '@/api/articulos';
 import { listarGrupos, listarSubgrupos, listarClientes, listarLineas } from '@/api/agrupaciones';
 import { listarTiposDePago } from '@/api/tiposDePago';
 import CreateArticleModal from '@/features/articulos/modales/CreateArticleModal';
-import EditRelacionesModal from '@/features/articulos/modales/EditRelacionesModal';
-import type { TextosRelacion } from '@/features/articulos/modales/EditRelacionesModal';
+import EditClienteModal from '@/features/articulos/modales/EditClienteModal';
 import EditGrupoModal from '@/features/articulos/modales/EditGrupoModal';
 import EditSubgrupoModal from '@/features/articulos/modales/EditSubgrupoModal';
 import EditLineaModal from '@/features/articulos/modales/EditLineaModal';
@@ -67,14 +64,6 @@ interface OpcionesCargadas {
   params: ParamsArticulos;
   valores: OpcionFiltro[];
 }
-
-const TEXTOS_EDITAR_CLIENTES: TextosRelacion = {
-  titulo: 'Editar Colegios/Clubes',
-  label: 'Colegios/Clubes',
-  labelAgregar: 'Agregar Colegio/Club',
-  textoVacio: 'No asignado a ningún cliente',
-  errorSync: 'Hubo un error al actualizar los colegios/clubes asociados.',
-};
 
 // Mensaje de error de impresion: el print-service responde a veces con
 // { message } y a veces con { detail } (FastAPI).
@@ -121,7 +110,7 @@ function ArticulosPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [articuloAEditar, setArticuloAEditar] = useState<ArticuloListado | null>(null);
   const [isEditGrupoOpen, setIsEditGrupoOpen] = useState(false);
-  const [isEditClientesOpen, setIsEditClientesOpen] = useState(false);
+  const [isEditClienteOpen, setIsEditClienteOpen] = useState(false);
   const [isEditSubgrupoOpen, setIsEditSubgrupoOpen] = useState(false);
   const [isEditLineaOpen, setIsEditLineaOpen] = useState(false);
   const [campoAEditar, setCampoAEditar] = useState<CampoEditable | null>(null);
@@ -204,9 +193,9 @@ function ArticulosPage() {
     setIsEditGrupoOpen(true);
   }, []);
 
-  const abrirEdicionClientes = useCallback((articulo: ArticuloListado) => {
+  const abrirEdicionCliente = useCallback((articulo: ArticuloListado) => {
     setArticuloAEditar(articulo);
-    setIsEditClientesOpen(true);
+    setIsEditClienteOpen(true);
   }, []);
 
   const abrirEdicionSubgrupo = useCallback((articulo: ArticuloListado) => {
@@ -298,7 +287,7 @@ function ArticulosPage() {
         grupoDeArticulo,
         subgrupoDeArticulo,
         abrirEdicionGrupo,
-        abrirEdicionClientes,
+        abrirEdicionCliente,
         abrirEdicionSubgrupo,
         abrirEdicionLinea,
         abrirEdicionCampo,
@@ -314,7 +303,7 @@ function ArticulosPage() {
       grupoDeArticulo,
       subgrupoDeArticulo,
       abrirEdicionGrupo,
-      abrirEdicionClientes,
+      abrirEdicionCliente,
       abrirEdicionSubgrupo,
       abrirEdicionLinea,
       abrirEdicionCampo,
@@ -529,8 +518,6 @@ function ArticulosPage() {
   ) {
     setSubgrupoSeleccionado(null);
   }
-
-  const idsClientesDelArticulo = articuloAEditar ? articuloAEditar.clientes.map((c) => c.id) : [];
 
   // Filtros de pagina (Grupo/Subgrupo/Colegio-Club/Linea): un solo array para
   // no duplicar la lista de botones entre el layout de escritorio y el
@@ -797,16 +784,12 @@ function ArticulosPage() {
         subgrupos={subgrupos}
       />
 
-      <EditRelacionesModal
-        abierto={isEditClientesOpen}
-        onCerrar={() => setIsEditClientesOpen(false)}
+      <EditClienteModal
+        abierto={isEditClienteOpen}
+        onCerrar={() => setIsEditClienteOpen(false)}
         onExito={handleArticuloActualizado}
         articulo={articuloAEditar}
-        textos={TEXTOS_EDITAR_CLIENTES}
-        opciones={clientes.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
-        idsAsignados={idsClientesDelArticulo}
-        asignar={asignarCliente}
-        quitar={quitarCliente}
+        clientes={clientes}
       />
 
       <EditSubgrupoModal

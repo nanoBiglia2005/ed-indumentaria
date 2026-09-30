@@ -9,13 +9,11 @@ import type {
 import { ID_GRUPO_NO_ASIGNADO } from '@backend/types';
 import BaseModal from '@/components/ui/BaseModal';
 import SegmentedToggle from '@/components/ui/SegmentedToggle';
-import ListaChips from '@/components/ui/ListaChips';
-import SelectListModal from '@/components/ui/SelectListModal';
 import InlineFilterDropdown from '@/components/ui/InlineFilterDropdown';
 import PreciosPorMetodo from '@/components/ui/PreciosPorMetodo';
 import { useAccionAsync } from '@/hooks/useAccionAsync';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
-import { crearArticulo, asignarCliente } from '@/api/articulos';
+import { crearArticulo } from '@/api/articulos';
 import { mensajeDetallesPrimero } from '@/api/cliente';
 import { formatearPesos } from '@/utils/formato';
 import { BARCODE_AUTOMATICO, BARCODE_MAX } from '@/utils/barcode';
@@ -43,8 +41,6 @@ const OPCIONES_BARCODE = [
   { valor: 'manual', etiqueta: 'Manual' },
   { valor: 'auto', etiqueta: 'Automático' },
 ] as const;
-
-const MAX_CLIENTES_VISIBLES = 1;
 
 const ERROR_GRUPO_OBLIGATORIO = 'La asignación a un grupo es obligatoria.';
 
@@ -86,12 +82,16 @@ export default function CreateArticleModal({
   // "No Asignado" por el default de la base (ese grupo no se ofrece acá).
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<number | null>(null);
   const [subgrupoSeleccionado, setSubgrupoSeleccionado] = useState<number | null>(null);
-  const [clientesSeleccionados, setClientesSeleccionados] = useState<CLIENTES_MAYORISTAS[]>([]);
-  const [isClienteAssignOpen, setIsClienteAssignOpen] = useState(false);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<number | null>(null);
 
   const opcionesLinea = useMemo(
     () => lineas.map((l) => ({ id: l.id_linea, nombre: l.nombre_linea })),
     [lineas]
+  );
+
+  const opcionesCliente = useMemo(
+    () => clientes.map((c) => ({ id: c.id_cliente, nombre: c.nombre })),
+    [clientes]
   );
 
   const opcionesGrupo = useMemo(
@@ -133,6 +133,8 @@ export default function CreateArticleModal({
   }
 
   const nombreLineaSeleccionada = opcionesLinea.find((o) => o.id === lineaSeleccionada)?.nombre ?? 'Sin línea';
+  const nombreClienteSeleccionado =
+    opcionesCliente.find((o) => o.id === clienteSeleccionado)?.nombre ?? 'Sin colegio/club';
   const nombreGrupoSeleccionado =
     opcionesGrupo.find((o) => o.id === grupoSeleccionado)?.nombre ?? 'No Asignado';
   const nombreSubgrupoSeleccionado =
@@ -153,7 +155,7 @@ export default function CreateArticleModal({
     setLineaSeleccionada(null);
     setGrupoSeleccionado(null);
     setSubgrupoSeleccionado(null);
-    setClientesSeleccionados([]);
+    setClienteSeleccionado(null);
   };
 
   useResetAlCambiar(abierto, () => {
@@ -208,18 +210,10 @@ export default function CreateArticleModal({
         id_grupo: grupoSeleccionado,
         ...(lineaSeleccionada !== null ? { id_linea: lineaSeleccionada } : {}),
         ...(subgrupoSeleccionado !== null ? { id_subgrupo: subgrupoSeleccionado } : {}),
+        ...(clienteSeleccionado !== null ? { id_cliente: clienteSeleccionado } : {}),
       };
 
       const nuevoArticulo = await crearArticulo(payload);
-      const id_articulo = nuevoArticulo.id_articulo;
-
-      // Igual que siempre: las asignaciones que fallen se ignoran en silencio,
-      // el articulo ya quedo creado.
-      await Promise.all(
-        clientesSeleccionados.map((cliente) =>
-          asignarCliente(id_articulo, cliente.id_cliente).catch(() => null)
-        )
-      );
 
       setArticuloCreado({
         id_articulo: nuevoArticulo.id_articulo,
@@ -514,24 +508,15 @@ export default function CreateArticleModal({
             </div>
 
             <div className='pt-5'>
-              <label className='block font-medium text-neutro-600 mb-2'>Clubes/Colegios</label>
-              <div className='flex items-center gap-3'>
-                <button
-                  type='button'
-                  onClick={() => setIsClienteAssignOpen(true)}
-                  className='text-sm px-2 py-1 text-nowrap border border-marca-600 text-marca-600 rounded hover:bg-neutro-100 transition-colors cursor-pointer'
-                >
-                  Asignar a un Nuevo Club/Colegio
-                </button>
-
-                <ListaChips
-                  items={clientesSeleccionados.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
-                  onQuitar={(id) =>
-                    setClientesSeleccionados((prev) => prev.filter((c) => c.id_cliente !== id))
-                  }
-                  textoVacio='No asignado a ningún club/colegio'
-                />
-              </div>
+              <label className='block font-medium text-neutro-600 mb-2'>Colegio/Club</label>
+              <InlineFilterDropdown
+                label='Elegir Colegio/Club'
+                opciones={opcionesCliente}
+                selectedId={clienteSeleccionado}
+                onSelect={setClienteSeleccionado}
+                onClear={() => setClienteSeleccionado(null)}
+                conBuscador
+              />
             </div>
           </div>
         )}
@@ -617,14 +602,8 @@ export default function CreateArticleModal({
             <span className='text-sm text-neutro-900 font-semibold'>{nombreSubgrupoSeleccionado}</span>
           </div>
           <div className='flex justify-between gap-3 items-center'>
-            <span className='text-sm font-medium text-neutro-600 shrink-0'>Clubes/Colegios:</span>
-            <div className='flex justify-end'>
-              <ListaChips
-                items={clientesSeleccionados.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
-                textoVacio='No asignado a ningún club/colegio'
-                maxVisible={MAX_CLIENTES_VISIBLES}
-              />
-            </div>
+            <span className='text-sm font-medium text-neutro-600 shrink-0'>Colegio/Club:</span>
+            <span className='text-sm text-neutro-900 font-semibold text-right'>{nombreClienteSeleccionado}</span>
           </div>
         </div>
       </BaseModal>
@@ -672,14 +651,8 @@ export default function CreateArticleModal({
               <span className='text-sm text-neutro-900 font-semibold'>{nombreSubgrupoSeleccionado}</span>
             </div>
             <div className='flex justify-between gap-3 items-center'>
-              <span className='text-sm font-medium text-neutro-600 shrink-0'>Clientes:</span>
-              <div className='flex justify-end'>
-                <ListaChips
-                  items={clientesSeleccionados.map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
-                  textoVacio='No asignado a ningún club/colegio'
-                  maxVisible={MAX_CLIENTES_VISIBLES}
-                />
-              </div>
+              <span className='text-sm font-medium text-neutro-600 shrink-0'>Colegio/Club:</span>
+              <span className='text-sm text-neutro-900 font-semibold text-right'>{nombreClienteSeleccionado}</span>
             </div>
           </div>
         )}
@@ -691,23 +664,6 @@ export default function CreateArticleModal({
           Volver a la Lista
         </button>
       </BaseModal>
-
-      {/* Modal de Asignación de Clientes */}
-      <SelectListModal
-        abierto={isClienteAssignOpen}
-        onCerrar={() => setIsClienteAssignOpen(false)}
-        titulo='Asignar a un Cliente'
-        opciones={clientes
-          .filter((c) => !clientesSeleccionados.some((sel) => sel.id_cliente === c.id_cliente))
-          .map((c) => ({ id: c.id_cliente, nombre: c.nombre }))}
-        onSelect={(opcion) => {
-          const cliente = clientes.find((c) => c.id_cliente === opcion.id);
-          if (cliente) {
-            setClientesSeleccionados((prev) => [...prev, cliente]);
-          }
-          setIsClienteAssignOpen(false);
-        }}
-      />
     </>
   );
 }

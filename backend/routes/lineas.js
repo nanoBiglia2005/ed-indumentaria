@@ -70,8 +70,7 @@ router.put(
 );
 
 // Eliminar una linea. El FK de ARTICULOS a LINEAS es ON DELETE SET NULL, asi
-// que esto no falla por articulos en uso: simplemente quedan sin linea. Las
-// asociaciones en GRUPOS_X_LINEAS son ON DELETE CASCADE.
+// que esto no falla por articulos en uso: simplemente quedan sin linea.
 router.delete(
   '/:id_linea',
   requireRol(...ROLES_ARTICULOS),

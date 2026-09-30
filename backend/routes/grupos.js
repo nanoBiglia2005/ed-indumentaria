@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
-const { parseId, parseIds, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
+const { parseId, normalizarNombre, assertNombreUnico } = require('../lib/validaciones');
 const { requireRol } = require('../lib/roles');
 const { ROLES_ARTICULOS } = require('../constants/roles');
 const { ID_GRUPO_NO_ASIGNADO, IDS_GRUPOS_DE_CLIENTES } = require('../constants/agrupaciones');
@@ -97,38 +97,6 @@ router.delete(
   }, 'Error al eliminar el grupo.', {
     errores: { P2025: { status: 404, message: 'El grupo no existe.' } },
   })
-);
-
-// Asociar un grupo a una linea.
-router.post(
-  '/:id_grupo/lineas',
-  asyncHandler(async (req, res) => {
-    const [id_grupo, id_linea] = parseIds(
-      [req.params.id_grupo, req.body.id_linea],
-      'El id del grupo y de la línea deben ser numeros.'
-    );
-
-    const asociacion = await prisma.GRUPOS_X_LINEAS.create({
-      data: { id_grupo, id_linea },
-    });
-    res.status(201).json(asociacion);
-  }, 'Error al asociar el grupo a la línea.', {
-    errores: { P2003: { status: 404, message: 'El grupo o la línea no existen.' } },
-  })
-);
-
-// Quitar la asociacion entre un grupo y una linea.
-router.delete(
-  '/:id_grupo/lineas/:id_linea',
-  asyncHandler(async (req, res) => {
-    const [id_grupo, id_linea] = parseIds(
-      [req.params.id_grupo, req.params.id_linea],
-      'El id del grupo y de la línea deben ser numeros.'
-    );
-
-    await prisma.GRUPOS_X_LINEAS.deleteMany({ where: { id_grupo, id_linea } });
-    res.status(204).send();
-  }, 'Error al quitar la asociacion entre el grupo y la línea.')
 );
 
 module.exports = router;

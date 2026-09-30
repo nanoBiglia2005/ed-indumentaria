@@ -26,8 +26,8 @@ interface ConfirmarAccionRemitoModalProps {
  * 5 segundos antes de habilitar el boton.
  *
  * Es uno solo para todas: lo que cambia entre anular y devolver son textos y la
- * llamada a la api, asi que se pasan como un objeto (misma idea que
- * EditRelacionesModal) en vez de tener un modal por accion.
+ * llamada a la api, asi que se pasan como un objeto en vez de tener un modal
+ * por accion.
  */
 export default function ConfirmarAccionRemitoModal({
   abierto,

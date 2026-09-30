@@ -99,7 +99,7 @@
 - Nueva ruta: archivo en `routes/<dominio>.js` con `express.Router`, handlers envueltos en
   `asyncHandler(fn, 'mensaje de error 500')` de `lib/http.js`. Errores esperados:
   `throw new HttpError(status, body)`.
-- IDs de params: `parseId()` / `parseIds()`. Unicidad de nombres: `assertNombreUnico()`.
+- IDs de params: `parseId()`. Unicidad de nombres: `assertNombreUnico()`.
   Errores de Prisma (P2002/P2003/P2025): el mapa `errores` de `asyncHandler`
   (todo en `lib/validaciones.js` y `lib/http.js`).
 - Los ABMs (grupos/subgrupos/clientes/lineas) son routers explícitos con esos helpers:
@@ -131,8 +131,10 @@
 - Nueva columna de tabla: agregar una `ColumnaTabla<T>` en el `columnas.tsx` de la feature.
   El motor (`useTablaServidor`) y la grilla (`DataGrid`) no se modifican para casos puntuales.
   *(Algunos comentarios del código todavía lo llaman `useTablaFiltrable`: es un nombre histórico.)*
-- Asociaciones muchos-a-muchos de un artículo: usar `EditRelacionesModal` con un objeto
-  de textos + funciones de api, no crear un modal nuevo por entidad.
+- Línea, grupo, subgrupo y colegio/club de un artículo son campos propios (`id_linea`, `id_grupo`,
+  `id_subgrupo`, `id_cliente`; relación uno-a-muchos): se editan con `actualizarArticulo` desde su
+  modal (`EditLineaModal`, `EditClienteModal`, ...). Ya no hay asociaciones muchos-a-muchos de un
+  artículo; `ARTICULOS_X_CLIENTE` está deprecada (sin uso) hasta que una migración la borre.
 - Tipos compartidos en `src/types/` ({id, nombre} = `Opcion`). Los tipos de dominio no viven
   dentro de componentes.
 - Compartido entre features → `components/`, `hooks/`, `utils/`. De una sola feature → dentro

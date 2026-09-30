@@ -56,7 +56,7 @@ export const ROLES_PRECIOS: readonly string[] = roles.ROLES_PRECIOS;
  * (grupos, subgrupos, colegios/clubes, alta/baja de lineas, imprimir
  * etiquetas). El rol "empleado" queda afuera: solo tiene acceso a Ventas.
  * QUIEN DECIDE de verdad es el backend (articulos.js, grupos.js, subgrupos.js,
- * clientes.js, print.js y asociaciones.js, todos con requireRol; el GET de
+ * clientes.js y print.js, todos con requireRol; el GET de
  * lineas.js es la unica excepcion, porque Ventas tambien lo necesita). Fuente
  * unica: shared/roles.json.
  */

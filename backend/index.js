@@ -59,7 +59,6 @@ app.use('/api/clientes', require('./routes/clientes'));
 app.use('/api/clientes-finales', require('./routes/clientesFinales'));
 app.use('/api/lineas', require('./routes/lineas'));
 app.use('/api/precios', require('./routes/precios'));
-app.use('/api', require('./routes/asociaciones'));
 
 
 app.get('/', (req, res) => {
