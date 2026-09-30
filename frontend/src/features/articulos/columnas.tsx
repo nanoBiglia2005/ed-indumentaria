@@ -16,13 +16,6 @@ export const MAX_LINEAS_CELDA = 4;
 export const ROW_HEIGHT = MAX_LINEAS_CELDA * ALTO_LINEA + PADDING_VERTICAL_FILA + BORDE_FILA;
 export const ANCHO_COL_SELECCION = 44;
 
-/** Version texto de la misma regla que aplica ListaDeChips, para busqueda/orden. */
-const formatearListaConLimite = (nombres: string[], maximo = 2) => {
-  if (nombres.length === 0) return null;
-  if (nombres.length <= maximo) return nombres.join(', ');
-  return `${nombres.slice(0, maximo).join(', ')} +${nombres.length - maximo}`;
-};
-
 interface DepsColumnas {
   metodosDePago: TIPOS_DE_PAGO[];
   lineas: LINEAS[];
@@ -31,7 +24,7 @@ interface DepsColumnas {
   /** Subgrupo del articulo: uno o ninguno. */
   subgrupoDeArticulo: (articulo: ArticuloListado) => OpcionFiltro | null;
   abrirEdicionGrupo: (articulo: ArticuloListado) => void;
-  abrirEdicionClientes: (articulo: ArticuloListado) => void;
+  abrirEdicionCliente: (articulo: ArticuloListado) => void;
   abrirEdicionSubgrupo: (articulo: ArticuloListado) => void;
   abrirEdicionLinea: (articulo: ArticuloListado) => void;
   abrirEdicionCampo: (articulo: ArticuloListado, campo: CampoEditable) => void;
@@ -58,14 +51,12 @@ export function crearColumnasArticulos({
   grupoDeArticulo,
   subgrupoDeArticulo,
   abrirEdicionGrupo,
-  abrirEdicionClientes,
+  abrirEdicionCliente,
   abrirEdicionSubgrupo,
   abrirEdicionLinea,
   abrirEdicionCampo,
   onToggleVigente,
 }: DepsColumnas): ColumnaTabla<ArticuloListado>[] {
-  const nombresDeClientes = (item: ArticuloListado) => item.clientes.map((c) => c.nombre);
-
   return [
     {
       header: 'Código',
@@ -85,15 +76,20 @@ export function crearColumnasArticulos({
       },
     },
     {
-      header: 'Colegios/Clubes',
-      render: (item) => formatearListaConLimite(nombresDeClientes(item)) ?? 'Sin Colegios/Clubes',
+      // Un articulo es de UN colegio/club (o de ninguno): siempre un solo chip.
+      // La clave 'colegios' es la que traduce el backend a SQL: no se renombra.
+      header: 'Colegio/Club',
+      render: (item) => item.cliente?.nombre ?? 'Sin Colegio/Club',
       renderCell: (item) => (
-        <ListaDeChips nombres={nombresDeClientes(item)} vacioTexto='Sin Colegios/Clubes' />
+        <ListaDeChips
+          nombres={comoValores(item.cliente).map((o) => o.nombre)}
+          vacioTexto='Sin Colegio/Club'
+        />
       ),
-      onClick: (item) => abrirEdicionClientes(item),
+      onClick: (item) => abrirEdicionCliente(item),
       width: 160,
       filtroKey: 'colegios',
-      filtro: { tipo: 'seleccion', getValores: (item) => item.clientes },
+      filtro: { tipo: 'seleccion', getValores: (item) => comoValores(item.cliente) },
     },
     {
       header: 'Línea',

@@ -34,10 +34,6 @@ const parseId = (valor, mensaje) => {
   return id;
 };
 
-// Varios ids que comparten un unico mensaje de error combinado
-// (p. ej. "El id del articulo y del grupo deben ser numeros.").
-const parseIds = (valores, mensaje) => valores.map((valor) => parseId(valor, mensaje));
-
 /**
  * Id de un filtro opcional: ausente (o vacio) NO es un error, es "sin filtro".
  * Cualquier otra cosa pasa por parseId y corta igual que un id obligatorio.
@@ -64,4 +60,4 @@ const assertNombreUnico = async (modelo, campo, valor, { mensaje, where = {}, ex
   }
 };
 
-module.exports = { aId, parseId, parseIds, parseIdOpcional, normalizarNombre, assertNombreUnico };
+module.exports = { aId, parseId, parseIdOpcional, normalizarNombre, assertNombreUnico };

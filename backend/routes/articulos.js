@@ -1,7 +1,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { HttpError, asyncHandler } = require('../lib/http');
-const { aId, parseId, parseIds } = require('../lib/validaciones');
+const { aId, parseId } = require('../lib/validaciones');
 const { requireRol } = require('../lib/roles');
 const { ROLES_ARTICULOS } = require('../constants/roles');
 const { ID_GRUPO_NO_ASIGNADO } = require('../constants/agrupaciones');
@@ -100,22 +100,38 @@ async function resolverGrupoYSubgrupo({ id_grupo, id_subgrupo }, actual = null) 
   return datos;
 }
 
+/**
+ * Valida el colegio/club que se va a guardar en el articulo (uno o ninguno).
+ * Devuelve solo lo que hay que escribir: sin `id_cliente` en el body no se toca
+ * (un PUT parcial no lo borra), `null` lo quita.
+ */
+async function resolverCliente(id_cliente) {
+  if (id_cliente === undefined) return {};
+  if (id_cliente === null) return { id_cliente: null };
+
+  const idCliente = parseId(id_cliente, 'El id del cliente debe ser un numero.');
+  const cliente = await prisma.CLIENTES_MAYORISTAS.findUnique({ where: { id_cliente: idCliente } });
+  if (!cliente) {
+    throw new HttpError(404, { message: 'El colegio/club seleccionado no existe.' });
+  }
+  return { id_cliente: idCliente };
+}
+
 // ============================================================
 //  LISTADO PAGINADO
 // ============================================================
 // El filtrado, la busqueda, el orden y la paginacion se resuelven en la base
 // (ver lib/articulosConsulta.js): el frontend nunca se trae la tabla completa.
 
-// Los clientes de cada articulo viajan con la fila, asi la tabla no necesita el
-// dump entero de ARTICULOS_X_CLIENTE.
-const clientesInclude = { ARTICULOS_X_CLIENTE: { include: { CLIENTES: true } } };
+// El colegio/club de cada articulo viaja con la fila (`cliente`, o null), asi la
+// tabla no necesita pedir el catalogo para mostrar el nombre.
+const clienteInclude = { CLIENTES_MAYORISTAS: true };
 
-const aplanarClientes = ({ ARTICULOS_X_CLIENTE, ...articulo }) => ({
+const aplanarCliente = ({ CLIENTES_MAYORISTAS, ...articulo }) => ({
   ...articulo,
-  clientes: ARTICULOS_X_CLIENTE.map(({ CLIENTES }) => ({
-    id: CLIENTES.id_cliente,
-    nombre: CLIENTES.nombre,
-  })),
+  cliente: CLIENTES_MAYORISTAS
+    ? { id: CLIENTES_MAYORISTAS.id_cliente, nombre: CLIENTES_MAYORISTAS.nombre }
+    : null,
 });
 
 /**
@@ -145,14 +161,14 @@ router.get(
     const ids = filas.map((fila) => fila.id_articulo);
     const articulos = await prisma.ARTICULOS.findMany({
       where: { id_articulo: { in: ids } },
-      include: clientesInclude,
+      include: clienteInclude,
     });
 
     // findMany con `in` no respeta el orden pedido: se reordena por los ids.
     const porId = new Map(articulos.map((articulo) => [articulo.id_articulo, articulo]));
 
     res.status(200).json({
-      articulos: ids.map((id) => aplanarClientes(porId.get(id))),
+      articulos: ids.map((id) => aplanarCliente(porId.get(id))),
       total,
     });
   }, 'Error al obtener los articulos.')
@@ -219,6 +235,7 @@ router.post(
       id_linea,
       id_grupo,
       id_subgrupo,
+      id_cliente,
     } = req.body;
 
     // El grupo es obligatorio al crear: si no se mandara, la base lo dejaria en
@@ -229,6 +246,7 @@ router.post(
     }
 
     const agrupacion = await resolverGrupoYSubgrupo({ id_grupo, id_subgrupo });
+    const cliente = await resolverCliente(id_cliente);
 
     const nuevoArticulo = await prisma.ARTICULOS.create({
       data: {
@@ -243,6 +261,7 @@ router.post(
         detalle,
         id_linea,
         ...agrupacion,
+        ...cliente,
       },
     });
     res.status(201).json(nuevoArticulo);
@@ -270,7 +289,10 @@ router.put(
       id_linea,
       id_grupo,
       id_subgrupo,
+      id_cliente,
     } = req.body;
+
+    const cliente = await resolverCliente(id_cliente);
 
     let agrupacion = {};
     if (id_grupo !== undefined || id_subgrupo !== undefined) {
@@ -298,6 +320,7 @@ router.put(
         vigente,
         id_linea,
         ...agrupacion,
+        ...cliente,
       },
     });
     res.status(200).json(articuloActualizado);
@@ -361,39 +384,8 @@ router.patch(
   }, 'Error al ajustar la cantidad del articulo.')
 );
 
-// El grupo y el subgrupo del articulo son campos propios (ARTICULOS.id_grupo /
-// ARTICULOS.id_subgrupo): se editan con PUT /:id_articulo, no con rutas de
-// asociacion.
-
-router.post(
-  '/:id_articulo/clientes',
-  asyncHandler(async (req, res) => {
-    const id_articulo = parseId(req.params.id_articulo, 'El id del articulo debe ser un numero.');
-
-    const { id_cliente } = req.body;
-
-    const asignacion = await prisma.ARTICULOS_X_CLIENTE.create({
-      data: { id_articulo, id_cliente },
-    });
-    res.status(201).json(asignacion);
-  }, 'Error al asignar el articulo al cliente.', {
-    errores: { P2003: { status: 404, message: 'El articulo o el cliente no existen.' } },
-  })
-);
-
-router.delete(
-  '/:id_articulo/clientes/:id_cliente',
-  asyncHandler(async (req, res) => {
-    const [id_articulo, id_cliente] = parseIds(
-      [req.params.id_articulo, req.params.id_cliente],
-      'El id del articulo y del cliente deben ser numeros.'
-    );
-
-    await prisma.ARTICULOS_X_CLIENTE.deleteMany({
-      where: { id_articulo, id_cliente },
-    });
-    res.status(204).send();
-  }, 'Error al quitar el articulo del cliente.')
-);
+// El grupo, el subgrupo y el colegio/club del articulo son campos propios
+// (ARTICULOS.id_grupo / id_subgrupo / id_cliente): se editan con
+// PUT /:id_articulo, no con rutas de asociacion.
 
 module.exports = router;

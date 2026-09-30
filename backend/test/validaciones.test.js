@@ -10,7 +10,6 @@ const assert = require('node:assert/strict');
 const {
   aId,
   parseId,
-  parseIds,
   parseIdOpcional,
   normalizarNombre,
   assertNombreUnico,
@@ -77,11 +76,6 @@ test('parseId devuelve el id o lanza 400 con el mensaje de la ruta', () => {
       return true;
     }
   );
-});
-
-test('parseIds valida toda la lista y corta en el primero invalido', () => {
-  assert.deepEqual(parseIds(['1', '2', '3'], 'mensaje'), [1, 2, 3]);
-  assert.throws(() => parseIds(['1', 'x', '3'], 'mensaje'), HttpError);
 });
 
 test('parseIdOpcional trata ausente y vacio como "sin filtro"', () => {

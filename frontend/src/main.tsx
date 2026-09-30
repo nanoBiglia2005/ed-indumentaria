@@ -31,7 +31,7 @@ createRoot(document.getElementById('root')!).render(
                 {/* Articulos es solo para ROLES_ARTICULOS (el rol "empleado"
                     queda afuera: solo tiene acceso a Ventas); el backend igual
                     responde 403 al resto (routes/articulos.js, grupos.js,
-                    subgrupos.js, clientes.js, print.js, asociaciones.js). */}
+                    subgrupos.js, clientes.js, print.js). */}
                 <Route element={<RolGuard roles={ROLES_ARTICULOS} />}>
                   <Route path='articulos' element={<ArticulosPage />} />
                 </Route>

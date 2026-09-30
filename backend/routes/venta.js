@@ -73,7 +73,7 @@ router.get(
           // Solo los que tienen algo vigente de esa linea para vender: si no,
           // elegir un colegio llevaria a un paso siguiente vacio.
           ...(id_linea !== null && {
-            ARTICULOS_X_CLIENTE: { some: { ARTICULOS: { vigente: true, id_linea } } },
+            ARTICULOS: { some: { vigente: true, id_linea } },
           }),
         },
         orderBy: { nombre: 'asc' },
@@ -99,7 +99,7 @@ router.get(
 );
 
 /**
- * Que clientes tiene que tener el articulo para entrar en el paso siguiente,
+ * Que cliente tiene que tener el articulo para entrar en el paso siguiente,
  * segun lo elegido en el paso 2: un colegio/club puntual, una agrupacion entera
  * ("todos los colegios"), o cualquiera.
  *
@@ -107,12 +107,12 @@ router.get(
  * DE alguno, o sea que el stock no asociado a ningun colegio o club no se
  * vende por este camino.
  */
-const clientesDelPaso = (id_cliente, id_agrupacion) => {
+const clienteDelPaso = (id_cliente, id_agrupacion) => {
   if (id_cliente !== null) return { id_cliente };
-  // El nombre del campo NO es CLIENTES_MAYORISTAS: la relacion de
-  // ARTICULOS_X_CLIENTE hacia esa tabla se llama CLIENTES (ver schema.prisma).
-  if (id_agrupacion !== null) return { CLIENTES: { grupo_venta_exclusivo: id_agrupacion } };
-  return {};
+  if (id_agrupacion !== null) {
+    return { CLIENTES_MAYORISTAS: { grupo_venta_exclusivo: id_agrupacion } };
+  }
+  return { id_cliente: { not: null } };
 };
 
 // Grupos con al menos un articulo vigente asociado al cliente elegido. El grupo
@@ -134,7 +134,7 @@ router.get(
           some: {
             vigente: true,
             ...(id_linea !== null && { id_linea }),
-            ARTICULOS_X_CLIENTE: { some: clientesDelPaso(id_cliente, id_agrupacion) },
+            ...clienteDelPaso(id_cliente, id_agrupacion),
           },
         },
       },

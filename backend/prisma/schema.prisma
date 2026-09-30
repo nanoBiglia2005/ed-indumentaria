@@ -26,6 +26,10 @@ model ARTICULOS {
   id_linea                Int?
   id_subgrupo             Int?
   id_grupo                Int                       @default(-1)
+  /// Colegio/club dueño del articulo (uno o ninguno). Reemplaza a la tabla
+  /// ARTICULOS_X_CLIENTE, que queda sin uso hasta el proximo deploy.
+  id_cliente              Int?
+  CLIENTES_MAYORISTAS     CLIENTES_MAYORISTAS?      @relation(fields: [id_cliente], references: [id_cliente], onDelete: SetNull, map: "articulos_clientes_mayoristas_fk")
   GRUPOS_DE_VENTA         GRUPOS_DE_VENTA           @relation(fields: [id_grupo], references: [id_grupo], onDelete: SetDefault, map: "articulos_grupos_de_venta_fk")
   LINEAS                  LINEAS?                   @relation(fields: [id_linea], references: [id_linea], map: "articulos_lineas_fk")
   PROVEEDORES             PROVEEDORES?              @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
@@ -34,6 +38,8 @@ model ARTICULOS {
   ARTICULOS_X_CLIENTE     ARTICULOS_X_CLIENTE[]
   ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
   DETALLES_REMITO         DETALLES_REMITO[]
+
+  @@index([id_cliente], map: "articulos_id_cliente_idx")
 }
 
 model DETALLES_REMITO {
@@ -194,6 +200,8 @@ model SUBGRUPOS_DE_VENTA {
   GRUPOS_DE_VENTA         GRUPOS_DE_VENTA           @relation(fields: [id_grupo], references: [id_grupo], onDelete: Cascade, map: "subgrupos_de_venta_grupos_de_venta_fk")
 }
 
+/// DEPRECADA: el cliente de un articulo es ARTICULOS.id_cliente. Ningun codigo la
+/// lee ni la escribe; se borra en una migracion posterior (dos deploys).
 model ARTICULOS_X_CLIENTE {
   id_registro Int                 @id(map: "articulos_x_cliente_pk") @default(autoincrement())
   id_articulo Int
@@ -215,6 +223,7 @@ model CLIENTES_MAYORISTAS {
   razon_social          String?               @db.VarChar(20)
   grupo_venta_exclusivo Int?
   id_cliente            Int                   @id(map: "clientes_alt_pk") @default(autoincrement())
+  ARTICULOS             ARTICULOS[]
   ARTICULOS_X_CLIENTE   ARTICULOS_X_CLIENTE[]
   GRUPOS_DE_VENTA       GRUPOS_DE_VENTA?      @relation(fields: [grupo_venta_exclusivo], references: [id_grupo], map: "clientes_grupos_de_venta_fk")
 }

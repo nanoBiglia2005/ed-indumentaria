@@ -1,13 +1,13 @@
 import { request } from './cliente';
-import type { ARTICULOS, ARTICULOS_X_CLIENTE } from '@backend/types';
+import type { ARTICULOS } from '@backend/types';
 import type { CriterioOrden, FiltroColumna, OpcionFiltro } from '@/components/tabla/tipos';
 
 // --- Listado paginado ---
 // La tabla no se trae entera: el backend resuelve filtros, busqueda, orden y
 // paginacion, y devuelve una pagina + el total que coincide.
 
-/** Articulo del listado: viene con sus colegios/clubes ya resueltos. */
-export type ArticuloListado = ARTICULOS & { clientes: OpcionFiltro[] };
+/** Articulo del listado: viene con su colegio/club (uno o ninguno) ya resuelto. */
+export type ArticuloListado = ARTICULOS & { cliente: OpcionFiltro | null };
 
 /** Todo lo que define QUE filas pide la tabla (sin la pagina). */
 export interface ParamsArticulos {
@@ -86,18 +86,8 @@ export const ajustarCantidadArticulo = (idArticulo: number, delta: number) =>
     cuerpo: { delta },
   });
 
-// --- Asociaciones del articulo (clientes) ---
-// El grupo y el subgrupo son campos propios del articulo: se editan con
-// actualizarArticulo({ id_grupo, id_subgrupo }).
-
-export const asignarCliente = (idArticulo: number, idCliente: number) =>
-  request<ARTICULOS_X_CLIENTE>(`/api/articulos/${idArticulo}/clientes`, {
-    metodo: 'POST',
-    cuerpo: { id_cliente: idCliente },
-  });
-
-export const quitarCliente = (idArticulo: number, idCliente: number) =>
-  request<void>(`/api/articulos/${idArticulo}/clientes/${idCliente}`, { metodo: 'DELETE' });
+// El grupo, el subgrupo y el colegio/club son campos propios del articulo: se
+// editan con actualizarArticulo({ id_grupo, id_subgrupo, id_cliente }).
 
 // --- Impresion de etiquetas ---
 

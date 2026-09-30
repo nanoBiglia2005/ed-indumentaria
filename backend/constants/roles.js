@@ -8,7 +8,7 @@
 //
 // ROLES_ARTICULOS: quienes pueden ver la pagina de Articulos y su ABM
 // completo (routes/articulos.js, grupos.js, subgrupos.js, clientes.js,
-// print.js, asociaciones.js, y el POST/PUT/DELETE de lineas.js). El rol
+// print.js, y el POST/PUT/DELETE de lineas.js). El rol
 // "empleado" no esta en la lista: solo tiene acceso a Ventas. El GET de
 // lineas.js NO usa esta lista porque Ventas tambien lo necesita (el modal de
 // agregar producto arma el filtro por linea).
