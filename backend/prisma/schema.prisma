@@ -9,35 +9,32 @@ datasource db {
 
 /// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
 model ARTICULOS {
-  id_articulo             Int                       @id(map: "articulos_pk") @default(autoincrement())
-  cant                    Int                       @default(0)
-  precio                  Float                     @default(0)
-  barcode_tail            String?                   @unique(map: "articulos_barcode_tail_idx") @db.VarChar(20)
-  stock_minimo            Int                       @default(0) @db.SmallInt
-  vigente                 Boolean?                  @default(true)
-  id_medida               Int                       @default(1)
-  id_proveedor            Int?
-  cant_reservada          Int?
-  fecha_creacion          DateTime                  @default(now()) @db.Timestamptz(6)
-  descripcion             String?                   @db.VarChar(70)
-  detalle                 String?                   @db.VarChar(50)
-  barcode_old             String?                   @db.VarChar(20)
-  talle                   String?                   @db.VarChar(30)
-  id_linea                Int?
-  id_subgrupo             Int?
-  id_grupo                Int                       @default(-1)
-  /// Colegio/club dueño del articulo (uno o ninguno). Reemplaza a la tabla
-  /// ARTICULOS_X_CLIENTE, que queda sin uso hasta el proximo deploy.
-  id_cliente              Int?
-  CLIENTES_MAYORISTAS     CLIENTES_MAYORISTAS?      @relation(fields: [id_cliente], references: [id_cliente], onDelete: SetNull, map: "articulos_clientes_mayoristas_fk")
-  GRUPOS_DE_VENTA         GRUPOS_DE_VENTA           @relation(fields: [id_grupo], references: [id_grupo], onDelete: SetDefault, map: "articulos_grupos_de_venta_fk")
-  LINEAS                  LINEAS?                   @relation(fields: [id_linea], references: [id_linea], map: "articulos_lineas_fk")
-  PROVEEDORES             PROVEEDORES?              @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
-  SUBGRUPOS_DE_VENTA      SUBGRUPOS_DE_VENTA?       @relation(fields: [id_subgrupo], references: [id_subgrupo], map: "articulos_subgrupos_de_venta_fk")
-  TIPOS_DE_MEDIDA         TIPOS_DE_MEDIDA           @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
-  ARTICULOS_X_CLIENTE     ARTICULOS_X_CLIENTE[]
-  ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
-  DETALLES_REMITO         DETALLES_REMITO[]
+  id_articulo         Int                  @id(map: "articulos_pk") @default(autoincrement())
+  cant                Int                  @default(0)
+  precio              Float                @default(0)
+  barcode_tail        String?              @unique(map: "articulos_barcode_tail_idx") @db.VarChar(20)
+  stock_minimo        Int                  @default(0) @db.SmallInt
+  vigente             Boolean?             @default(true)
+  id_medida           Int                  @default(1)
+  id_proveedor        Int?
+  cant_reservada      Int?
+  fecha_creacion      DateTime             @default(now()) @db.Timestamptz(6)
+  descripcion         String?              @db.VarChar(70)
+  detalle             String?              @db.VarChar(50)
+  barcode_old         String?              @db.VarChar(20)
+  talle               String?              @db.VarChar(30)
+  id_linea            Int?
+  id_subgrupo         Int?
+  id_grupo            Int                  @default(-1)
+  /// Colegio/club dueño del articulo (uno o ninguno).
+  id_cliente          Int?
+  CLIENTES_MAYORISTAS CLIENTES_MAYORISTAS? @relation(fields: [id_cliente], references: [id_cliente], onDelete: SetNull, map: "articulos_clientes_mayoristas_fk")
+  GRUPOS_DE_VENTA     GRUPOS_DE_VENTA      @relation(fields: [id_grupo], references: [id_grupo], onDelete: SetDefault, map: "articulos_grupos_de_venta_fk")
+  LINEAS              LINEAS?              @relation(fields: [id_linea], references: [id_linea], map: "articulos_lineas_fk")
+  PROVEEDORES         PROVEEDORES?         @relation(fields: [id_proveedor], references: [id_proveedor], map: "articulos_proveedores_fk")
+  SUBGRUPOS_DE_VENTA  SUBGRUPOS_DE_VENTA?  @relation(fields: [id_subgrupo], references: [id_subgrupo], map: "articulos_subgrupos_de_venta_fk")
+  TIPOS_DE_MEDIDA     TIPOS_DE_MEDIDA      @relation(fields: [id_medida], references: [id_medida], onDelete: SetDefault, map: "articulos_tipos_de_medida_fk")
+  DETALLES_REMITO     DETALLES_REMITO[]
 
   @@index([id_cliente], map: "articulos_id_cliente_idx")
 }
@@ -172,42 +169,20 @@ model IMPRESORAS {
 }
 
 model GRUPOS_DE_VENTA {
-  id_grupo                Int                       @id(map: "grupos_de_venta_pk") @default(autoincrement())
-  nombre_grupo            String                    @db.VarChar(50)
-  tipo_grupo              tipo_operacion?
-  ARTICULOS               ARTICULOS[]
-  ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
-  CLIENTES_MAYORISTAS     CLIENTES_MAYORISTAS[]
-  SUBGRUPOS_DE_VENTA      SUBGRUPOS_DE_VENTA[]
-}
-
-model ARTICULOS_X_GRUPO_VENTA {
-  id_reg             Int                 @id(map: "articulos_x_grupo_venta_pk") @default(autoincrement())
-  id_articulo        Int
-  id_grupo_venta     Int
-  id_subgrupo        Int?
-  ARTICULOS          ARTICULOS           @relation(fields: [id_articulo], references: [id_articulo], onDelete: Cascade, map: "articulos_x_grupo_venta_alt_articulos_fk")
-  GRUPOS_DE_VENTA    GRUPOS_DE_VENTA     @relation(fields: [id_grupo_venta], references: [id_grupo], onDelete: Cascade, map: "articulos_x_grupo_venta_alt_grupos_de_venta_fk")
-  SUBGRUPOS_DE_VENTA SUBGRUPOS_DE_VENTA? @relation(fields: [id_subgrupo], references: [id_subgrupo], map: "articulos_x_grupo_venta_alt_subgrupos_de_venta_fk")
+  id_grupo            Int                   @id(map: "grupos_de_venta_pk") @default(autoincrement())
+  nombre_grupo        String                @db.VarChar(50)
+  tipo_grupo          tipo_operacion?
+  ARTICULOS           ARTICULOS[]
+  CLIENTES_MAYORISTAS CLIENTES_MAYORISTAS[]
+  SUBGRUPOS_DE_VENTA  SUBGRUPOS_DE_VENTA[]
 }
 
 model SUBGRUPOS_DE_VENTA {
-  id_subgrupo             Int                       @id(map: "_subgrupos_de_venta_alt__pk") @default(autoincrement())
-  id_grupo                Int
-  nombre_subgrupo         String                    @db.VarChar(30)
-  ARTICULOS               ARTICULOS[]
-  ARTICULOS_X_GRUPO_VENTA ARTICULOS_X_GRUPO_VENTA[]
-  GRUPOS_DE_VENTA         GRUPOS_DE_VENTA           @relation(fields: [id_grupo], references: [id_grupo], onDelete: Cascade, map: "subgrupos_de_venta_grupos_de_venta_fk")
-}
-
-/// DEPRECADA: el cliente de un articulo es ARTICULOS.id_cliente. Ningun codigo la
-/// lee ni la escribe; se borra en una migracion posterior (dos deploys).
-model ARTICULOS_X_CLIENTE {
-  id_registro Int                 @id(map: "articulos_x_cliente_pk") @default(autoincrement())
-  id_articulo Int
-  id_cliente  Int
-  ARTICULOS   ARTICULOS           @relation(fields: [id_articulo], references: [id_articulo], onDelete: Cascade, map: "articulos_x_cliente_articulos_fk")
-  CLIENTES    CLIENTES_MAYORISTAS @relation(fields: [id_cliente], references: [id_cliente], onDelete: Cascade, map: "articulos_x_cliente_clientes_fk")
+  id_subgrupo     Int             @id(map: "_subgrupos_de_venta_alt__pk") @default(autoincrement())
+  id_grupo        Int
+  nombre_subgrupo String          @db.VarChar(30)
+  ARTICULOS       ARTICULOS[]
+  GRUPOS_DE_VENTA GRUPOS_DE_VENTA @relation(fields: [id_grupo], references: [id_grupo], onDelete: Cascade, map: "subgrupos_de_venta_grupos_de_venta_fk")
 }
 
 model LINEAS {
@@ -217,15 +192,14 @@ model LINEAS {
 }
 
 model CLIENTES_MAYORISTAS {
-  nombre                String                @db.VarChar(30)
-  telefono              String?               @db.VarChar(11)
-  email                 String?               @db.VarChar(30)
-  razon_social          String?               @db.VarChar(20)
+  nombre                String           @db.VarChar(30)
+  telefono              String?          @db.VarChar(11)
+  email                 String?          @db.VarChar(30)
+  razon_social          String?          @db.VarChar(20)
   grupo_venta_exclusivo Int?
-  id_cliente            Int                   @id(map: "clientes_alt_pk") @default(autoincrement())
+  id_cliente            Int              @id(map: "clientes_alt_pk") @default(autoincrement())
   ARTICULOS             ARTICULOS[]
-  ARTICULOS_X_CLIENTE   ARTICULOS_X_CLIENTE[]
-  GRUPOS_DE_VENTA       GRUPOS_DE_VENTA?      @relation(fields: [grupo_venta_exclusivo], references: [id_grupo], map: "clientes_grupos_de_venta_fk")
+  GRUPOS_DE_VENTA       GRUPOS_DE_VENTA? @relation(fields: [grupo_venta_exclusivo], references: [id_grupo], map: "clientes_grupos_de_venta_fk")
 }
 
 model CLIENTES {
