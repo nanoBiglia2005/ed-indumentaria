@@ -149,6 +149,26 @@ model USUARIOS {
   /// en la predeterminada global.
   id_impresora Int?
   IMPRESORAS   IMPRESORAS?  @relation(fields: [id_impresora], references: [id_impresora], onDelete: SetNull, map: "usuarios_impresoras_fk")
+  REPORTES     REPORTES[]
+}
+
+/// Un PDF generado desde "Imprimir Reporte" (Articulos). El archivo vive en
+/// REPORTES_DIR, FUERA del repo: el deploy hace git reset --hard. El tope de
+/// filas guardadas es MAX_REPORTES_GUARDADOS (shared/reportes.json).
+model REPORTES {
+  id_reporte     Int          @id(map: "reportes_pk") @default(autoincrement())
+  tipo           tipo_reporte
+  id_usuario     Int?
+  fecha_generado DateTime     @default(now()) @db.Timestamptz(6)
+  /// ids + nombres con los que se genero. Los nombres se copian para que el
+  /// listado siga diciendo lo mismo que el PDF aunque despues se renombren.
+  parametros     Json
+  /// Solo el nombre del archivo: la carpeta es REPORTES_DIR (cambia por entorno).
+  nombre_archivo String       @db.VarChar(255)
+  cantidad_filas Int
+  USUARIOS       USUARIOS?    @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull, map: "reportes_usuarios_fk")
+
+  @@index([fecha_generado], map: "reportes_fecha_generado_idx")
 }
 
 /// Una fila por cada PC del comercio que corre un printer-client. El
@@ -242,4 +262,11 @@ enum rol_usuario {
   admin
   superadmin
   ventas
+}
+
+/// colegio: con Colegio/Club (planilla con "Cantidad a producir").
+/// general: sin Colegio/Club (tabla cruzada Colegio/Club x talle).
+enum tipo_reporte {
+  colegio
+  general
 }

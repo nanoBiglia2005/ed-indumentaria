@@ -53,6 +53,7 @@ app.use('/api/presupuestos', require('./routes/presupuestos'));
 app.use('/api/print', require('./routes/print'));
 app.use('/api/impresoras', require('./routes/impresoras'));
 app.use('/api/articulos', require('./routes/articulos'));
+app.use('/api/reportes', require('./routes/reportes'));
 app.use('/api/grupos', require('./routes/grupos'));
 app.use('/api/subgrupos', require('./routes/subgrupos'));
 app.use('/api/clientes', require('./routes/clientes'));

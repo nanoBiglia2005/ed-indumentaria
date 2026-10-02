@@ -44,7 +44,9 @@
   `services/impresion.js`, `services/pagosRemito.js`, `src/utils/precios.ts`, `src/utils/talles.ts`,
   `src/api/cliente.ts`, `src/features/ventas/pago/calculoPago.ts`,
   `src/features/ventas/codigoRemito.ts`, `src/features/ventas/cliente/formatoCliente.ts`,
-  `services/impresoras.js`, `services/remitos.js` (`itemsDeRemito`), `src/utils/impresoras.ts`.
+  `services/impresoras.js`, `services/remitos.js` (`itemsDeRemito`), `src/utils/impresoras.ts`,
+  `services/reportes.js`, `lib/talles.js`, `src/api/reportes.ts` (`masAntiguoDelLimite`),
+  `src/utils/formato.ts` (`formatearFechaHora`), `src/features/articulos/recorridoReporte.ts`.
 - **Los tests del frontend NO se typechequean**: Vitest transpila con esbuild sin verificar tipos, y
   los `*.test.ts` están excluidos de `tsconfig.app.json` (con `noUnusedLocals`, una variable sin usar
   en un test rompería el build y por lo tanto el deploy). Un error de tipos en un test es invisible.
@@ -53,7 +55,7 @@
 - Los tests son también documentación de las reglas de negocio: el comentario de cabecera de cada
   archivo explica QUÉ regla protege y por qué importa. Mantener ese hábito.
 
-### Tres contratos que los tests congelan (romper uno no falla en este repo)
+### Contratos que los tests congelan (romper uno no falla en este repo)
 - **El redondeo de precios está DUPLICADO** en `backend/services/preciosPorMetodo.js` y
   `frontend/src/utils/precios.ts`, con la misma tabla de casos en los dos archivos de test. Si se
   toca una implementación hay que tocar **las cuatro**: si divergen, el precio que se muestra deja
@@ -64,6 +66,8 @@
 - **`construirPayloadTicket` es un contrato con otra máquina**: el `printer-client` lee claves fijas
   (`precio_efectivo`, `subtotal_tarjeta`, `total_tarjeta`). Renombrar una rompe la impresión en
   producción sin que nada acá falle. El test de forma del payload existe para eso.
+- **El orden de talles está DUPLICADO** en `frontend/src/utils/talles.ts` y `backend/lib/talles.js`
+  (columnas del PDF "Stock por talle"), con la misma tabla de casos en sus dos tests. Se tocan juntos.
 
 ## Impresión (multi-impresora)
 - **Hay N impresoras**: una fila en `IMPRESORAS` por cada PC del local que corre un `printer-client`.
@@ -93,6 +97,29 @@
 - **Ni el `print-service` ni el `printer-client` tienen tests automáticos** (no hay CI de Python): lo
   que se toque ahí se verifica a mano con dos clientes conectados.
 
+## Reportes PDF ("Imprimir Reporte" de Artículos)
+- **Solo `superadmin`** (`ROLES_REPORTES` en `shared/roles.json`), más restrictivo que `ROLES_ARTICULOS`:
+  `routes/reportes.js` lo exige con `requireRol`, y el botón de Artículos, la ruta y el ítem de la
+  sidebar usan la misma lista. Un admin que ve Artículos no ve el botón ni puede llamar a la API.
+- Se generan en el backend con **pdfkit** (`services/reportes.js`). No con pdfmake: la columna
+  "Cantidad a producir" de la Planilla de producción es un **campo de formulario (AcroForm)** que se
+  completa en el visor de Chrome/Edge, y pdfmake no los genera. Hay un test que verifica el campo.
+- El modal elige en pasos, como Ventas y Precios: Línea → Grupo → Subgrupo → Colegio/Club → confirmar.
+  Con la línea elegida, `GET /api/reportes/opciones` trae todas las combinaciones con artículos y cada
+  paso ofrece solo lo que existe con lo anterior (`recorridoReporte.ts`): no hay caminos a un reporte vacío.
+- Línea, Grupo y Subgrupo son obligatorios. Con Colegio/Club sale la Planilla de producción; sin él,
+  el Stock por talle (tabla cruzada Colegio/Club × talle con `SUM(cant)`). En textos se escribe
+  **"Colegio/Club"**, nunca "Colegio" solo. Si hay más de 18 talles, las columnas se parten en
+  bloques de páginas (el campo `talle` tiene mucho texto libre cargado).
+- Los PDFs viven en **`REPORTES_DIR`, fuera del repo** (default `~/ed-reportes`): el deploy hace
+  `git reset --hard`. En la base (`REPORTES`) se guarda solo el nombre del archivo.
+- **Tope global de `MAX_REPORTES_GUARDADOS`** (`shared/reportes.json`). Al llegar, el POST responde
+  409 con el más antiguo salvo que venga `id_reporte_a_reemplazar`. El reemplazo **genera y escribe
+  el nuevo antes de borrar el viejo**: si algo falla, se pierde a lo sumo el nuevo.
+- El POST responde la url, no el binario; el PDF se sirve `inline` por `GET /api/reportes/:id/archivo`.
+  El modal abre la pestaña en blanco **dentro del click** y después la navega: un `window.open`
+  posterior a un `await` lo bloquea el navegador.
+
 ## Backend
 - Todas las llamadas a la API deben verificar si el usuario está loggeado antes de realizarse.
 - `index.js` es solo bootstrap (health → auth → requireAuth → routers). No agregar rutas ahí.
@@ -109,7 +136,7 @@
   Si la lógica es pura, **exportarla** aunque solo la use ese archivo: si no, no es testeable.
 - Constantes compartidas con el frontend: un JSON por dominio en `shared/`
   (`ventas.json`, `agrupaciones.json`, `barcode.json`, `roles.json`, `precios.json`,
-  `clientes.json`, `metodosPago.json`) es la única fuente. CJS las lee vía
+  `clientes.json`, `metodosPago.json`, `impresion.json`, `reportes.json`) es la única fuente. CJS las lee vía
   `constants/<dominio>.js`; el frontend vía `types.ts`. Nunca duplicar el valor literal.
 
 ## Frontend
@@ -228,6 +255,8 @@ históricamente en el archivo de plan, pero las reglas arriba son las que rigen 
   el deploy automático no lo toca.
 - Backups automáticos a las 03:00 y 15:00 a `~/backups/<fecha>/` y de ahí a Dropbox vía rclone.
   Incluyen los `.env`, así que la cuenta de Dropbox es parte de la superficie de seguridad.
+- Los PDFs de reportes van a `REPORTES_DIR` (`.env` del backend; sin ella, `~/ed-reportes`, que el
+  backend crea solo). Si se quieren respaldar, hay que sumar esa carpeta a `~/backup-db.sh`.
 
 ### Zona horaria (resuelto, pero sigue importando)
 - La base de producción y el SO del servidor están en `America/Buenos_Aires`. Verificable con

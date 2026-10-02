@@ -11,6 +11,7 @@ import type {
   LINEAS,
   TIPOS_DE_PAGO,
 } from '@backend/types';
+import { ROLES_REPORTES } from '@backend/types';
 import DataGrid from '@/components/tabla/DataGrid';
 import Paginador from '@/components/tabla/Paginador';
 import { useTablaServidor } from '@/components/tabla/useTablaServidor';
@@ -19,6 +20,7 @@ import type { OpcionFiltro } from '@/components/tabla/tipos';
 import SearchInput from '@/components/ui/SearchInput';
 import SelectorImpresora from '@/components/ui/SelectorImpresora';
 import { useImpresoras } from '@/hooks/useImpresoras';
+import { useSession } from '@/hooks/useSession';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useResetAlCambiar } from '@/hooks/useResetAlCambiar';
 import { useToggleSet } from '@/hooks/useToggleSet';
@@ -44,6 +46,7 @@ import CrearAgrupacionModal from '@/features/configuracion/modales/CrearAgrupaci
 import type { TipoAgrupacion } from '@/types/agrupaciones';
 import ColumnFilterModal from '@/components/tabla/ColumnFilterModal';
 import AccionMasivaModal from '@/features/articulos/modales/AccionMasivaModal';
+import GenerarReporteModal from '@/features/articulos/modales/GenerarReporteModal';
 import {
   crearColumnasArticulos,
   ROW_HEIGHT,
@@ -76,6 +79,10 @@ const mensajeErrorImpresion = (err: unknown) => {
 };
 
 function ArticulosPage() {
+  // Solo esconde el boton: el backend niega igual (routes/reportes.js).
+  const { user } = useSession();
+  const puedeImprimirReporte = Boolean(user?.rol && ROLES_REPORTES.includes(user.rol));
+
   // --- Pagina actual de articulos (lo unico que se trae de la tabla) ---
   const [articulos, setArticulos] = useState<ArticuloListado[]>([]);
   const [total, setTotal] = useState(0);
@@ -117,6 +124,7 @@ function ArticulosPage() {
   const [isFieldModalOpen, setIsFieldModalOpen] = useState(false);
   const [crearModalTipo, setCrearModalTipo] = useState<TipoAgrupacion | null>(null);
   const [imprimirMasivoAbierto, setImprimirMasivoAbierto] = useState(false);
+  const [reporteAbierto, setReporteAbierto] = useState(false);
 
   // --- Acciones por fila / masivas ---
   // Solo para OFRECER la eleccion de impresora: el destino real lo resuelve el
@@ -582,6 +590,14 @@ function ArticulosPage() {
               >
                 <span>Nuevo Articulo</span>
               </button>
+              {puedeImprimirReporte && (
+                <button
+                  onClick={() => setReporteAbierto(true)}
+                  className='rounded flex items-center py-1 px-2 sm:py-1.5 sm:px-2.5 lg:py-2 lg:px-3 font-semibold text-sm sm:text-base lg:text-lg border border-neutro-200 cursor-pointer text-neutro-600 bg-neutro-100 hover:bg-neutro-200 whitespace-nowrap transition-colors duration-100 ease-in'
+                >
+                  <span>Imprimir Reporte</span>
+                </button>
+              )}
               {/* Escritorio (md+): un boton por filtro, igual que antes. */}
               <div className='hidden md:flex flex-wrap items-center gap-1.5 sm:gap-2'>
                 {filtrosPagina.map((filtro) => (
@@ -826,6 +842,20 @@ function ArticulosPage() {
         grupos={grupos}
         grupoPreseleccionado={grupoSeleccionado}
       />
+
+      {puedeImprimirReporte && (
+        <GenerarReporteModal
+          abierto={reporteAbierto}
+          inicial={{
+            idLinea: lineaSeleccionada,
+            idGrupo: grupoSeleccionado,
+            idSubgrupo: subgrupoSeleccionado,
+            idCliente: clienteSeleccionado,
+          }}
+          lineas={lineas}
+          onCerrar={() => setReporteAbierto(false)}
+        />
+      )}
 
       <AccionMasivaModal
         abierto={imprimirMasivoAbierto}

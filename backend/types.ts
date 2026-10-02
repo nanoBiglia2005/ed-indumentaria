@@ -7,6 +7,7 @@ import precios from './shared/precios.json';
 import clientes from './shared/clientes.json';
 import metodosPago from './shared/metodosPago.json';
 import impresion from './shared/impresion.json';
+import reportes from './shared/reportes.json';
 
 /**
  * FACHADA de tipos del backend para el frontend.
@@ -24,6 +25,7 @@ export type {
   SUBGRUPOS_DE_VENTA,
   LINEAS,
   TIPOS_DE_PAGO,
+  tipo_reporte,
 } from './generated/prisma/client';
 
 /**
@@ -78,6 +80,14 @@ export const ROLES_CONFIGURACION: readonly string[] = roles.ROLES_CONFIGURACION;
 export const ROLES_HISTORIAL: readonly string[] = roles.ROLES_HISTORIAL;
 
 /**
+ * Roles que pueden generar, ver y borrar reportes PDF (boton "Imprimir
+ * Reporte" de Articulos y pagina Reportes). Solo superadmin: es mas
+ * restrictivo que ROLES_ARTICULOS. QUIEN DECIDE de verdad es el backend
+ * (routes/reportes.js con requireRol). Fuente unica: shared/roles.json.
+ */
+export const ROLES_REPORTES: readonly string[] = roles.ROLES_REPORTES;
+
+/**
  * Roles que pueden ELEGIR a que impresora va UN TRABAJO puntual (un ticket o
  * una etiqueta), en Articulos/Ventas. El resto imprime siempre en la
  * predeterminada o en la asignada. El frontend la usa para esconder el
@@ -100,6 +110,22 @@ export const ROLES_ADMINISTRAN_IMPRESORAS: readonly string[] = impresion.ROLES_A
 
 /** Largo maximo del nombre de una impresora (columna IMPRESORAS.nombre). */
 export const NOMBRE_IMPRESORA_MAX = impresion.NOMBRE_IMPRESORA_MAX;
+
+/**
+ * Tope GLOBAL de reportes PDF guardados ("Imprimir Reporte" de Articulos). El
+ * frontend lo usa para el contador y el aviso de limite; QUIEN DECIDE de verdad
+ * es el backend (routes/reportes.js responde 409 al llegar al tope). Fuente
+ * unica: shared/reportes.json (el backend CommonJS lo lee via
+ * constants/reportes.js).
+ */
+export const MAX_REPORTES_GUARDADOS = reportes.MAX_REPORTES_GUARDADOS;
+
+/**
+ * `codigo` del 409 de POST /api/reportes/articulos cuando se llego al tope: el
+ * body trae ademas `masAntiguo`, que el modal ofrece borrar. Fuente unica:
+ * shared/reportes.json.
+ */
+export const CODIGO_LIMITE_REPORTES = reportes.CODIGO_LIMITE_REPORTES;
 
 /**
  * Limites de la actualizacion masiva de precios: el input de la pagina y la
