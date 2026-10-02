@@ -21,6 +21,11 @@
 // (routes/remitos.js, GET /). Los pendientes de cobro (GET /pendientes) viven
 // en la pagina de Ventas y no usan esta lista: todos los roles los siguen
 // viendo. Ni "empleado" ni "ventas" estan en ROLES_HISTORIAL.
+//
+// ROLES_REPORTES: quienes pueden generar, ver y borrar los reportes PDF del
+// boton "Imprimir Reporte" de Articulos y entrar a la pagina Reportes
+// (routes/reportes.js). Solo superadmin: es MAS restrictivo que ROLES_ARTICULOS,
+// asi que alguien que ve Articulos no ve el boton ni puede llamar a la API.
 const roles = require('../shared/roles.json');
 
 module.exports = {
@@ -28,4 +33,5 @@ module.exports = {
   ROLES_ARTICULOS: roles.ROLES_ARTICULOS,
   ROLES_CONFIGURACION: roles.ROLES_CONFIGURACION,
   ROLES_HISTORIAL: roles.ROLES_HISTORIAL,
+  ROLES_REPORTES: roles.ROLES_REPORTES,
 };

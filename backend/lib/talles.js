@@ -1,31 +1,27 @@
-/**
- * Orden de talles, compartido por la tabla del wizard de venta y la tabla de
- * Precios. Estaba en features/ventas/agregar-producto/columnasVenta.tsx: se
- * movio aca tal cual al aparecer el segundo uso.
- *
- * DUPLICADO a proposito en backend/lib/talles.js (columnas del PDF "Stock por
- * talle"). Si se toca uno, tocar el otro y sus dos tests, que comparten la
- * misma tabla de casos.
- */
+// Orden de talles. COPIA de frontend/src/utils/talles.ts: el backend lo necesita
+// para las columnas de la tabla cruzada de "Stock por talle" (services/reportes.js).
+// Si se toca una de las dos, tocar la otra y sus DOS tests (test/talles.test.js y
+// frontend/src/utils/talles.test.ts), que comparten la misma tabla de casos: si
+// divergen, el PDF ordena los talles distinto que la tabla de la pantalla.
 
 /**
  * Convierte un talle a numero cuando se puede: "1" < "2" < "22" en vez del
  * orden alfabetico ("10" < "2" para un string). No todos los talles son
  * numericos (S, M, L, ...), asi que se conserva el string cuando no se puede.
  */
-export function valorOrdenTalle(talle: string | null): string | number | null {
+const valorOrdenTalle = (talle) => {
   if (!talle) return null;
   const recortado = talle.trim();
   if (recortado === '') return null;
   const numero = Number(recortado);
   return Number.isNaN(numero) ? recortado : numero;
-}
+};
 
 /**
  * Compara dos talles: los numericos entre si por valor, el resto alfabetico y
  * los vacios siempre al final (sin importar la direccion del orden).
  */
-export function compararTalles(a: string | null, b: string | null): number {
+const compararTalles = (a, b) => {
   const talleA = valorOrdenTalle(a);
   const talleB = valorOrdenTalle(b);
   if (talleA === null && talleB === null) return 0;
@@ -33,4 +29,6 @@ export function compararTalles(a: string | null, b: string | null): number {
   return typeof talleA === 'number' && typeof talleB === 'number'
     ? talleA - talleB
     : String(talleA).localeCompare(String(talleB));
-}
+};
+
+module.exports = { valorOrdenTalle, compararTalles };

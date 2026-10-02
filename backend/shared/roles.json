@@ -15,5 +15,8 @@
   "ROLES_HISTORIAL": [
     "admin",
     "superadmin"
+  ],
+  "ROLES_REPORTES": [
+    "superadmin"
   ]
 }

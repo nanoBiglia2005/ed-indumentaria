@@ -2,7 +2,7 @@ import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './index.css'
-import { ROLES_PRECIOS, ROLES_ARTICULOS, ROLES_CONFIGURACION, ROLES_HISTORIAL } from '@backend/types'
+import { ROLES_PRECIOS, ROLES_ARTICULOS, ROLES_CONFIGURACION, ROLES_HISTORIAL, ROLES_REPORTES } from '@backend/types'
 import { SessionProvider } from '@/context/SessionContext'
 import AuthGuard from '@/components/layout/AuthGuard'
 import RolGuard from '@/components/layout/RolGuard'
@@ -15,6 +15,7 @@ const ConfiguracionPage = lazy(() => import('@/features/configuracion/Configurac
 const HistorialPage     = lazy(() => import('@/features/ventas/HistorialPage'))
 const PreciosPage       = lazy(() => import('@/features/precios/PreciosPage'))
 const ClientesPage      = lazy(() => import('@/features/clientes/ClientesPage'))
+const ReportesPage      = lazy(() => import('@/features/reportes/ReportesPage'))
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -34,6 +35,11 @@ createRoot(document.getElementById('root')!).render(
                     subgrupos.js, clientes.js, print.js). */}
                 <Route element={<RolGuard roles={ROLES_ARTICULOS} />}>
                   <Route path='articulos' element={<ArticulosPage />} />
+                </Route>
+                {/* Reportes es solo para ROLES_REPORTES (superadmin); el
+                    backend igual responde 403 al resto (routes/reportes.js). */}
+                <Route element={<RolGuard roles={ROLES_REPORTES} />}>
+                  <Route path='reportes' element={<ReportesPage />} />
                 </Route>
                 <Route path='ventas' element={<VentasPage />} />
                 {/* Configuracion e Historial son solo para ROLES_CONFIGURACION /
